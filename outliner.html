@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edge Detector</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    #drop-area {
+      border: 2px dashed #ccc;
+      padding: 50px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    #canvas, #result-canvas {
+      display: none;
+      max-width: 90%;
+      max-height: 500px;
+    }
+
+     #result-canvas {
+      border: 1px solid black;
+      display: block;
+     }
+
+  </style>
+</head>
+<body>
+  <div id="drop-area">Drag and drop an image here</div>
+  <canvas id="canvas"></canvas>
+  <canvas id="result-canvas"></canvas>
+
+  <script>
+    const dropArea = document.getElementById('drop-area');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const resultCanvas = document.getElementById('result-canvas');
+    const resultCtx = resultCanvas.getContext('2d');
+
+    dropArea.addEventListener('dragover', (event) => {
+      event.stopPropagation();
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'copy';
+    });
+
+    dropArea.addEventListener('drop', (event) => {
+      event.stopPropagation();
+      event.preventDefault();
+      const fileList = event.dataTransfer.files;
+      const file = fileList[0];
+
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const edgeImageData = edgeDetect(imageData, 1, 2); // Adjust sigma values
+
+            resultCanvas.width = canvas.width;
+            resultCanvas.height = canvas.height;
+            resultCtx.putImageData(edgeImageData, 0, 0);
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function edgeDetect(imageData, sigma1, sigma2) {
+      const width = imageData.width;
+      const height = imageData.height;
+      const data = imageData.data;
+
+      function gaussianBlur(imageData, sigma) {
+        const width = imageData.width;
+        const height = imageData.height;
+        const data = imageData.data;
+        const kernelSize = Math.ceil(6 * sigma);
+        if (kernelSize % 2 === 0) {
+          kernelSize++;
+        }
+        const kernelRadius = Math.floor(kernelSize / 2);
+        const kernel = [];
+        let kernelSum = 0;
+
+        for (let i = -kernelRadius; i <= kernelRadius; i++) {
+          kernel[i + kernelRadius] = [];
+          for (let j = -kernelRadius; j <= kernelRadius; j++) {
+            const value = Math.exp(-(i * i + j * j) / (2 * sigma * sigma));
+            kernel[i + kernelRadius][j + kernelRadius] = value;
+            kernelSum += value;
+          }
+        }
+
+        for (let i = 0; i < kernelSize; i++) {
+          for (let j = 0; j < kernelSize; j++) {
+            kernel[i][j] /= kernelSum;
+          }
+        }
+
+        const blurredData = new Uint8ClampedArray(data.length);
+
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            let r = 0;
+            let g = 0;
+            let b = 0;
+
+            for (let i = -kernelRadius; i <= kernelRadius; i++) {
+              for (let j = -kernelRadius; j <= kernelRadius; j++) {
+                const pixelX = x + j;
+                const pixelY = y + i;
+
+                if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
+                  const pixelIndex = (pixelY * width + pixelX) * 4;
+                  const weight = kernel[i + kernelRadius][j + kernelRadius];
+
+                  r += data[pixelIndex] * weight;
+                  g += data[pixelIndex + 1] * weight;
+                  b += data[pixelIndex + 2] * weight;
+                }
+              }
+            }
+            const index = (y * width + x) * 4;
+            blurredData[index] = r;
+            blurredData[index + 1] = g;
+            blurredData[index + 2] = b;
+            blurredData[index + 3] = data[index + 3];
+          }
+        }
+
+        return new ImageData(blurredData, width, height);
+      }
+
+      function grayscale(imageData) {
+        const width = imageData.width;
+        const height = imageData.height;
+        const data = imageData.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+          const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+          data[i] = avg;
+          data[i + 1] = avg;
+          data[i + 2] = avg;
+        }
+        return imageData;
+      }
+
+      const grayImage = grayscale(new ImageData(new Uint8ClampedArray(data), width, height));
+      const blurred1 = gaussianBlur(grayImage, sigma1);
+      const blurred2 = gaussianBlur(grayImage, sigma2);
+
+      const edgeData = new Uint8ClampedArray(data.length);
+
+      for (let i = 0; i < data.length; i += 4) {
+        const diff = blurred1.data[i] - blurred2.data[i];
+        const edgeValue = Math.abs(diff);
+
+        const threshold = 30;
+        if (edgeValue > threshold) {
+          edgeData[i] = 0;
+          edgeData[i + 1] = 0;
+          edgeData[i + 2] = 0;
+          edgeData[i + 3] = 255;
+        } else {
+          edgeData[i] = 255;
+          edgeData[i + 1] = 255;
+          edgeData[i + 2] = 255;
+          edgeData[i + 3] = 255;
+        }
+      }
+
+      return new ImageData(edgeData, width, height);
+    }
+  </script>
+</body>
+</html>
