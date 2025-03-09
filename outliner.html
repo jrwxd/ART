@@ -11,6 +11,7 @@
       justify-content: center;
       min-height: 100vh;
       margin: 0;
+      padding: 20px;
     }
 
     #drop-area {
@@ -19,23 +20,74 @@
       text-align: center;
       cursor: pointer;
       margin-bottom: 20px;
+      width: 80%;
+      max-width: 500px;
     }
 
-    #canvas, #result-canvas {
+    #canvas {
       display: none;
-      max-width: 90%;
-      max-height: 500px;
     }
 
-     #result-canvas {
+    #result-canvas {
       border: 1px solid black;
       display: block;
-     }
+      max-width: 90%;
+      max-height: 500px;
+      margin-bottom: 20px;
+    }
 
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+      width: 80%;
+      max-width: 500px;
+    }
+
+    .slider-container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .slider-value {
+      font-weight: bold;
+      min-width: 30px;
+      text-align: right;
+    }
   </style>
 </head>
 <body>
   <div id="drop-area">Drag and drop an image here</div>
+  
+  <div class="controls">
+    <div class="slider-container">
+      <div class="slider-label">
+        <span>Sigma 1:</span>
+        <span class="slider-value" id="sigma1-value">1.0</span>
+      </div>
+      <input type="range" id="sigma1" min="0.1" max="5" step="0.1" value="1.0">
+    </div>
+    
+    <div class="slider-container">
+      <div class="slider-label">
+        <span>Sigma 2:</span>
+        <span class="slider-value" id="sigma2-value">2.0</span>
+      </div>
+      <input type="range" id="sigma2" min="0.1" max="10" step="0.1" value="2.0">
+    </div>
+  </div>
+  
   <canvas id="canvas"></canvas>
   <canvas id="result-canvas"></canvas>
 
@@ -45,6 +97,28 @@
     const ctx = canvas.getContext('2d');
     const resultCanvas = document.getElementById('result-canvas');
     const resultCtx = resultCanvas.getContext('2d');
+    
+    const sigma1Slider = document.getElementById('sigma1');
+    const sigma2Slider = document.getElementById('sigma2');
+    const sigma1Value = document.getElementById('sigma1-value');
+    const sigma2Value = document.getElementById('sigma2-value');
+    
+    let currentImage = null;
+
+    // Update sigma value displays when sliders change
+    sigma1Slider.addEventListener('input', function() {
+      sigma1Value.textContent = parseFloat(this.value).toFixed(1);
+      if (currentImage) {
+        processImage();
+      }
+    });
+
+    sigma2Slider.addEventListener('input', function() {
+      sigma2Value.textContent = parseFloat(this.value).toFixed(1);
+      if (currentImage) {
+        processImage();
+      }
+    });
 
     dropArea.addEventListener('dragover', (event) => {
       event.stopPropagation();
@@ -61,24 +135,35 @@
       if (file && file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const edgeImageData = edgeDetect(imageData, 1, 2); // Adjust sigma values
-
-            resultCanvas.width = canvas.width;
-            resultCanvas.height = canvas.height;
-            resultCtx.putImageData(edgeImageData, 0, 0);
+          currentImage = new Image();
+          currentImage.onload = () => {
+            processImage();
           };
-          img.src = e.target.result;
+          currentImage.src = e.target.result;
         };
         reader.readAsDataURL(file);
       }
     });
+
+    function processImage() {
+      // Reset canvas
+      canvas.width = currentImage.width;
+      canvas.height = currentImage.height;
+      ctx.drawImage(currentImage, 0, 0);
+
+      // Get sigma values from sliders
+      const sigma1 = parseFloat(sigma1Slider.value);
+      const sigma2 = parseFloat(sigma2Slider.value);
+
+      // Process image with current sigma values
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const edgeImageData = edgeDetect(imageData, sigma1, sigma2);
+
+      // Display result
+      resultCanvas.width = canvas.width;
+      resultCanvas.height = canvas.height;
+      resultCtx.putImageData(edgeImageData, 0, 0);
+    }
 
     function edgeDetect(imageData, sigma1, sigma2) {
       const width = imageData.width;
@@ -150,14 +235,15 @@
         const width = imageData.width;
         const height = imageData.height;
         const data = imageData.data;
+        const newData = new Uint8ClampedArray(data);
 
-        for (let i = 0; i < data.length; i += 4) {
-          const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-          data[i] = avg;
-          data[i + 1] = avg;
-          data[i + 2] = avg;
+        for (let i = 0; i < newData.length; i += 4) {
+          const avg = (newData[i] + newData[i + 1] + newData[i + 2]) / 3;
+          newData[i] = avg;
+          newData[i + 1] = avg;
+          newData[i + 2] = avg;
         }
-        return imageData;
+        return new ImageData(newData, width, height);
       }
 
       const grayImage = grayscale(new ImageData(new Uint8ClampedArray(data), width, height));
