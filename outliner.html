@@ -89,18 +89,18 @@
         const width = imageData.width;
         const height = imageData.height;
         const data = imageData.data;
-        const kernelSize = Math.ceil(6 * sigma);
+        let kernelSize = Math.ceil(6 * sigma);
         if (kernelSize % 2 === 0) {
           kernelSize++;
         }
         const kernelRadius = Math.floor(kernelSize / 2);
-        const kernel = [];
+        let kernel = [];
         let kernelSum = 0;
 
         for (let i = -kernelRadius; i <= kernelRadius; i++) {
           kernel[i + kernelRadius] = [];
           for (let j = -kernelRadius; j <= kernelRadius; j++) {
-            const value = Math.exp(-(i * i + j * j) / (2 * sigma * sigma));
+            let value = Math.exp(-(i * i + j * j) / (2 * sigma * sigma));
             kernel[i + kernelRadius][j + kernelRadius] = value;
             kernelSum += value;
           }
