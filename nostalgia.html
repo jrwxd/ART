@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>~*~Welcome to My Cyberspace~*~</title>
+  <style>
+    body {
+      background-color: #000033;
+      color: #33FF00;
+      font-family: "Comic Sans MS", cursive, sans-serif;
+      cursor: url('https://cdnjs.cloudflare.com/ajax/libs/cursor-effects/1.0.4/img/star.png'), auto;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    
+    #container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+    
+    .floating-text {
+      position: absolute;
+      user-select: none;
+      cursor: pointer;
+      text-shadow: 2px 2px 4px #FF00FF;
+    }
+    
+    #visitor-counter {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background-color: #FFFF00;
+      color: #FF0000;
+      padding: 5px;
+      border: 3px solid #FF00FF;
+      font-weight: bold;
+      z-index: 999;
+    }
+    
+    #guestbook {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #CCCCFF;
+      border: 5px ridge #FF00FF;
+      padding: 20px;
+      width: 400px;
+      color: #000099;
+      z-index: 1000;
+      box-shadow: 10px 10px 5px rgba(0,0,0,0.5);
+    }
+    
+    #poetry-container {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 30%;
+      background-color: #000000;
+      border: 2px dashed #00FFFF;
+      padding: 20px;
+      width: 40%;
+      color: #FFFFFF;
+      font-family: "Courier New", monospace;
+      z-index: 1001;
+    }
+    
+    .blink {
+      animation: blinker 0.8s linear infinite;
+    }
+    
+    @keyframes blinker {
+      50% { opacity: 0; }
+    }
+    
+    .menu-item {
+      position: fixed;
+      background-color: #330066;
+      color: #FFCC00;
+      padding: 10px;
+      border: 3px outset #9900CC;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 100;
+    }
+    
+    .fake-popup {
+      position: absolute;
+      background-color: #FFFFFF;
+      border: 2px solid #000000;
+      box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
+      padding: 15px;
+      width: 250px;
+      z-index: 500;
+    }
+    
+    .fake-popup-header {
+      background-color: #0000FF;
+      color: #FFFFFF;
+      padding: 5px;
+      margin: -15px -15px 10px -15px;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .fake-popup-close {
+      cursor: pointer;
+    }
+    
+    #main-title {
+      position: fixed;
+      top: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 36px;
+      color: #FF00FF;
+      text-shadow: 2px 2px 4px #00FFFF;
+      z-index: 10;
+    }
+    
+    #stars {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .star {
+      position: absolute;
+      background-color: #FFFFFF;
+      border-radius: 50%;
+    }
+    
+    #under-construction {
+      position: fixed;
+      bottom: 50px;
+      left: 50px;
+      animation: rotate 5s linear infinite;
+      z-index: 999;
+    }
+    
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .marquee {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: #FF0000;
+      color: #FFFFFF;
+      white-space: nowrap;
+      overflow: hidden;
+      z-index: 999;
+    }
+    
+    .marquee-content {
+      display: inline-block;
+      padding-left: 100%;
+      animation: marquee 20s linear infinite;
+    }
+    
+    @keyframes marquee {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-100%, 0); }
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="stars"></div>
+    
+    <h1 id="main-title" class="blink">~*~CyberPoet's Digital Realm~*~</h1>
+    
+    <div id="visitor-counter">
+      You are visitor #<span id="counter">1337</span>
+    </div>
+    
+    <div id="under-construction">
+      <img src="/api/placeholder/100/100" alt="Under Construction" />
+    </div>
+    
+    <div class="menu-item" style="top: 100px; left: 20px;">HOME</div>
+    <div class="menu-item" style="top: 150px; left: 20px;">ABOUT ME</div>
+    <div class="menu-item" style="top: 200px; left: 20px;" onclick="togglePoetry()">MY POETRY</div>
+    <div class="menu-item" style="top: 250px; left: 20px;" onclick="showGuestbook()">GUESTBOOK</div>
+    <div class="menu-item" style="top: 300px; left: 20px;">MY LINKS</div>
+    
+    <div id="guestbook">
+      <h2 style="text-align: center; color: #FF0099;">Sign my Guestbook</h2>
+      <form onsubmit="return false;">
+        <p>Name: <input type="text" style="width: 100%;" /></p>
+        <p>Email: <input type="text" style="width: 100%;" /></p>
+        <p>Message:<br><textarea style="width: 100%; height: 100px;"></textarea></p>
+        <p style="text-align: center;">
+          <button onclick="closeGuestbook()">Submit</button>
+          <button onclick="closeGuestbook()">Cancel</button>
+        </p>
+      </form>
+    </div>
+    
+    <div id="poetry-container">
+      <h3 style="color: #00FFFF; text-align: center;">Digital Whispers</h3>
+      <pre style="white-space: pre-wrap;">
+pixels scatter like dust
+in the virtual wind
+ones and zeros dancing
+an electric ballet
+
+we are ghosts in the machine
+memories stored on magnetic tape
+our whispers echo through 
+fluorescent corridors of light
+
+the internet remembers
+when we have forgotten
+cached versions of ourselves
+forever loading...
+        
+connection lost.
+reconnecting...
+      </pre>
+      <p style="text-align: center;">
+        <button onclick="togglePoetry()">Close</button>
+      </p>
+    </div>
+    
+    <div class="marquee">
+      <div class="marquee-content">
+        WELCOME TO MY SITE! BEST VIEWED IN INTERNET EXPLORER 6 AT 800x600 RESOLUTION! NO COPYRIGHT INFRINGEMENT INTENDED! UNDER CONSTRUCTION! MORE COMING SOON!
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Create floating text elements
+    const words = ["click me!", "digital", "cyber", "virtual", "reality", "matrix", "information", "superhighway", 
+                  "dial-up", "AOL", "Geocities", "Angelfire", "MIDI", "MP3", "Y2K", "l33t", "pwned", 
+                  "n00b", "roflcopter", "warez", ":)", ":(", "o_O", "<3", "brb", "afk", "ttyl", "lol"];
+    
+    const colors = ["#FF00FF", "#00FFFF", "#FFFF00", "#FF0000", "#00FF00", "#FFFFFF"];
+    
+    function createFloatingText() {
+      const floatingText = document.createElement("div");
+      floatingText.className = "floating-text";
+      floatingText.textContent = words[Math.floor(Math.random() * words.length)];
+      floatingText.style.left = Math.random() * 90 + "vw";
+      floatingText.style.top = Math.random() * 90 + "vh";
+      floatingText.style.fontSize = Math.floor(Math.random() * 24 + 12) + "px";
+      floatingText.style.color = colors[Math.floor(Math.random() * colors.length)];
+      floatingText.style.transform = `rotate(${Math.random() * 40 - 20}deg)`;
+      
+      // Random motion
+      const speedX = (Math.random() * 2 - 1) * 0.5;
+      const speedY = (Math.random() * 2 - 1) * 0.5;
+      
+      floatingText.onclick = function() {
+        playSound();
+        createFakePopup();
+      };
+      
+      document.getElementById("container").appendChild(floatingText);
+      
+      // Animate the floating text
+      let posX = parseFloat(floatingText.style.left);
+      let posY = parseFloat(floatingText.style.top);
+      
+      function moveText() {
+        posX += speedX;
+        posY += speedY;
+        
+        if (posX < 0 || posX > 90) {
+          floatingText.remove();
+          createFloatingText();
+          return;
+        }
+        
+        if (posY < 0 || posY > 90) {
+          floatingText.remove();
+          createFloatingText();
+          return;
+        }
+        
+        floatingText.style.left = posX + "vw";
+        floatingText.style.top = posY + "vh";
+        
+        requestAnimationFrame(moveText);
+      }
+      
+      moveText();
+    }
+    
+    // Create fake popup
+    function createFakePopup() {
+      const popup = document.createElement("div");
+      popup.className = "fake-popup";
+      popup.style.left = Math.random() * 70 + "vw";
+      popup.style.top = Math.random() * 70 + "vh";
+      
+      const popupContent = [
+        "Congratulations! You're the 1,000,000th visitor!",
+        "Warning: Your computer may be at risk!",
+        "You've got mail!",
+        "Hot singles in your area!",
+        "Download more RAM now!",
+        "Your Flash Player needs updating!",
+        "New message from ICQ!",
+        "Win a free iPod Nano!",
+        "Survey: Tell us what you think!"
+      ];
+      
+      const header = document.createElement("div");
+      header.className = "fake-popup-header";
+      header.innerHTML = `Alert! <span class="fake-popup-close">X</span>`;
+      
+      const content = document.createElement("div");
+      content.innerHTML = `
+        <p>${popupContent[Math.floor(Math.random() * popupContent.length)]}</p>
+        <div style="text-align: center;">
+          <button>OK</button>
+          <button>Cancel</button>
+        </div>
+      `;
+      
+      popup.appendChild(header);
+      popup.appendChild(content);
+      
+      document.getElementById("container").appendChild(popup);
+      
+      // Make popup draggable
+      let isDragging = false;
+      let offsetX, offsetY;
+      
+      header.addEventListener("mousedown", function(e) {
+        isDragging = true;
+        offsetX = e.clientX - popup.getBoundingClientRect().left;
+        offsetY = e.clientY - popup.getBoundingClientRect().top;
+      });
+      
+      document.addEventListener("mousemove", function(e) {
+        if (isDragging) {
+          popup.style.left = (e.clientX - offsetX) + "px";
+          popup.style.top = (e.clientY - offsetY) + "px";
+        }
+      });
+      
+      document.addEventListener("mouseup", function() {
+        isDragging = false;
+      });
+      
+      // Close button functionality
+      header.querySelector(".fake-popup-close").addEventListener("click", function() {
+        popup.remove();
+      });
+      
+      // Button click handlers
+      const buttons = content.querySelectorAll("button");
+      buttons.forEach(button => {
+        button.addEventListener("click", function() {
+          popup.remove();
+          playSound();
+        });
+      });
+    }
+    
+    // Create stars in the background
+    function createStars() {
+      const starsContainer = document.getElementById("stars");
+      
+      for (let i = 0; i < 200; i++) {
+        const star = document.createElement("div");
+        star.className = "star";
+        star.style.width = Math.random() * 3 + "px";
+        star.style.height = star.style.width;
+        star.style.left = Math.random() * 100 + "vw";
+        star.style.top = Math.random() * 100 + "vh";
+        star.style.opacity = Math.random();
+        
+        // Twinkling effect
+        star.style.animation = `blinker ${Math.random() * 5 + 2}s linear infinite`;
+        star.style.animationDelay = Math.random() * 5 + "s";
+        
+        starsContainer.appendChild(star);
+      }
+    }
+    
+    // Show guestbook
+    function showGuestbook() {
+      document.getElementById("guestbook").style.display = "block";
+      playSound();
+    }
+    
+    // Close guestbook
+    function closeGuestbook() {
+      document.getElementById("guestbook").style.display = "none";
+      playSound();
+      alert("Thanks for signing my guestbook!");
+    }
+    
+    // Toggle poetry display
+    function togglePoetry() {
+      const poetry = document.getElementById("poetry-container");
+      poetry.style.display = poetry.style.display === "none" ? "block" : "none";
+      playSound();
+    }
+    
+    // Simple sound effect
+    function playSound() {
+      // Since we can't use actual sound, we'll just change the counter
+      const counter = document.getElementById("counter");
+      counter.textContent = parseInt(counter.textContent) + 1;
+    }
+    
+    // Initialize
+    window.onload = function() {
+      createStars();
+      
+      // Create initial floating text elements
+      for (let i = 0; i < 15; i++) {
+        createFloatingText();
+      }
+      
+      // Periodically create more floating text
+      setInterval(function() {
+        if (document.querySelectorAll(".floating-text").length < 30) {
+          createFloatingText();
+        }
+      }, 3000);
+      
+      // Random popup
+      setTimeout(function() {
+        createFakePopup();
+      }, 5000);
+      
+      // Increment counter on clicks
+      document.addEventListener("click", function() {
+        const counter = document.getElementById("counter");
+        if (Math.random() < 0.2) {
+          counter.textContent = parseInt(counter.textContent) + 1;
+        }
+      });
+    };
+  </script>
+</body>
+</html>
