@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3D Orbital Simulator</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // Setup Three.js scene
+        const scene = new THREE.Scene();
+        //Fog setup
+        const fogColor = new THREE.Color(0x110011); // Black fog
+        const fogNear = 60; // Distance at which fog starts
+        const fogFar = 90; // Distance at which fog is at its densest
+        scene.fog = new THREE.Fog(fogColor, fogNear, fogFar);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 5);
+        
+        let newBodyVelocityScale = 0.2; // variable for new body velocity
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Orbit Controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(5, 5, 5);
+        scene.add(pointLight);
+
+        // Constants
+        const G = 10; // Gravitational constant (arbitrary)
+        const dt = 0.1; // Time step per frame
+        const bodies = []; // Store celestial bodies
+        const universeSize = 100; // Size of the wrapping universe (toroidal world)
+        let isAddingBody = false;
+
+        // Function to create a celestial body
+        function createBody(position, velocity, mass, radius, color) {
+            const geometry = new THREE.SphereGeometry(radius, 16, 16);
+            const material = new THREE.MeshBasicMaterial({ color });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.copy(position);
+            scene.add(mesh);
+
+            // Trail
+            const trailMaterial = new THREE.LineBasicMaterial({ color });
+            const trailGeometry = new THREE.BufferGeometry();
+            const trail = new THREE.Line(trailGeometry, trailMaterial);
+            scene.add(trail);
+
+            return { position: position.clone(), velocity: velocity.clone(), mass, mesh, trail, history: [] };
+        }
+
+        // Function to create random values
+        function getRandomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        //Create initial bodies, now with randomness
+        const initialBodies = 10;
+        for(let i = 0; i < initialBodies; i++){
+            const position = new THREE.Vector3(
+                getRandomInRange(-2, 2),
+                getRandomInRange(-2, 2),
+                getRandomInRange(-2, 2)
+            );
+            const velocity = new THREE.Vector3(
+                getRandomInRange(-0.5, 0.5),
+                getRandomInRange(-0.5, 0.5),
+                getRandomInRange(-0.5, 0.5)
+            );
+            const mass = getRandomInRange(0.01, 0.1);
+            const radius = Math.sqrt(mass) * getRandomInRange(0.5, 1.5); //Radius based on mass
+            const color = Math.random() * 0xffffff; //Random colors
+            bodies.push(createBody(position, velocity, mass, radius, color));
+        }
+
+        // Update function for physics
+        function update() {
+            const accelerations = bodies.map(() => new THREE.Vector3());
+
+            // Compute gravitational accelerations
+            for (let i = 0; i < bodies.length; i++) {
+                for (let j = i + 1; j < bodies.length; j++) {
+                    const body1 = bodies[i];
+                    const body2 = bodies[j];
+                    const delta = body2.position.clone().sub(body1.position);
+                    const r = delta.length();
+                    if (r > 0.091) { // Prevent singularities
+                        const factor = G / (r ** 3);
+                        const acc1 = delta.clone().multiplyScalar(factor * body2.mass);
+                        const acc2 = delta.clone().multiplyScalar(-factor * body1.mass);
+                        accelerations[i].add(acc1);
+                        accelerations[j].add(acc2);
+                    }
+                }
+            }
+
+            // Apply updates
+            bodies.forEach((body, i) => {
+                body.velocity.add(accelerations[i].clone().multiplyScalar(dt));
+                body.position.add(body.velocity.clone().multiplyScalar(dt));
+                body.mesh.position.copy(body.position);
+
+                //Wrap Around
+                body.position.set(
+                    body.position.x % universeSize,
+                    body.position.y % universeSize,
+                    body.position.z % universeSize
+                );
+
+                // Adjust for negative coordinates after modulo
+                if (body.position.x < -universeSize / 2) body.position.x += universeSize;
+                if (body.position.y < -universeSize / 2) body.position.y += universeSize;
+                if (body.position.z < -universeSize / 2) body.position.z += universeSize;
+                if (body.position.x > universeSize / 2) body.position.x -= universeSize;
+                if (body.position.y > universeSize / 2) body.position.y -= universeSize;
+                if (body.position.z > universeSize / 2) body.position.z -= universeSize;
+                // Update trails
+                body.history.push(body.position.clone());
+                //camera follow object removed
+                if (body.history.length > 100) body.history.shift();
+                body.trail.geometry.setFromPoints(body.history);
+                body.trail.geometry.attributes.position.needsUpdate = true;
+            });
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            update();
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Add new bodies on key press and click
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'n') {
+                isAddingBody = true;
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (event.key === 'n') {
+                isAddingBody = false;
+            }
+        });
+        renderer.domElement.addEventListener('click', (event) => {
+            if (isAddingBody) {
+                const mouse = new THREE.Vector2();
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(mouse, camera);
+                const clickPoint = raycaster.ray.at(5);
+
+                const position = new THREE.Vector3(
+                    clickPoint.x + getRandomInRange(-0.5, 0.5),
+                    clickPoint.y + getRandomInRange(-0.5, 0.5),
+                    clickPoint.z + getRandomInRange(-0.5, 0.5)
+                );
+                const velocity = new THREE.Vector3(
+                    getRandomInRange(-0.5, 0.5),
+                    getRandomInRange(-0.5, 0.5),
+                    getRandomInRange(-0.5, 0.5)
+                ).multiplyScalar(newBodyVelocityScale); //Adjusted
+                const mass = getRandomInRange(0.01, 0.1);
+                const radius = Math.sqrt(mass) * getRandomInRange(0.5, 1.5); //Radius based on mass
+                const color = Math.random() * 0xffffff;
+                bodies.push(createBody(position, velocity, mass, radius, color));
+            }
+        });
+
+        // Resize handling
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
