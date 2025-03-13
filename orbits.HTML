@@ -126,9 +126,9 @@
         const initialBodies = 180;
         for(let i = 0; i < initialBodies; i++){
             let temp = sphericalToRectangular(
-                i*getRandomInRange(100, 200),
-                i*getRandomInRange(-0.5, 0.5),
-                i*getRandomInRange(0, 1)
+                getRandomInRange(100, 110),
+                getRandomInRange(-0.5, 0.5),
+                getRandomInRange(0, 1)
             );
             const position = new THREE.Vector3(
                 temp.x,
