@@ -73,16 +73,16 @@
         const initialBodies = 40;
         for(let i = 0; i < initialBodies; i++){
             const position = new THREE.Vector3(
-                getRandomInRange(-2, 2),
-                getRandomInRange(-2, 2),
-                getRandomInRange(-2, 2)
+                getRandomInRange(-10, 10),
+                getRandomInRange(-10, 10),
+                getRandomInRange(-10, 10)
             );
             const velocity = new THREE.Vector3(
                 getRandomInRange(-0.5, 0.5),
                 getRandomInRange(-0.5, 0.5),
                 getRandomInRange(-0.5, 0.5)
             );
-            const mass = getRandomInRange(0.01, 0.1);
+            const mass = 10^(getRandomInRange(1, 10)/4)+getRandomInRange(0, 10); 
             const radius = Math.sqrt(mass) * getRandomInRange(0.5, 1.5); //Radius based on mass
             const color = Math.random() * 0xffffff; //Random colors
             bodies.push(createBody(position, velocity, mass, radius, color));
