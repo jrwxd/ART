@@ -101,7 +101,7 @@
                 getRandomInRange(0, 180),
                 getRandomInRange(0, 360)
             );
-            const mass = 10**(getRandomInRange(1, 10)/3)+getRandomInRange(0, 10); 
+            const mass = 10**(getRandomInRange(1, 10)/2.87)+getRandomInRange(0, 10); 
             const radius = Math.sqrt(0.1*mass) * getRandomInRange(0.5, 1.5); //Radius based on mass
             const color = Math.random() * 0xffffff; //Random colors
             bodies.push(createBody(position, velocity, mass, radius, color));
