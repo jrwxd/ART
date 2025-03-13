@@ -20,7 +20,7 @@
         //const fogFar = 190; // Distance at which fog is at its densest
         //scene.fog = new THREE.Fog(fogColor, fogNear, fogFar);
 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.8, 1000);
         camera.position.set(0, 0, 50);
         
         let newBodyVelocityScale = 0.2; // variable for new body velocity
@@ -70,7 +70,7 @@
         }
 
         //Create initial bodies, now with randomness
-        const initialBodies = 40;
+        const initialBodies = 80;
         for(let i = 0; i < initialBodies; i++){
             const position = new THREE.Vector3(
                 getRandomInRange(-100, 100),
