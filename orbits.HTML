@@ -90,7 +90,7 @@
         }
 
         // Update function for physics
-        function update() {
+        function update() { 
             const accelerations = bodies.map(() => new THREE.Vector3());
 
             // Compute gravitational accelerations
@@ -187,6 +187,18 @@
                         body.position.z % universeSize
                     );
                 }); // Increase velocity scale
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowDown') {
+                bodies.forEach( (body, i) => {
+                    body.mesh.position.copy(body.position);
+                    body.position.set(
+                        (body.position.x /5,
+                        body.position.y /5,
+                        body.position.z /5
+                    );
+                }); 
             }
         });
 
