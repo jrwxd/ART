@@ -15,9 +15,9 @@
         // Setup Three.js scene
         const scene = new THREE.Scene();
         //Fog setup
-        const fogColor = new THREE.Color(0x110011); // Black fog
-        const fogNear = 60; // Distance at which fog starts
-        const fogFar = 90; // Distance at which fog is at its densest
+        const fogColor = new THREE.Color(0x110011); // Dark purple fog
+        const fogNear = 30; // Distance at which fog starts
+        const fogFar = 190; // Distance at which fog is at its densest
         scene.fog = new THREE.Fog(fogColor, fogNear, fogFar);
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -42,9 +42,9 @@
 
         // Constants
         const G = 100; // Gravitational constant (arbitrary)
-        const dt = 0.1; // Time step per frame
+        const dt = 0.01; // Time step per frame
         const bodies = []; // Store celestial bodies
-        const universeSize = 100; // Size of the wrapping universe (toroidal world)
+        const universeSize = 200; // Size of the wrapping universe (toroidal world)
         let isAddingBody = false;
 
         // Function to create a celestial body
