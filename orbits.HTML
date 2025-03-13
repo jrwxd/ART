@@ -43,9 +43,9 @@
         // Constants
         const G = 20; // Gravitational constant (arbitrary)
         const c = 5000; // Speed of light (arbitrary)
-        const dt = 0.001; // Time step per frame
+        const dt = 0.003; // Time step per frame
         const bodies = []; // Store celestial bodies
-        const universeSize = 1600; // Size of the wrapping universe (toroidal world)
+        const universeSize = 2000; // Size of the wrapping universe (toroidal world)
         let isAddingBody = false;
 
         // Function to create a celestial body
@@ -70,6 +70,24 @@
             return Math.random() * (max - min) + min;
         }
 
+                /**
+         * Converts spherical coordinates to rectangular (Cartesian) coordinates.
+         * 
+         * @param {number} rho - The radial distance from the origin (ρ)
+         * @param {number} theta - The azimuthal angle in the x-y plane from the x-axis (θ), in radians
+         * @param {number} phi - The polar angle from the z-axis (φ), in radians
+         * @returns {Object} An object containing the x, y, and z coordinates
+         */
+        function sphericalToRectangular(rho, theta, phi) {
+            // Calculate the rectangular coordinates
+            const x = rho * Math.sin(phi) * Math.cos(theta);
+            const y = rho * Math.sin(phi) * Math.sin(theta);
+            const z = rho * Math.cos(phi);
+            
+            return new THREE.Vector3(x, y, z );
+        }
+
+
         //Create initial bodies, now with randomness
         const initialBodies = 180;
         for(let i = 0; i < initialBodies; i++){
@@ -78,10 +96,10 @@
                 i*getRandomInRange(-10, 10),
                 i*getRandomInRange(-1, 1)
             );
-            const velocity = new THREE.Vector3(
-                getRandomInRange(-1, 1),
-                getRandomInRange(-1, 1),
-                getRandomInRange(-0.1, 0.1)
+            const velocity = sphericalToRectangular(
+                getRandomInRange(-0.1,0.1),
+                getRandomInRange(0, 180),
+                getRandomInRange(0, 360)
             );
             const mass = 10**(getRandomInRange(1, 10)/3)+getRandomInRange(0, 10); 
             const radius = Math.sqrt(0.1*mass) * getRandomInRange(0.5, 1.5); //Radius based on mass
