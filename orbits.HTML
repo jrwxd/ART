@@ -97,7 +97,7 @@
             // Calculate phi (polar angle from z-axis)
             const phi = Math.acos(z / rho);
             
-            return  new THREE.Vector3(rho, theta, phi );
+            return  new THREE.Vector3(rho  |0, theta, phi );
         }
 
 
