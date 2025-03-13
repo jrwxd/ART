@@ -169,6 +169,22 @@
                 isAddingBody = false;
             }
         });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowUp') {
+                bodies.forEach( (body, i) => {
+                    body.position.multiplyScalar(1.1); // Increase velocity scale
+                    body.mesh.position.copy(body.position);
+                    body.position.set(
+                        (body.position.x + 5) % universeSize,
+                        body.position.y % universeSize,
+                        body.position.z % universeSize
+                    );
+                }); // Increase velocity scale
+            }
+        });
+
+
         renderer.domElement.addEventListener('click', (event) => {
             if (isAddingBody) {
                 const mouse = new THREE.Vector2();
