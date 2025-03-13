@@ -118,7 +118,7 @@
             const y = rho * Math.sin(phi) * Math.sin(theta);
             const z = rho * Math.cos(phi);
             
-            return {x: x |0,y:  y|0, z: z|0 };
+            return {x: x ,y:  y, z: z};
         }
 
 
@@ -127,8 +127,8 @@
         for(let i = 0; i < initialBodies; i++){
             let temp = sphericalToRectangular(
                 i*getRandomInRange(100, 200),
-                i*getRandomInRange(-10, 10),
-                i*getRandomInRange(-1, 1)
+                i*getRandomInRange(-0.5, 0.5),
+                i*getRandomInRange(0, 1)
             );
             const position = new THREE.Vector3(
                 temp.x,
