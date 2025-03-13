@@ -74,9 +74,9 @@
         const initialBodies = 180;
         for(let i = 0; i < initialBodies; i++){
             const position = new THREE.Vector3(
-                getRandomInRange(-100, 100),
-                getRandomInRange(-100, 100),
-                getRandomInRange(-100, 100)
+                i*getRandomInRange(-100, 100),
+                i*getRandomInRange(-100, 100),
+                i*getRandomInRange(-100, 100)
             );
             const velocity = new THREE.Vector3(
                 getRandomInRange(-0.1, 0.1),
