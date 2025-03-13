@@ -130,9 +130,19 @@
                 if (body.position.y > universeSize / 2) body.position.y -= universeSize;
                 if (body.position.z > universeSize / 2) body.position.z -= universeSize;
                 // Update trails
+
+                if (!body.history.length) {
+                    body.history.push(body.position.clone());
+                } else {
+                    const lastPoint = body.history[body.history.length - 1];
+                    if (lastPoint.distanceTo(body.position) > universeSize / 2) {
+                        body.history = [];
+                    }
+                }
                 body.history.push(body.position.clone());
-                //camera follow object removed
+                
                 if (body.history.length > 1000) body.history.shift();
+                
                 body.trail.geometry.setFromPoints(body.history);
                 body.trail.geometry.attributes.position.needsUpdate = true;
             });
