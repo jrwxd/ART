@@ -71,6 +71,34 @@
         }
 
                 /**
+         * Converts rectangular (Cartesian) coordinates to spherical coordinates.
+         * 
+         * @param {number} x - The x-coordinate
+         * @param {number} y - The y-coordinate
+         * @param {number} z - The z-coordinate
+         * @returns {Object} An object containing rho (ρ), theta (θ), and phi (φ) in radians
+         */
+        function rectangularToSpherical(x, y, z) {
+            // Calculate rho (radial distance)
+            const rho = Math.sqrt(x * x + y * y + z * z);
+            
+            // Handle the special case where rho is zero (at origin)
+            if (rho === 0) {
+                return { rho: 0, theta: 0, phi: 0 };
+            }
+            
+            // Calculate theta (azimuthal angle in x-y plane)
+            // Math.atan2 returns a value in the range [-π, π]
+            const theta = Math.atan2(y, x);
+            
+            // Calculate phi (polar angle from z-axis)
+            const phi = Math.acos(z / rho);
+            
+            return { rho, theta, phi };
+        }
+
+
+                /**
          * Converts spherical coordinates to rectangular (Cartesian) coordinates.
          * 
          * @param {number} rho - The radial distance from the origin (ρ)
@@ -199,10 +227,15 @@
             if (event.key === 'ArrowUp') {
                 bodies.forEach( (body, i) => {
                     body.mesh.position.copy(body.position);
-                    body.position.set(
-                        (body.position.x + 5) % universeSize,
-                        body.position.y % universeSize,
-                        body.position.z % universeSize
+                    r, p, t = rectangularToSpherical(
+                        body.position.x,
+                        body.position.y,
+                        body.position.z
+                    );
+                    body.position.set( sphericalToRectangular(
+                        r,
+                        p+5,
+                        t
                     );
                 }); // Increase velocity scale
             }
