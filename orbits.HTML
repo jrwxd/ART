@@ -21,7 +21,7 @@
         scene.fog = new THREE.Fog(fogColor, fogNear, fogFar);
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 0, 5);
+        camera.position.set(0, 0, 50);
         
         let newBodyVelocityScale = 0.2; // variable for new body velocity
 
@@ -44,7 +44,7 @@
         const G = 1000; // Gravitational constant (arbitrary)
         const dt = 0.01; // Time step per frame
         const bodies = []; // Store celestial bodies
-        const universeSize = 200; // Size of the wrapping universe (toroidal world)
+        const universeSize = 400; // Size of the wrapping universe (toroidal world)
         let isAddingBody = false;
 
         // Function to create a celestial body
