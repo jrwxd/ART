@@ -118,7 +118,7 @@
 
                 const wrong = body.velocity.length() / c;
 
-                if (wrong > 0.1) {
+                if (wrong > 1.0) {
                     body.velocity.set(body.position.x/(15*wrong), body.position.y/(15*wrong), body.position.z/(15*wrong)); // Limit velocity to speed of light
                 }
 
