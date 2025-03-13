@@ -41,9 +41,9 @@
         scene.add(pointLight);
 
         // Constants
-        const G = 20; // Gravitational constant (arbitrary)
+        const G = 100; // Gravitational constant (arbitrary)
         const c = 5000; // Speed of light (arbitrary)
-        const dt = 0.1; // Time step per frame
+        const dt = 0.01; // Time step per frame
         let r = 0;
         let p = 0;
         let t = 0;
@@ -51,7 +51,7 @@
         let yp = 0;
         let zp = 0;
         const bodies = []; // Store celestial bodies
-        const universeSize = 2000; // Size of the wrapping universe (toroidal world)
+        const universeSize = 4000; // Size of the wrapping universe (toroidal world)
         let isAddingBody = false;
 
         // Function to create a celestial body
