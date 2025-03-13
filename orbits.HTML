@@ -43,7 +43,7 @@
         // Constants
         const G = 20; // Gravitational constant (arbitrary)
         const c = 5000; // Speed of light (arbitrary)
-        const dt = 0.009; // Time step per frame
+        const dt = 0.1; // Time step per frame
         let r = 0;
         let p = 0;
         let t = 0;
@@ -152,7 +152,7 @@
                     const body2 = bodies[j];
                     const delta = body2.position.clone().sub(body1.position);
                     const r = delta.length();
-                    if (r > 0.1) { // Prevent singularities
+                    if (r > 1) { // Prevent singularities
                         const factor = G / (r ** 3);
                         const acc1 = delta.clone().multiplyScalar(factor * body2.mass);
                         const acc2 = delta.clone().multiplyScalar(-factor * body1.mass);
@@ -244,12 +244,13 @@
                         p,
                         t
                     );
+                    console.log(xp, yp, zp);
                     body.position.set(
                         xp|0,
                         yp|0,
                         zp|0
                     );
-                }); // Increase velocity scale
+                }); 
             }
         });
         document.addEventListener('keydown', (event) => {
