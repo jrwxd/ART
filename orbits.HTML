@@ -233,7 +233,7 @@
             if (event.key === 'ArrowUp') {
                 bodies.forEach( (body, i) => {
                     body.mesh.position.copy(body.position);
-                    r, p, t = sphericalToRectangular(
+                    r, p, t = rectangularToSpherical(
                         body.position.x,
                         body.position.y,
                         body.position.z
