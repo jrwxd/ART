@@ -42,6 +42,7 @@
 
         // Constants
         const G = 10; // Gravitational constant (arbitrary)
+        const c = 500; // Speed of light (arbitrary)
         const dt = 0.04; // Time step per frame
         const bodies = []; // Store celestial bodies
         const universeSize = 800; // Size of the wrapping universe (toroidal world)
@@ -114,6 +115,12 @@
                 body.velocity.add(accelerations[i].clone().multiplyScalar(dt));
                 body.position.add(body.velocity.clone().multiplyScalar(dt));
                 body.mesh.position.copy(body.position);
+
+                const wrong = body.velocity.length() / c;
+
+                if (wrong > 0.1) {
+                    body.velocity.set(body.position.x*wrong, body.position.y*wrong, body.position.z*wrong); // Limit velocity to speed of light
+                }
 
                 //Wrap Around
                 body.position.set(
