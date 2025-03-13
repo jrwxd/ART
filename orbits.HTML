@@ -42,7 +42,7 @@
 
         // Constants
         const G = 10; // Gravitational constant (arbitrary)
-        const c = 500; // Speed of light (arbitrary)
+        const c = 5000; // Speed of light (arbitrary)
         const dt = 0.04; // Time step per frame
         const bodies = []; // Store celestial bodies
         const universeSize = 800; // Size of the wrapping universe (toroidal world)
@@ -118,7 +118,7 @@
 
                 const wrong = body.velocity.length() / c;
 
-                if (wrong > 1.0) {
+                if (wrong > 0.7) {
                     body.velocity.set(body.position.x/(15*wrong), body.position.y/(15*wrong), body.position.z/(15*wrong)); // Limit velocity to speed of light
                 }
 
