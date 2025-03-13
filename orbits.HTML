@@ -125,18 +125,26 @@
         //Create initial bodies, now with randomness
         const initialBodies = 180;
         for(let i = 0; i < initialBodies; i++){
-            const position = new THREE.Vector3(
-                sphericalToRectangular(
+            let temp = sphericalToRectangular(
                 i*getRandomInRange(100, 200),
                 i*getRandomInRange(-10, 10),
                 i*getRandomInRange(-1, 1)
-            ));
-            const velocity = new THREE.Vector3(
-                sphericalToRectangular(
+            );
+            const position = new THREE.Vector3(
+                temp.x,
+                temp.y,
+                temp.z
+            );
+            temp = sphericalToRectangular(
                 getRandomInRange(-0.1,0.1),
                 getRandomInRange(0, 180),
                 getRandomInRange(0, 360)
-            ));
+            );
+            const velocity = new THREE.Vector3(
+                temp.x,
+                temp.y,
+                temp.z
+            );
             const mass = 10**(getRandomInRange(1, 10)/2.87)+getRandomInRange(0, 10); 
             const radius = Math.sqrt(0.1*mass) * getRandomInRange(0.5, 1.5); //Radius based on mass
             const color = Math.random() * 0xffffff; //Random colors
