@@ -34,7 +34,7 @@
         controls.enableDamping = true;
 
         // Lights
-        const ambientLight = new THREE.AmbientLight(0x404040);
+        const ambientLight = new THREE.AmbientLight(0x707070);
         scene.add(ambientLight);
         const pointLight = new THREE.PointLight(0xffffff, 1);
         pointLight.position.set(5, 5, 5);
@@ -42,7 +42,7 @@
 
         // Constants
         const G = 100; // Gravitational constant (arbitrary)
-        const dt = 0.001; // Time step per frame
+        const dt = 0.004; // Time step per frame
         const bodies = []; // Store celestial bodies
         const universeSize = 800; // Size of the wrapping universe (toroidal world)
         let isAddingBody = false;
@@ -73,16 +73,16 @@
         const initialBodies = 40;
         for(let i = 0; i < initialBodies; i++){
             const position = new THREE.Vector3(
-                getRandomInRange(-10, 10),
-                getRandomInRange(-10, 10),
-                getRandomInRange(-10, 10)
+                getRandomInRange(-100, 100),
+                getRandomInRange(-100, 100),
+                getRandomInRange(-100, 100)
             );
             const velocity = new THREE.Vector3(
-                getRandomInRange(-0.5, 0.5),
-                getRandomInRange(-0.5, 0.5),
-                getRandomInRange(-0.5, 0.5)
+                getRandomInRange(-0.1, 0.1),
+                getRandomInRange(-0.1, 0.1),
+                getRandomInRange(-0.1, 0.1)
             );
-            const mass = 10**(getRandomInRange(1, 10)/9)+getRandomInRange(0, 10); 
+            const mass = 10**(getRandomInRange(1, 10)/7)+getRandomInRange(0, 10); 
             const radius = Math.sqrt(mass) * getRandomInRange(0.5, 1.5); //Radius based on mass
             const color = Math.random() * 0xffffff; //Random colors
             bodies.push(createBody(position, velocity, mass, radius, color));
