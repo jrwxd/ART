@@ -70,7 +70,7 @@
         }
 
         //Create initial bodies, now with randomness
-        const initialBodies = 10;
+        const initialBodies = 20;
         for(let i = 0; i < initialBodies; i++){
             const position = new THREE.Vector3(
                 getRandomInRange(-2, 2),
@@ -132,7 +132,7 @@
                 // Update trails
                 body.history.push(body.position.clone());
                 //camera follow object removed
-                if (body.history.length > 100) body.history.shift();
+                if (body.history.length > 1000) body.history.shift();
                 body.trail.geometry.setFromPoints(body.history);
                 body.trail.geometry.attributes.position.needsUpdate = true;
             });
