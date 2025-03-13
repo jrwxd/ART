@@ -112,7 +112,7 @@
             const y = rho * Math.sin(phi) * Math.sin(theta);
             const z = rho * Math.cos(phi);
             
-            return new THREE.Vector3(x, y, z );
+            return new THREE.Vector3(x |0, y|0, z|0 );
         }
 
 
