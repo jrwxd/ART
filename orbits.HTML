@@ -97,7 +97,7 @@
             // Calculate phi (polar angle from z-axis)
             const phi = Math.acos(z / rho);
             
-            return  new THREE.Vector3(rho  |0, theta, phi );
+            return  {rho: rho, theta: theta, phi: phi };
         }
 
 
@@ -230,19 +230,18 @@
             if (event.key === 'ArrowUp') {
                 bodies.forEach( (body, i) => {
                     body.mesh.position.copy(body.position);
-                    r, p, t = rectangularToSpherical(
-                        body.position.x,
-                        body.position.y,
-                        body.position.z
-                    );
+            
                     console.log(r,p,t);
                     r, p, t = sphericalToRectangular(
                         r,
                         p+30,
                         t
                     );
-                    console.log(r,p,t);
-                    body.position.set( r, p , t);
+                    body.position.set(
+                        body.position.x+xp,
+                        body.position.y+yp,
+                        body.position.z+zp
+                    );
                 }); // Increase velocity scale
             }
         });
