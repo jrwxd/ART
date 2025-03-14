@@ -42,8 +42,10 @@
         controls.enableDamping = true;
 
         // Lights
-        const ambientLight = new THREE.AmbientLight(0x404040, 50); // Soft white light
+        const ambientLight = new THREE.AmbientLight(0x404040, 1); // Soft white light
         scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 30);
+        directionalLight.position.set(0, 1, 0).normalize();
 
         // Constants
         const G = 100; // Gravitational constant (arbitrary)
@@ -62,7 +64,7 @@
         // Function to create a celestial body
         function createBody(position, velocity, mass, radius, color) {
             const geometry = new THREE.SphereGeometry(radius, 16, 16);
-            const material = new THREE.MeshStandardMaterial({ color, metalness: 0.9, roughness: 0.0 });
+            const material = new THREE.MeshStandardMaterial({ color, metalness: 0.9, roughness: 0.1 });
             //const material = new THREE.MeshBasicMaterial({ color });
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.copy(position);
@@ -205,18 +207,20 @@
                 if (!body.history.length) {
                     body.history.push(body.position.clone());
                 } else {
-                    const lastPoint = body.history[body.history.length - 1];
-                    if (lastPoint.distanceTo(body.position) > universeSize / 2) {
+                    const distance = body.history[body.history.length - 1].distanceTo(body.position);
+                    if (distance > universeSize / 2) {
                         body.history = [];
-                    }
+                    } else
+                    if (body.history.length > 0) {
+                        
+                        if (distance < 0.5) return;
                 }
                 body.history.push(body.position.clone());
                 
                 if (body.history.length > 5000) body.history.shift();
                 
                 body.trail.geometry.setFromPoints(body.history);
-                body.trail.geometry.computeBoundingSphere();
-                
+
                 body.trail.geometry.attributes.position.needsUpdate = true;
             });
         }
