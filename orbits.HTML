@@ -252,8 +252,8 @@
                     );
                     temp = sphericalToRectangular(
                         temp.rho-10,
-                        temp.theta,
-                        temp.phi
+                        temp.theta+temp.rho,
+                        (temp.phi+temp.rho)%2*Math.PI-Math.PI
                     );
                     body.position.set(
                         temp.x,
@@ -275,7 +275,7 @@
                     temp = sphericalToRectangular(
                         temp.rho,
                         temp.theta,
-                        temp.phi+2
+                        temp.phi+10
                     );
                     body.position.set(
                         temp.x,
@@ -295,8 +295,8 @@
                             body.position.z);                       
                     temp = sphericalToRectangular(
                             temp.rho,
-                            temp.theta-20,
-                            temp.phi);
+                            temp.theta-Math.PI/6,
+                            (temp.phi+Math.PI/100)%2*Math.PI-Math.PI)
                     body.position.set(
                         temp.x,
                         temp.y,
