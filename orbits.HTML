@@ -285,6 +285,33 @@
                 }); 
             }
         });
+        //debouncer
+        let timeout;
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft') {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    bodies.forEach( (body, i) => {
+                        body.mesh.position.copy(body.position);
+                        temp = rectangularToSpherical(
+                            body.position.x,
+                            body.position.y,
+                            body.position.z
+                        );
+                        temp = sphericalToRectangular(
+                            temp.rho,
+                            temp.theta-20,
+                            temp.phi
+                        );
+                        body.position.set(
+                            temp.x,
+                            temp.y,
+                            temp.z
+                        );
+                    }); 
+                }, 100); // Adjust the delay as needed
+            }
+        });
 
 
         renderer.domElement.addEventListener('click', (event) => {
