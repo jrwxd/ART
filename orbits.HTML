@@ -153,7 +153,7 @@
                 temp.y,
                 temp.z
             );
-            const mass = 10**(getRandomInRange(0, 2)*getRandomInRange(0, 20); 
+            const mass = 10**(getRandomInRange(0, 2))*getRandomInRange(0, 20); 
             const radius = Math.sqrt(mass) * getRandomInRange(0.2, 1.1); //Radius based on mass
             const color = Math.random() * 0x444444+0x887788; //Random colors
             bodies.push(createBody(position, velocity, mass, radius, color));
@@ -185,8 +185,6 @@
                 body.velocity.add(accelerations[i].clone().multiplyScalar(dt));
                 body.position.add(body.velocity.clone().multiplyScalar(dt));
                 body.mesh.position.copy(body.position);
-
-
                 // Function to wrap a coordinate within the universe size
                 function wrapCoordinate(coord, size) {
                     coord = coord % size;
@@ -212,16 +210,15 @@
                         body.history = [];
                     } else
                     if (body.history.length > 0) {
-                        
                         if (distance < 0.5) return;
+                    }
+                    body.history.push(body.position.clone());
+                    
+                    if (body.history.length > 5000) body.history.shift();
+                    
+                    body.trail.geometry.setFromPoints(body.history);
+                    body.trail.geometry.attributes.position.needsUpdate = true;
                 }
-                body.history.push(body.position.clone());
-                
-                if (body.history.length > 5000) body.history.shift();
-                
-                body.trail.geometry.setFromPoints(body.history);
-
-                body.trail.geometry.attributes.position.needsUpdate = true;
             });
         }
 
