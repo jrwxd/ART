@@ -20,7 +20,7 @@
         //const fogFar = 190; // Distance at which fog is at its densest
         //scene.fog = new THREE.Fog(fogColor, fogNear, fogFar);
 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.4, 2000);
+        const camera = new THREE.PerspectiveCamera(5, window.innerWidth / window.innerHeight, 0.2, 5000);
         camera.position.set(0, 0, 500);
         
         let newBodyVelocityScale = 0.2; // variable for new body velocity
@@ -126,8 +126,8 @@
         const initialBodies = 180;
         for(let i = 0; i < initialBodies; i++){
             let temp = sphericalToRectangular(
-                getRandomInRange(500, 505),
-                getRandomInRange(-Math.PI/2, Math.PI/2),
+                getRandomInRange(900, 905),
+                getRandomInRange(-Math.PI/8, Math.PI/8),
                 getRandomInRange(0, 2*Math.PI)
             );
             const position = new THREE.Vector3(
