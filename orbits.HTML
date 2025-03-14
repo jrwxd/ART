@@ -136,7 +136,7 @@
                 temp.z
             );
             temp = sphericalToRectangular(
-                0,
+                1,
                 0,
                 0
             );
@@ -145,7 +145,7 @@
                 temp.y,
                 temp.z
             );
-            const mass = 10**(getRandomInRange(1, 10)/9)+getRandomInRange(0, 40); 
+            const mass = 10**(getRandomInRange(1, 10)/5)*getRandomInRange(0, 40); 
             const radius = Math.sqrt(mass) * getRandomInRange(0.5, 1.5); //Radius based on mass
             const color = Math.random() * 0x777777+0x777777; //Random colors
             bodies.push(createBody(position, velocity, mass, radius, color));
