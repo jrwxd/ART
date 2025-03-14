@@ -285,34 +285,25 @@
                 }); 
             }
         });
-        //debouncer
-        let timeout;
         document.addEventListener('keydown', (event) => {
             if (event.key === 'ArrowLeft') {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => {
-                    bodies.forEach( (body, i) => {
-                        body.mesh.position.copy(body.position);
-                        temp = rectangularToSpherical(
+                bodies.forEach( (body, i) => {
+                    body.mesh.position.copy(body.position);
+                    temp = rectangularToSpherical(
                             body.position.x,
                             body.position.y,
-                            body.position.z
-                        );
-                        temp = sphericalToRectangular(
+                            body.position.z);                       
+                    temp = sphericalToRectangular(
                             temp.rho,
                             temp.theta-20,
-                            temp.phi
-                        );
-                        body.position.set(
-                            temp.x,
-                            temp.y,
-                            temp.z
-                        );
-                    }); 
-                }, 10); // Adjust the delay as needed
+                            temp.phi);
+                    body.position.set(
+                        temp.x,
+                        temp.y,
+                        temp.z);
+                });
             }
         });
-
 
         renderer.domElement.addEventListener('click', (event) => {
             if (isAddingBody) {
