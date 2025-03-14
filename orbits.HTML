@@ -251,7 +251,7 @@
                         body.position.z
                     );
                     temp = sphericalToRectangular(
-                        temp.rho+3,
+                        temp.rho-10,
                         temp.theta,
                         temp.phi
                     );
@@ -267,10 +267,20 @@
             if (event.key === 'ArrowDown') {
                 bodies.forEach( (body, i) => {
                     body.mesh.position.copy(body.position);
+                    temp = rectangularToSpherical(
+                        body.position.x,
+                        body.position.y,
+                        body.position.z
+                    );
+                    temp = sphericalToRectangular(
+                        temp.rho,
+                        temp.theta,
+                        temp.phi+20
+                    );
                     body.position.set(
-                        body.position.x/5 |0,
-                        body.position.y/5 |0,
-                        body.position.z/5 |0
+                        temp.x,
+                        temp.y,
+                        temp.z
                     );
                 }); 
             }
