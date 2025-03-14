@@ -245,22 +245,20 @@
             if (event.key === 'ArrowUp') {
                 bodies.forEach( (body, i) => {
                     body.mesh.position.copy(body.position);
-                    r, p, t = rectangularToSpherical(
+                    temp = rectangularToSpherical(
                         body.position.x,
                         body.position.y,
                         body.position.z
                     );
-                    console.log(r, p, t);
-                    xp, yp, zp = sphericalToRectangular(
-                        r+3,
-                        p,
-                        t
+                    temp = sphericalToRectangular(
+                        temp.rho+3,
+                        temp.theta,
+                        temp.phi
                     );
-                    console.log(xp, yp, zp);
                     body.position.set(
-                        xp|0,
-                        yp|0,
-                        zp|0
+                        temp.x,
+                        temp.y,
+                        temp.z
                     );
                 }); 
             }
