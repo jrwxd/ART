@@ -128,7 +128,7 @@
             let temp = sphericalToRectangular(
                 600,
                 getRandomInRange(-Math.PI, Math.PI),
-                getRandomInRange(0, Math.PI),
+                getRandomInRange(0, 2*Math.PI),
             );
             const position = new THREE.Vector3(
                 temp.x,
@@ -136,7 +136,7 @@
                 temp.z
             );
             temp = sphericalToRectangular(
-                300,
+                0,
                 0,
                 0
             );
