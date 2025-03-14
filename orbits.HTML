@@ -21,29 +21,34 @@
         //scene.fog = new THREE.Fog(fogColor, fogNear, fogFar);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 5700);
-        camera.position.set(0, 0, 1000);
+        camera.position.set(1000, 0, 1000);
+        camera.lookAt(0, 0, 0); // Look at the center of the scene
+        camera.far = 10000; // Set far plane distance
+        camera.updateProjectionMatrix(); // Update the projection matrix to apply the new far plane distance
         
         let newBodyVelocityScale = 0.0; // variable for new body velocity
 
         const renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x000000, 1); // Set background color to black
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
         // Orbit Controls
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableZoom = true; // Enable zooming
+        controls.enablePan = true; // Enable panning
+
         controls.enableDamping = true;
 
         // Lights
-        const ambientLight = new THREE.AmbientLight(0x707070);
+        const ambientLight = new THREE.AmbientLight(0x404040, 1); // Soft white light
         scene.add(ambientLight);
-        const pointLight = new THREE.PointLight(0xffffff, 1);
-        pointLight.position.set(5, 5, 5);
-        scene.add(pointLight);
 
         // Constants
         const G = 10; // Gravitational constant (arbitrary)
         const c = 5000; // Speed of light (arbitrary)
-        const dt = 0.1; // Time step per frame
+        const dt = 0.01; // Time step per frame
         let r = 0;
         let p = 0;
         let t = 0;
@@ -51,7 +56,7 @@
         let yp = 0;
         let zp = 0;
         const bodies = []; // Store celestial bodies
-        const universeSize = 3000; // Size of the wrapping universe (toroidal world)
+        const universeSize = 6000; // Size of the wrapping universe (toroidal world)
         let isAddingBody = false;
 
         // Function to create a celestial body
