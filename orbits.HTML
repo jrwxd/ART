@@ -144,16 +144,16 @@
             temp = sphericalToRectangular(
                 0,
                 0,
-                0
+                -3*Math.PI/2
             );
             const velocity = new THREE.Vector3(
                 temp.x,
                 temp.y,
                 temp.z
             );
-            const mass = 10**(getRandomInRange(1, 10)/3)*getRandomInRange(0, 30); 
-            const radius = Math.sqrt(mass) * getRandomInRange(0.2, 1.5); //Radius based on mass
-            const color = Math.random() * 0x777777+0x777777; //Random colors
+            const mass = 10**(getRandomInRange(0, 2)*getRandomInRange(0, 20); 
+            const radius = Math.sqrt(mass) * getRandomInRange(0.2, 1.1); //Radius based on mass
+            const color = Math.random() * 0x444444+0x887788; //Random colors
             bodies.push(createBody(position, velocity, mass, radius, color));
         }
 
@@ -215,6 +215,8 @@
                 if (body.history.length > 5000) body.history.shift();
                 
                 body.trail.geometry.setFromPoints(body.history);
+                body.trail.geometry.computeBoundingSphere();
+                
                 body.trail.geometry.attributes.position.needsUpdate = true;
             });
         }
