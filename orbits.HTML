@@ -48,7 +48,7 @@
         // Constants
         const G = 100; // Gravitational constant (arbitrary)
         const c = 5000; // Speed of light (arbitrary)
-        const dt = 0.1; // Time step per frame
+        const dt = 0.01; // Time step per frame
         let r = 0;
         let p = 0;
         let t = 0;
@@ -56,7 +56,7 @@
         let yp = 0;
         let zp = 0;
         const bodies = []; // Store celestial bodies
-        const universeSize = 6000; // Size of the wrapping universe (toroidal world)
+        const universeSize = 8000; // Size of the wrapping universe (toroidal world)
         let isAddingBody = false;
 
         // Function to create a celestial body
@@ -151,7 +151,7 @@
                 temp.y,
                 temp.z
             );
-            const mass = 10**(getRandomInRange(1, 10)/7)*getRandomInRange(0, 30); 
+            const mass = 10**(getRandomInRange(1, 10)/3)*getRandomInRange(0, 30); 
             const radius = Math.sqrt(mass) * getRandomInRange(0.2, 1.5); //Radius based on mass
             const color = Math.random() * 0x777777+0x777777; //Random colors
             bodies.push(createBody(position, velocity, mass, radius, color));
