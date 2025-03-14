@@ -43,7 +43,7 @@
         // Constants
         const G = 1000; // Gravitational constant (arbitrary)
         const c = 5000; // Speed of light (arbitrary)
-        const dt = 0.001; // Time step per frame
+        const dt = 0.01; // Time step per frame
         let r = 0;
         let p = 0;
         let t = 0;
@@ -126,8 +126,8 @@
         const initialBodies = 180;
         for(let i = 0; i < initialBodies; i++){
             let temp = sphericalToRectangular(
-                getRandomInRange(900, 905),
-                getRandomInRange(-Math.PI/8, Math.PI/8),
+                600,
+                getRandomInRange(-Math.PI, Math.PI),
                 getRandomInRange(0, 2*Math.PI)
             );
             const position = new THREE.Vector3(
@@ -136,18 +136,18 @@
                 temp.z
             );
             temp = sphericalToRectangular(
-                -3,
+                -300,
                 0,
-                500
+                50
             );
             const velocity = new THREE.Vector3(
                 temp.x,
                 temp.y,
                 temp.z
             );
-            const mass = 10**(getRandomInRange(1, 10)/2.87)+getRandomInRange(0, 10); 
-            const radius = Math.sqrt(0.1*mass) * getRandomInRange(0.5, 1.5); //Radius based on mass
-            const color = Math.random() * 0xffffff; //Random colors
+            const mass = 10**(getRandomInRange(1, 10)/9)+getRandomInRange(0, 40); 
+            const radius = Math.sqrt(mass) * getRandomInRange(0.5, 1.5); //Radius based on mass
+            const color = Math.random() * 0x777777+0x777777; //Random colors
             bodies.push(createBody(position, velocity, mass, radius, color));
         }
 
@@ -162,7 +162,7 @@
                     const body2 = bodies[j];
                     const delta = body2.position.clone().sub(body1.position);
                     const r = delta.length();
-                    if (r > 1) { // Prevent singularities
+                    if (r > 5) { // Prevent singularities
                         const factor = G / (r ** 3);
                         const acc1 = delta.clone().multiplyScalar(factor * body2.mass);
                         const acc2 = delta.clone().multiplyScalar(-factor * body1.mass);
