@@ -62,7 +62,8 @@
         // Function to create a celestial body
         function createBody(position, velocity, mass, radius, color) {
             const geometry = new THREE.SphereGeometry(radius, 16, 16);
-            const material = new THREE.MeshBasicMaterial({ color });
+            const material = new THREE.MeshStandardMaterial({ color, metalness: 0.5, roughness: 0.5 });
+            //const material = new THREE.MeshBasicMaterial({ color });
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.copy(position);
             scene.add(mesh);
