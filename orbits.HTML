@@ -178,26 +178,22 @@
                 body.position.add(body.velocity.clone().multiplyScalar(dt));
                 body.mesh.position.copy(body.position);
 
-                //const wrong = body.velocity.length() / c;
 
-                //if (wrong > 0.7) {
-                //    body.velocity.set(body.position.x/(15*wrong), body.position.y/(15*wrong), body.position.z/(15*wrong)); // Limit velocity to speed of light
-                //}
+                // Function to wrap a coordinate within the universe size
+                function wrapCoordinate(coord, size) {
+                    coord = coord % size;
+                    if (coord < -size / 2) coord += size;
+                    if (coord > size / 2) coord -= size;
+                    return coord;
+                }
 
-                //Wrap Around
+                // Wrap Around
                 body.position.set(
-                    body.position.x % universeSize,
-                    body.position.y % universeSize,
-                    body.position.z % universeSize
+                    wrapCoordinate(body.position.x, universeSize),
+                    wrapCoordinate(body.position.y, universeSize),
+                    wrapCoordinate(body.position.z, universeSize)
                 );
 
-                // Adjust for negative coordinates after modulo
-                if (body.position.x < -universeSize / 2) body.position.x += universeSize;
-                if (body.position.y < -universeSize / 2) body.position.y += universeSize;
-                if (body.position.z < -universeSize / 2) body.position.z += universeSize;
-                if (body.position.x > universeSize / 2) body.position.x -= universeSize;
-                if (body.position.y > universeSize / 2) body.position.y -= universeSize;
-                if (body.position.z > universeSize / 2) body.position.z -= universeSize;
                 // Update trails
 
                 if (!body.history.length) {
