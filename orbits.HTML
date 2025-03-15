@@ -221,14 +221,14 @@
                 }
 
                 
-                body.mesh.position.copy(body.position);
+                
                 temp = rectangularToSpherical(
                         body.position.x,
                         body.position.y,
                         body.position.z
                 );
                 temp = sphericalToRectangular(
-                        temp.rho +100 /2,
+                        temp.rho,
                         temp.theta,
                         temp.phi
                 );
