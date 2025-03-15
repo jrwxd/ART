@@ -246,6 +246,28 @@
         });
 
         document.addEventListener('keydown', (event) => {
+            if (event.key === 's') {
+                bodies.forEach( (body, i) => {
+                    body.mesh.position.copy(body.position);
+                    temp = rectangularToSpherical(
+                        body.position.x,
+                        body.position.y,
+                        body.position.z
+                    );
+                    temp = sphericalToRectangular(
+                        100,
+                        (temp.theta+temp.rho)/Math.PI,
+                        (temp.phi+temp.rho)%(2*Math.PI)-Math.PI
+                    );
+                    body.position.set(
+                        temp.x,
+                        temp.y,
+                        temp.z
+                    );
+                }); 
+            }
+        });
+        document.addEventListener('keydown', (event) => {
             if (event.key === 'ArrowUp') {
                 bodies.forEach( (body, i) => {
                     body.mesh.position.copy(body.position);
