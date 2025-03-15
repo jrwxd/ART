@@ -144,15 +144,15 @@
                 temp.y,
                 temp.z
             );
-            temp = sphericalToRectangular(
+            let temp2 = sphericalToRectangular(
                 0,
                 0.1,
                 0
             );
             const velocity = new THREE.Vector3(
-                temp.x,
-                temp.y,
-                temp.z
+                temp2.x,
+                temp2.y,
+                temp2.z
             );
             const mass = 10**(getRandomInRange(0, 3))*getRandomInRange(0, 20); 
             const radius = Math.sqrt(mass) * getRandomInRange(0.2, 1.1); //Radius based on mass
