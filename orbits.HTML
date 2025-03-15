@@ -21,9 +21,9 @@
         //scene.fog = new THREE.Fog(fogColor, fogNear, fogFar);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 5700);
-        camera.position.set(1000, 0, 1000);
+        camera.position.set(1000, 1000, 1000);
         camera.lookAt(0, 0, 0); // Look at the center of the scene
-        camera.far = 13000; // Set far plane distance
+        camera.far = 18000; // Set far plane distance
         camera.updateProjectionMatrix(); // Update the projection matrix to apply the new far plane distance
     
 
@@ -40,18 +40,20 @@
         controls.enableZoom = true; // Enable zooming
         controls.enablePan = true; // Enable panning
         controls.autoRotate = true; // Disable auto-rotation
-        controls.autoRotateSpeed = 0.1; // Set auto-rotation speed
+        controls.autoRotateSpeed = 0.21; // Set auto-rotation speed
         controls.update();
         // Lights
         const ambientLight = new THREE.AmbientLight(0x404040, 3); // Soft white light
         scene.add(ambientLight);
         const directionalLight = new THREE.DirectionalLight(0xffffff, 30);
         directionalLight.position.set(0, 1, 0).normalize();
+        scene.add(directionalLight);
+        
 
         // Constants
-        const G = 1000; // Gravitational constant (arbitrary)
+        const G = 1500; // Gravitational constant (arbitrary)
         const c = 5000; // Speed of light (arbitrary)
-        const dt = 0.01; // Time step per frame
+        const dt = 0.005; // Time step per frame
         let r = 0;
         let p = 0;
         let t = 0;
@@ -59,13 +61,13 @@
         let yp = 0;
         let zp = 0;
         const bodies = []; // Store celestial bodies
-        const universeSize = 12000; // Size of the wrapping universe (toroidal world)
+        const universeSize = 10000; // Size of the wrapping universe (toroidal world)
         let isAddingBody = false;
 
         // Function to create a celestial body
         function createBody(position, velocity, mass, radius, color) {
             const geometry = new THREE.SphereGeometry(radius, 16, 16);
-            const material = new THREE.MeshStandardMaterial({ color, metalness: 0.5, roughness: 0.1 });
+            const material = new THREE.MeshStandardMaterial({ color, metalness: 0.5, roughness: 5.1 });
             //const material = new THREE.MeshBasicMaterial({ color });
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.copy(position);
