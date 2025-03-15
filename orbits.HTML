@@ -200,6 +200,27 @@
                     wrapCoordinate(body.position.y, universeSize),
                     wrapCoordinate(body.position.z, universeSize)
                 );
+                // Update trails
+
+                if (!body.history.length) {
+                    body.history.push(body.position.clone());
+                } else {
+                    const distance = body.history[body.history.length - 1].distanceTo(body.position);
+                    if (distance > universeSize / 2) {
+                        body.history = [];
+                    } else
+                    if (body.history.length > 0) {
+                        if (distance < 0.5) return;
+                    }
+                    body.history.push(body.position.clone());
+                    
+                    if (body.history.length > 5000) body.history.shift();
+                    
+                    body.trail.geometry.setFromPoints(body.history);
+                    body.trail.geometry.attributes.position.needsUpdate = true;
+                }
+
+                
                 body.mesh.position.copy(body.position);
                 temp = rectangularToSpherical(
                         body.position.x,
@@ -212,9 +233,9 @@
                         temp.phi
                 );
                 body.position.set(
-                        temp.x,
-                        temp.y,
-                        temp.z
+                        temp2.x,
+                        temp2.y,
+                        temp2.z
                 );
 
                 // Update trails
@@ -236,6 +257,8 @@
                     body.trail.geometry.setFromPoints(body.history);
                     body.trail.geometry.attributes.position.needsUpdate = true;
                 }
+
+
             });
         }
 
