@@ -138,7 +138,7 @@
 
 
         //Create initial bodies, now with randomness
-        const initialBodies = 180;
+        const initialBodies = 270;
         for(let i = 0; i < initialBodies; i++){
             let temp = sphericalToRectangular(
                 100,
@@ -160,9 +160,10 @@
                 temp2.y,
                 temp2.z
             );
-            const mass = 10**(getRandomInRange(0, 3))*getRandomInRange(0, 20); 
+            const mass = 10**(getRandomInRange(0, 1.5))*getRandomInRange(0, 20); 
             const radius = Math.sqrt(mass) * getRandomInRange(0.2, 1.1); //Radius based on mass
             const color = Math.random() * 0x444444+0x887788; //Random colors
+            
             bodies.push(createBody(position, velocity, mass, radius, color));
         }
 
