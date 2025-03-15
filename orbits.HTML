@@ -59,7 +59,7 @@
         let yp = 0;
         let zp = 0;
         const bodies = []; // Store celestial bodies
-        const universeSize = 8000; // Size of the wrapping universe (toroidal world)
+        const universeSize = 12000; // Size of the wrapping universe (toroidal world)
         let isAddingBody = false;
 
         // Function to create a celestial body
@@ -146,7 +146,7 @@
             );
             temp = sphericalToRectangular(
                 0,
-                3*Math.PI/2,
+                5,
                 0
             );
             const velocity = new THREE.Vector3(
@@ -154,7 +154,7 @@
                 temp.y,
                 temp.z
             );
-            const mass = 10**(getRandomInRange(0, 2))*getRandomInRange(0, 20); 
+            const mass = 10**(getRandomInRange(0, 3))*getRandomInRange(0, 20); 
             const radius = Math.sqrt(mass) * getRandomInRange(0.2, 1.1); //Radius based on mass
             const color = Math.random() * 0x444444+0x887788; //Random colors
             bodies.push(createBody(position, velocity, mass, radius, color));
@@ -201,21 +201,21 @@
                     wrapCoordinate(body.position.z, universeSize)
                 );
                 body.mesh.position.copy(body.position);
-                    temp = rectangularToSpherical(
+                temp = rectangularToSpherical(
                         body.position.x,
                         body.position.y,
                         body.position.z
-                    );
-                    temp = sphericalToRectangular(
+                );
+                temp = sphericalToRectangular(
                         temp.rho +100 /2,
                         temp.theta,
                         temp.phi
-                    );
-                    body.position.set(
+                );
+                body.position.set(
                         temp.x,
                         temp.y,
                         temp.z
-                    );
+                );
 
                 // Update trails
 
