@@ -135,7 +135,7 @@
         const initialBodies = 180;
         for(let i = 0; i < initialBodies; i++){
             let temp = sphericalToRectangular(
-                600,
+                500,
                 getRandomInRange(-Math.PI, Math.PI),
                 getRandomInRange(0, 2*Math.PI),
             );
@@ -200,6 +200,22 @@
                     wrapCoordinate(body.position.y, universeSize),
                     wrapCoordinate(body.position.z, universeSize)
                 );
+                body.mesh.position.copy(body.position);
+                    temp = rectangularToSpherical(
+                        body.position.x,
+                        body.position.y,
+                        body.position.z
+                    );
+                    temp = sphericalToRectangular(
+                        temp.rho +100 /2,
+                        temp.theta,
+                        temp.phi
+                    );
+                    body.position.set(
+                        temp.x,
+                        temp.y,
+                        temp.z
+                    );
 
                 // Update trails
 
