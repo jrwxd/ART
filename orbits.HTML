@@ -135,7 +135,7 @@
         const initialBodies = 180;
         for(let i = 0; i < initialBodies; i++){
             let temp = sphericalToRectangular(
-                500,
+                100,
                 getRandomInRange(-Math.PI, Math.PI),
                 getRandomInRange(0, 2*Math.PI),
             );
@@ -271,7 +271,7 @@
                         body.position.z
                     );
                     temp = sphericalToRectangular(
-                        1000,
+                        100,
                         (temp.theta+temp.rho)/Math.PI,
                         (temp.phi+temp.rho)%(2*Math.PI)-Math.PI
                     );
