@@ -12,7 +12,7 @@
 <body>
     <script>
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 18000);
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 32000);
         camera.position.set(1200, 1200, 1200);
         camera.lookAt(0, 0, 0);
 
@@ -90,10 +90,10 @@
             return { r, theta, phi };
         }
 
-        for (let i = 0; i < 100; i++) {
-            const pos = sphericalToCartesian(100, getRandom(-Math.PI, Math.PI), getRandom(0, Math.PI));
+        for (let i = 0; i < 200; i++) {
+            const pos = sphericalToCartesian(600, getRandom(-Math.PI, Math.PI), getRandom(0, Math.PI));
             const velocity = new THREE.Vector3(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
-            const mass = getRandom(10, 1000);
+            const mass = getRandom(10, 100);
             const radius = Math.sqrt(mass) * 0.5;
             const color = new THREE.Color().setHSL(Math.random(), 1, 0.6);
 
