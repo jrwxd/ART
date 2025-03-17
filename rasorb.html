@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Orbitals</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: black; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 18000);
+        camera.position.set(1200, 1200, 1200);
+        camera.lookAt(0, 0, 0);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x000000);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        
+        const ambientLight = new THREE.AmbientLight(0x606060, 5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 6);
+        directionalLight.position.set(5, 3, 5);
+        scene.add(directionalLight);
+        
+        class Vector4 {
+            constructor(x, y, z, w) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.w = w;
+            }
+            clone() {
+                return new Vector4(this.x, this.y, this.z, this.w);
+            }
+            add(v) {
+                this.x += v.x;
+                this.y += v.y;
+                this.z += v.z;
+                this.w += v.w;
+                return this;
+            }
+            multiplyScalar(s) {
+                this.x *= s;
+                this.y *= s;
+                this.z *= s;
+                this.w *= s;
+                return this;
+            }
+            length() {
+                return Math.sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2 + this.w ** 2);
+            }
+        }
+        
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsVertices = [];
+        for (let i = 0; i < 6000; i++) {
+            starsVertices.push((Math.random() - 0.5) * 20000, (Math.random() - 0.5) * 20000, (Math.random() - 0.5) * 20000);
+        }
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+        const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1 });
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
+        
+        const G = 1000;
+        const dt = 0.004;
+        const boundary = 500;
+        const bodies = [];
+        
+        function createBody(position, velocity, mass, radius, color) {
+            const geometry = new THREE.SphereGeometry(radius, 16, 16);
+            const material = new THREE.MeshStandardMaterial({ color, metalness: 0.4, roughness: 1.0 });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(position.x, position.y, position.z);
+            scene.add(mesh);
+            
+            return { position, velocity, mass, mesh };
+        }
+        
+        function getRandom(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+        
+        for (let i = 0; i < 200; i++) {
+            const pos = new Vector4(getRandom(-100, 100), getRandom(-100, 100), getRandom(-100, 100), getRandom(-100, 100));
+            const velocity = new Vector4(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
+            const mass = getRandom(10, 100);
+            const radius = Math.sqrt(mass) * 0.5;
+            const color = new THREE.Color().setHSL(Math.random(), 1, 0.6);
+            
+            bodies.push(createBody(pos, velocity, mass, radius, color));
+        }
+        
+        let shift = new Vector4(0, 0, 0, 0);
+        
+        function update() {
+            const accelerations = bodies.map(() => new Vector4(0, 0, 0, 0));
+            
+            for (let i = 0; i < bodies.length; i++) {
+                for (let j = i + 1; j < bodies.length; j++) {
+                    const body1 = bodies[i];
+                    const body2 = bodies[j];
+                    const delta = body2.position.clone().add(body1.position.clone().multiplyScalar(-1));
+                    const r = delta.length();
+                    if (r > 2) {
+                        const factor = G / (r ** 3);
+                        accelerations[i].add(delta.clone().multiplyScalar(factor * body2.mass));
+                        accelerations[j].add(delta.clone().multiplyScalar(-factor * body1.mass));
+                    }
+                }
+            }
+            
+            bodies.forEach((body, i) => {
+                body.velocity.add(accelerations[i].multiplyScalar(dt));
+                body.position.add(body.velocity.clone().multiplyScalar(dt)).add(shift);
+                body.mesh.position.set(body.position.x, body.position.y, body.position.z);
+            });
+            
+            renderer.render(scene, camera);
+            requestAnimationFrame(update);
+        }
+        
+        document.addEventListener('keydown', (event) => {
+            const moveAmount = 10;
+            if (event.key === 'ArrowUp') shift.y += moveAmount;
+            if (event.key === 'ArrowDown') shift.y -= moveAmount;
+            if (event.key === 'ArrowLeft') shift.x -= moveAmount;
+            if (event.key === 'ArrowRight') shift.x += moveAmount;
+            if (event.key === 'w') shift.z -= moveAmount;
+            if (event.key === 's') shift.z += moveAmount;
+            if (event.key === 'e') shift.w += moveAmount;
+            if (event.key === 'q') shift.w -= moveAmount;
+        });
+        
+        update();
+    </script>
+</body>
+</html>
