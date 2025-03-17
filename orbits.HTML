@@ -45,7 +45,7 @@
         // Lights
         const ambientLight = new THREE.AmbientLight(0x404040, 4); // Soft white light
         scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 15);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 8);
         directionalLight.position.set(4, 1, 3).normalize();
         directionalLight.castShadow = true;
         directionalLight.shadow.mapSize.width = 64;
