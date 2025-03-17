@@ -48,8 +48,8 @@
         const directionalLight = new THREE.DirectionalLight(0xffffff, 30);
         directionalLight.position.set(4, 1, 3).normalize();
         directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 1024;
-        directionalLight.shadow.mapSize.height = 1024;
+        directionalLight.shadow.mapSize.width = 64;
+        directionalLight.shadow.mapSize.height = 64;
         directionalLight.shadow.camera.near = 0.1;
         scene.add(directionalLight);
         
