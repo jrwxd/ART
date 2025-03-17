@@ -47,7 +47,7 @@
         const stars = new THREE.Points(starsGeometry, starsMaterial);
         scene.add(stars);
         
-        const G = 1000;
+        const G = 10000;
         const dt = 0.004;
         const boundary = 5000;
         const bodies = [];
@@ -73,11 +73,18 @@
                 r * Math.cos(phi)
             );
         }
+
+        function cartesianToSpherical(x, y, z) {
+            const r = Math.sqrt(x * x + y * y + z * z);
+            const theta = Math.atan2(y, x);
+            const phi = Math.acos(z / r);
+            return { r, theta, phi };
+        }
         
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < 500; i++) {
             const pos = sphericalToCartesian(100, getRandom(-Math.PI, Math.PI), getRandom(0, Math.PI));
             const velocity = new THREE.Vector3(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
-            const mass = getRandom(10, 100);
+            const mass = getRandom(10, 1000);
             const radius = Math.sqrt(mass) * 0.5;
             const color = new THREE.Color().setHSL(Math.random(), 1, 0.6);
             
@@ -134,6 +141,19 @@
             if (event.key === 'ArrowRight') shift.x += moveAmount;
             if (event.key === 'w') shift.z -= moveAmount;
             if (event.key === 's') shift.z += moveAmount;
+
+            
+            if (event.key === 'u') {
+                bodies.forEach((body, i) => {
+                    r, theta, phi = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
+                    const newTheta = theta + getRandom(-Math.PI / 4, Math.PI / 4);
+                    const newPhi = phi + getRandom(-Math.PI / 4, Math.PI / 4);
+                    const newPos = sphericalToCartesian(100, newTheta, newPhi);
+                    wrapPosition(body.position);
+                    body.mesh.position.copy(body.position);
+            });
+                
+            }
         });
         
         update();
