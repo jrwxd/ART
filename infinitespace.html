@@ -151,6 +151,12 @@
                     const newPos = sphericalToCartesian(100, newTheta, newPhi);
                     wrapPosition(body.position);
                     body.mesh.position.copy(body.position);
+
+                    stars.position.add(shift);
+                    wrapPosition(stars.position);
+                    
+                    renderer.render(scene, camera);
+                    requestAnimationFrame(update);
             });
                 
             }
