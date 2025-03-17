@@ -28,13 +28,13 @@
         controls.enableZoom = true; // Enable zooming
         controls.enablePan = true; // Enable panning
         controls.autoRotate = true; // Disable auto-rotation
-        controls.autoRotateSpeed = 0.41; // Set auto-rotation speed
+        controls.autoRotateSpeed = 0.91; // Set auto-rotation speed
         controls.update();
         
         const ambientLight = new THREE.AmbientLight(0x606060, 5);
         scene.add(ambientLight);
         const directionalLight = new THREE.DirectionalLight(0xffffff, 6);
-        directionalLight.position.set(5, 3, 5);
+        directionalLight.position.set(-5, -3, 5);
         scene.add(directionalLight);
         let gax = false;
         
@@ -128,9 +128,9 @@
 
                 if (gax) {
                     const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
-                    const newTheta = theta + getRandom(-Math.PI / 4, Math.PI / 4);
-                    const newPhi = 2 * phi;
-                    const newPos = sphericalToCartesian(100, newTheta, newPhi);
+                    const newTheta = theta + 20;
+                    const newPhi = 5+ phi;
+                    const newPos = sphericalToCartesian(r, newTheta, newPhi);
                     body.position = newPos;
                     body.mesh.position.copy(body.position);
                 }
