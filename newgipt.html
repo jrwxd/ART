@@ -47,7 +47,7 @@
         const stars = new THREE.Points(starsGeometry, starsMaterial);
         scene.add(stars);
 
-        const G = 100000;
+        const G = 1000000;
         const dt = 0.004;
         const boundary = 15000;
         const bodies = [];
@@ -141,8 +141,8 @@
 
                 if (gax) {
                     const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
-                    const newTheta = (theta + 0.002) % (2 * Math.PI);
-                    const newPhi = (phi + 0.001) % (Math.PI);
+                    const newTheta = (theta + 0.02) % (2 * Math.PI);
+                    const newPhi = (phi + 0.01) % (Math.PI);
                     const newPos = sphericalToCartesian(r, newTheta, newPhi);
                     body.position = newPos;
                     body.mesh.position.copy(body.position);
