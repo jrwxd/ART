@@ -141,7 +141,7 @@
 
                 if (gax) {
                     const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
-                    const newTheta = (theta + 3) % (2 * Math.PI);
+                    const newTheta = (theta ) % (2 * Math.PI);
                     const newPhi = (phi +body.mesh.material.color.getHex()/10000000 ) % (Math.PI);
                     const newPos = sphericalToCartesian(r-0.0001, newTheta, newPhi);
                     body.position = newPos;
