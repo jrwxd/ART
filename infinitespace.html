@@ -124,6 +124,15 @@
                 body.position.add(body.velocity.clone().multiplyScalar(dt)).add(shift);
                 wrapPosition(body.position);
                 body.mesh.position.copy(body.position);
+
+                if (gax) {
+                    const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
+                    const newTheta = theta + getRandom(-Math.PI / 4, Math.PI / 4);
+                    const newPhi = 2 * phi;
+                    const newPos = sphericalToCartesian(100, newTheta, newPhi);
+                    body.position = newPos;
+                    body.mesh.position.copy(body.position);
+                }
             });
             
             stars.position.add(shift);
@@ -144,19 +153,14 @@
 
             
             if (event.key === 'u') {
-                bodies.forEach((body, i) => {
-                    r, theta, phi = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
+                gax = !gax;
+                bodies.forEach((body) => {
+                    const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
                     const newTheta = theta + getRandom(-Math.PI / 4, Math.PI / 4);
-                    const newPhi = 2*phi;
+                    const newPhi = 2 * phi;
                     const newPos = sphericalToCartesian(100, newTheta, newPhi);
                     body.position = newPos;
                     body.mesh.position.copy(body.position);
-
-                    stars.position.add(shift);
-                    wrapPosition(stars.position);
-                    
-                    renderer.render(scene, camera);
-                    requestAnimationFrame(update);
             });
                 
             }
