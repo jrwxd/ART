@@ -43,9 +43,9 @@
         controls.autoRotateSpeed = 0.21; // Set auto-rotation speed
         controls.update();
         // Lights
-        const ambientLight = new THREE.AmbientLight(0x404040, 3); // Soft white light
+        const ambientLight = new THREE.AmbientLight(0x404040, 4); // Soft white light
         scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 30);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 15);
         directionalLight.position.set(4, 1, 3).normalize();
         directionalLight.castShadow = true;
         directionalLight.shadow.mapSize.width = 64;
@@ -162,7 +162,7 @@
             );
             const mass = 10**(getRandomInRange(0, 1.5))*getRandomInRange(0, 20); 
             const radius = Math.sqrt(mass) * getRandomInRange(0.2, 1.1); //Radius based on mass
-            const color = Math.random() * 0x444444+0x887788; //Random colors
+            const color = Math.random() * 0x666666+0x887788; //Random colors
             
             bodies.push(createBody(position, velocity, mass, radius, color));
         }
