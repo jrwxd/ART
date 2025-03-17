@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Orbitals</title>
+    <title>Orbitals with Trails</title>
     <style>
         body { margin: 0; overflow: hidden; background: black; }
     </style>
@@ -15,21 +15,28 @@
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 18000);
         camera.position.set(1200, 1200, 1200);
         camera.lookAt(0, 0, 0);
-        
+
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setClearColor(0x000000);
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
-        
 
-        
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableZoom = true;
+        controls.enablePan = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.91;
+        controls.update();
+
         const ambientLight = new THREE.AmbientLight(0x606060, 5);
         scene.add(ambientLight);
         const directionalLight = new THREE.DirectionalLight(0xffffff, 6);
-        directionalLight.position.set(5, 3, 5);
+        directionalLight.position.set(-5, -3, 5);
         scene.add(directionalLight);
-        
+
+        let gax = false;
+
         const starsGeometry = new THREE.BufferGeometry();
         const starsVertices = [];
         for (let i = 0; i < 6000; i++) {
@@ -39,25 +46,35 @@
         const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1 });
         const stars = new THREE.Points(starsGeometry, starsMaterial);
         scene.add(stars);
-        
-        const G = 1000;
-        const dt = 0.004;
+
+        const G = 10000;
+        const dt = 0.0004;
+        const boundary = 5000;
         const bodies = [];
-        
+
         function createBody(position, velocity, mass, radius, color) {
             const geometry = new THREE.SphereGeometry(radius, 16, 16);
             const material = new THREE.MeshStandardMaterial({ color, metalness: 0.4, roughness: 1.0 });
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.copy(position);
             scene.add(mesh);
-            
-            return { position: position.clone(), velocity: velocity.clone(), mass, mesh };
+
+            // Create Trail
+            const trailLength = 50;
+            const trailGeometry = new THREE.BufferGeometry();
+            const trailVertices = new Float32Array(trailLength * 3);
+            trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailVertices, 3));
+            const trailMaterial = new THREE.LineBasicMaterial({ color, linewidth: 1 });
+            const trail = new THREE.Line(trailGeometry, trailMaterial);
+            scene.add(trail);
+
+            return { position: position.clone(), velocity: velocity.clone(), mass, mesh, trail, trailVertices, trailLength, trailIndex: 0 };
         }
-        
+
         function getRandom(min, max) {
             return Math.random() * (max - min) + min;
         }
-        
+
         function sphericalToCartesian(r, theta, phi) {
             return new THREE.Vector3(
                 r * Math.sin(phi) * Math.cos(theta),
@@ -65,43 +82,84 @@
                 r * Math.cos(phi)
             );
         }
-        
-        for (let i = 0; i < 200; i++) {
+
+        function cartesianToSpherical(x, y, z) {
+            const r = Math.sqrt(x * x + y * y + z * z);
+            const theta = Math.atan2(y, x);
+            const phi = Math.acos(z / r);
+            return { r, theta, phi };
+        }
+
+        for (let i = 0; i < 100; i++) {
             const pos = sphericalToCartesian(100, getRandom(-Math.PI, Math.PI), getRandom(0, Math.PI));
             const velocity = new THREE.Vector3(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
-            const mass = getRandom(10, 100);
+            const mass = getRandom(10, 1000);
             const radius = Math.sqrt(mass) * 0.5;
             const color = new THREE.Color().setHSL(Math.random(), 1, 0.6);
-            
+
             bodies.push(createBody(pos, velocity, mass, radius, color));
         }
-        
+
+        function wrapPosition(position) {
+            if (position.x > boundary) position.x -= 2 * boundary;
+            if (position.x < -boundary) position.x += 2 * boundary;
+            if (position.y > boundary) position.y -= 2 * boundary;
+            if (position.y < -boundary) position.y += 2 * boundary;
+            if (position.z > boundary) position.z -= 2 * boundary;
+            if (position.z < -boundary) position.z += 2 * boundary;
+        }
+
+        let shift = new THREE.Vector3(0, 0, 0);
+
         function update() {
             const accelerations = bodies.map(() => new THREE.Vector3());
-            
+
             for (let i = 0; i < bodies.length; i++) {
                 for (let j = i + 1; j < bodies.length; j++) {
                     const body1 = bodies[i];
                     const body2 = bodies[j];
                     const delta = body2.position.clone().sub(body1.position);
                     const r = delta.length();
-                    if (r > 2) {
+                    if (r > 0.1) {
                         const factor = G / (r ** 3);
                         accelerations[i].add(delta.clone().multiplyScalar(factor * body2.mass));
                         accelerations[j].add(delta.clone().multiplyScalar(-factor * body1.mass));
                     }
                 }
             }
-            
+
             bodies.forEach((body, i) => {
                 body.velocity.add(accelerations[i].multiplyScalar(dt));
-                body.position.add(body.velocity.clone().multiplyScalar(dt));
+                body.position.add(body.velocity.clone().multiplyScalar(dt)).add(shift);
+                wrapPosition(body.position);
                 body.mesh.position.copy(body.position);
+
+                // Update Trail
+                body.trailVertices.copyWithin(3, 0, body.trailLength * 3 - 3);
+                body.trailVertices.set([body.position.x, body.position.y, body.position.z], 0);
+                body.trail.geometry.attributes.position.needsUpdate = true;
+
+                if (gax) {
+                    const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
+                    const newTheta = (theta + 0.02) % (2 * Math.PI);
+                    const newPhi = (phi + 0.01) % (Math.PI);
+                    const newPos = sphericalToCartesian(r, newTheta, newPhi);
+                    body.position = newPos;
+                    body.mesh.position.copy(body.position);
+                }
             });
-            
+
+            stars.position.add(shift);
+            wrapPosition(stars.position);
+
             renderer.render(scene, camera);
             requestAnimationFrame(update);
         }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'u') gax = !gax;
+        });
+
         update();
     </script>
 </body>
