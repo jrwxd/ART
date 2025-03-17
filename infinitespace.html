@@ -23,8 +23,13 @@
         document.body.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.15;
+
+
+        controls.enableZoom = true; // Enable zooming
+        controls.enablePan = true; // Enable panning
+        controls.autoRotate = true; // Disable auto-rotation
+        controls.autoRotateSpeed = 0.41; // Set auto-rotation speed
+        controls.update();
         
         const ambientLight = new THREE.AmbientLight(0x606060, 5);
         scene.add(ambientLight);
