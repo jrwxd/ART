@@ -35,7 +35,7 @@
         directionalLight.position.set(-5, -3, 5);
         scene.add(directionalLight);
 
-        let gax = false;
+        let gax = true;
 
         const starsGeometry = new THREE.BufferGeometry();
         const starsVertices = [];
@@ -141,7 +141,7 @@
 
                 if (gax) {
                     const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
-                    const newTheta = (theta + 0.02) % (2 * Math.PI);
+                    const newTheta = (theta + 2) % (2 * Math.PI);
                     const newPhi = (phi + 0.01) % (Math.PI);
                     const newPos = sphericalToCartesian(r, newTheta, newPhi);
                     body.position = newPos;
