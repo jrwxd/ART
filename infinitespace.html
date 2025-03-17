@@ -149,8 +149,7 @@
                     const newTheta = theta + getRandom(-Math.PI / 4, Math.PI / 4);
                     const newPhi = 2*phi;
                     const newPos = sphericalToCartesian(100, newTheta, newPhi);
-                    body.position.copy(newPos);
-                    wrapPosition(body.position);
+                    body.position = newPos;
                     body.mesh.position.copy(body.position);
 
                     stars.position.add(shift);
