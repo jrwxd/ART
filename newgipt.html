@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Orbitals</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: black; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 18000);
+        camera.position.set(1200, 1200, 1200);
+        camera.lookAt(0, 0, 0);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x000000);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.15;
+        
+        const ambientLight = new THREE.AmbientLight(0x606060, 5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 6);
+        directionalLight.position.set(5, 3, 5);
+        scene.add(directionalLight);
+        
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsVertices = [];
+        for (let i = 0; i < 6000; i++) {
+            starsVertices.push((Math.random() - 0.5) * 20000, (Math.random() - 0.5) * 20000, (Math.random() - 0.5) * 20000);
+        }
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+        const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1 });
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
+        
+        const G = 1000;
+        const dt = 0.004;
+        const bodies = [];
+        
+        function createBody(position, velocity, mass, radius, color) {
+            const geometry = new THREE.SphereGeometry(radius, 16, 16);
+            const material = new THREE.MeshStandardMaterial({ color, metalness: 0.4, roughness: 1.0 });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.copy(position);
+            scene.add(mesh);
+            
+            return { position: position.clone(), velocity: velocity.clone(), mass, mesh };
+        }
+        
+        function getRandom(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+        
+        function sphericalToCartesian(r, theta, phi) {
+            return new THREE.Vector3(
+                r * Math.sin(phi) * Math.cos(theta),
+                r * Math.sin(phi) * Math.sin(theta),
+                r * Math.cos(phi)
+            );
+        }
+        
+        for (let i = 0; i < 200; i++) {
+            const pos = sphericalToCartesian(100, getRandom(-Math.PI, Math.PI), getRandom(0, Math.PI));
+            const velocity = new THREE.Vector3(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
+            const mass = getRandom(10, 100);
+            const radius = Math.sqrt(mass) * 0.5;
+            const color = new THREE.Color().setHSL(Math.random(), 1, 0.6);
+            
+            bodies.push(createBody(pos, velocity, mass, radius, color));
+        }
+        
+        function update() {
+            const accelerations = bodies.map(() => new THREE.Vector3());
+            
+            for (let i = 0; i < bodies.length; i++) {
+                for (let j = i + 1; j < bodies.length; j++) {
+                    const body1 = bodies[i];
+                    const body2 = bodies[j];
+                    const delta = body2.position.clone().sub(body1.position);
+                    const r = delta.length();
+                    if (r > 2) {
+                        const factor = G / (r ** 3);
+                        accelerations[i].add(delta.clone().multiplyScalar(factor * body2.mass));
+                        accelerations[j].add(delta.clone().multiplyScalar(-factor * body1.mass));
+                    }
+                }
+            }
+            
+            bodies.forEach((body, i) => {
+                body.velocity.add(accelerations[i].multiplyScalar(dt));
+                body.position.add(body.velocity.clone().multiplyScalar(dt));
+                body.mesh.position.copy(body.position);
+            });
+            
+            renderer.render(scene, camera);
+            requestAnimationFrame(update);
+        }
+        update();
+    </script>
+</body>
+</html>
