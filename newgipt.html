@@ -47,9 +47,9 @@
         const stars = new THREE.Points(starsGeometry, starsMaterial);
         scene.add(stars);
 
-        const G = 10000;
+        const G = 100000;
         const dt = 0.04;
-        const boundary = 5000;
+        const boundary = 15000;
         const bodies = [];
 
         function createBody(position, velocity, mass, radius, color) {
