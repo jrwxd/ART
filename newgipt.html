@@ -104,7 +104,7 @@
 
         function wrapPosition(position) {
             // convert position to spherical coordinates
-            const { r, theta, phi } = cartesianToSpherical(position.x, position.y, position.z);
+            let { r, theta, phi } = cartesianToSpherical(position.x, position.y, position.z);
             // wrap r
             r = r % boundary;
             position.x = r * Math.sin(phi) * Math.cos(theta);
