@@ -13,7 +13,7 @@
     <script>
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 32000);
-        camera.position.set(1200, 1200, 1200);
+        camera.position.set(200, 200, 200);
         camera.lookAt(0, 0, 0);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -26,7 +26,7 @@
         controls.enableZoom = true;
         controls.enablePan = true;
         controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.91;
+        controls.autoRotateSpeed = 1.91;
         controls.update();
 
         const ambientLight = new THREE.AmbientLight(0x606060, 5);
