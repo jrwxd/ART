@@ -67,7 +67,7 @@
 
             scene.add(trail);
             
-            return { position: position.clone(), velocity: velocity.clone(), mass, mesh };
+            return { position: position.clone(), velocity: velocity.clone(), mass, mesh, history: [], trail };
         }
         
         function getRandom(min, max) {
