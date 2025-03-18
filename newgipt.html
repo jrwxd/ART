@@ -157,7 +157,10 @@
         }
 
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'u') gax = !gax;
+            if (event.key === 'u') gax = false;
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'y') gax = true;
         });
 
         update();
