@@ -62,11 +62,10 @@
             const trailGeometry = new THREE.BufferGeometry().setFromPoints([position.clone()]);
             const trailMaterial = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.5 });
             const trail = new THREE.Line(trailGeometry, trailMaterial);
-            trail.frustumCulled = false;
+            
+            mesh.trail = trail;
 
             scene.add(trail);
-            mesh.trail = trail;
-            body.history = [];
             
             return { position: position.clone(), velocity: velocity.clone(), mass, mesh };
         }
