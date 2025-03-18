@@ -181,7 +181,7 @@
                     const trailGeometry = new THREE.BufferGeometry();
                     let trailVertices = new Float32Array(trailLength * 3);
                     trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailVertices, 3));
-                    const trailMaterial = new THREE.LineBasicMaterial({ body.mesh.material.color, linewidth: 1 });
+                    const trailMaterial = new THREE.LineBasicMaterial({color: body.mesh.material.color, linewidth: 1 });
                     const trail = new THREE.Line(trailGeometry, trailMaterial);
                     scene.add(trail);
                     body.trail = trail;
@@ -197,7 +197,7 @@
                     const trailGeometry = new THREE.BufferGeometry();
                     let trailVertices = new Float32Array(trailLength * 3);
                     trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailVertices, 3));
-                    const trailMaterial = new THREE.LineBasicMaterial({body.mesh.material.color, linewidth: 1 });
+                    const trailMaterial = new THREE.LineBasicMaterial({color: body.mesh.material.color, linewidth: 1 });
                     const trail = new THREE.Line(trailGeometry, trailMaterial);
                     scene.add(trail);
                     body.trail = trail;
