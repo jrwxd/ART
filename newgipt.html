@@ -62,7 +62,7 @@
             scene.add(mesh);
 
             // Create Trail
-            const trailLength = 50;
+            const trailLength = 5;
             const trailGeometry = new THREE.BufferGeometry();
             const trailVertices = new Float32Array(trailLength * 3);
             trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailVertices, 3));
