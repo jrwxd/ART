@@ -103,36 +103,21 @@
         }
 
         function wrapPosition(position) {
-            if (position.x > boundary) position.x -= 2 * boundary;
-            if (position.x < -boundary) position.x += 2 * boundary;
-            if (position.y > boundary) position.y -= 2 * boundary;
-            if (position.y < -boundary) position.y += 2 * boundary;
-            if (position.z > boundary) position.z -= 2 * boundary;
-            if (position.z < -boundary) position.z += 2 * boundary;
+            // convert position to spherical coordinates
+            const { r, theta, phi } = cartesianToSpherical(position.x, position.y, position.z);
+            // wrap r
+            r = r % boundary;
+            position.x = r * Math.sin(phi) * Math.cos(theta);
+            position.y = r * Math.sin(phi) * Math.sin(theta);
+            position.z = r * Math.cos(phi);
+            
         }
 
         let shift = new THREE.Vector3(0, 0, 0);
 
         function update() {
-            const accelerations = bodies.map(() => new THREE.Vector3());
-
-            for (let i = 0; i < bodies.length; i++) {
-                for (let j = i + 1; j < bodies.length; j++) {
-                    const body1 = bodies[i];
-                    const body2 = bodies[j];
-                    const delta = body2.position.clone().sub(body1.position);
-                    const r = delta.length();
-                    if (r > 1) {
-                        const factor = G / (r ** 3);
-                        accelerations[i].add(delta.clone().multiplyScalar(factor * body2.mass));
-                        accelerations[j].add(delta.clone().multiplyScalar(-factor * body1.mass));
-                    }
-                }
-            }
-
+            
             bodies.forEach((body, i) => {
-                body.velocity.add(accelerations[i].multiplyScalar(dt));
-                body.position.add(body.velocity.clone().multiplyScalar(dt)).add(shift);
                 wrapPosition(body.position);
                 body.mesh.position.copy(body.position);
 
