@@ -63,8 +63,10 @@
             const trailMaterial = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.5 });
             const trail = new THREE.Line(trailGeometry, trailMaterial);
             trail.frustumCulled = false;
+
             scene.add(trail);
             mesh.trail = trail;
+            body.history = [];
             
             return { position: position.clone(), velocity: velocity.clone(), mass, mesh };
         }
@@ -148,13 +150,6 @@
                     body.trail.geometry.setFromPoints(body.history);
                     body.trail.geometry.attributes.position.needsUpdate = true;
                 }
-                body.mesh.material.color.setHSL(body.position.x / 1000, 1, 0.5);
-                body.mesh.material.needsUpdate = true;
-                body.mesh.material.color.setHSL(body.position.y / 1000, 1, 0.5);
-                body.mesh.material.needsUpdate = true;
-                body.mesh.material.color.setHSL(body.position.z / 1000, 1, 0.5);
-                body.mesh.material.color.setHSL(body.position.x / 1000, body.position.y / 1000, body.position.z / 1000);
-                body.mesh.material.needsUpdate = true;
                 
 
                 if (gax) {
