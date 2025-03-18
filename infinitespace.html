@@ -50,7 +50,7 @@
         
         const G = 1000000;
         const dt = 0.0004;
-        const boundary = 5000;
+        const boundary = 500000;
         const bodies = [];
         
         function createBody(position, velocity, mass, radius, color) {
@@ -112,7 +112,7 @@
                     const body2 = bodies[j];
                     const delta = body2.position.clone().sub(body1.position);
                     const r = delta.length();
-                    if (r > 0.1) {
+                    if (r > 0) {
                         const factor = G / (r ** 3);
                         accelerations[i].add(delta.clone().multiplyScalar(factor * body2.mass));
                         accelerations[j].add(delta.clone().multiplyScalar(-factor * body1.mass));
