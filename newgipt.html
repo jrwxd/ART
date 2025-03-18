@@ -173,7 +173,7 @@
         document.addEventListener('keydown', (event) => {
             if (event.key === 'r') R = (R + 1)%22;
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'e') {
+            if (event.key === 'a') {
                 trailLength = trailLength + 1;
                 bodies.forEach(body => {
                     body.trailLength = trailLength;
@@ -189,7 +189,7 @@
             }
         });
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'r') {
+            if (event.key === 's') {
                 trailLength = trailLength - 1;
                 bodies.forEach(body => {
                     body.trailLength = trailLength;
