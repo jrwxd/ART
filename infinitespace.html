@@ -59,6 +59,12 @@
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.copy(position);
             scene.add(mesh);
+            const trailGeometry = new THREE.BufferGeometry().setFromPoints([position.clone()]);
+            const trailMaterial = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.5 });
+            const trail = new THREE.Line(trailGeometry, trailMaterial);
+            trail.frustumCulled = false;
+            scene.add(trail);
+            mesh.trail = trail;
             
             return { position: position.clone(), velocity: velocity.clone(), mass, mesh };
         }
@@ -125,6 +131,26 @@
                 body.position.add(body.velocity.clone().multiplyScalar(dt)).add(shift);
                 wrapPosition(body.position);
                 body.mesh.position.copy(body.position);
+                if (!body.history.length) {
+                    body.history.push(body.position.clone());
+                } else {
+                    const distance = body.history[body.history.length - 1].distanceTo(body.position);
+                    if (distance > universeSize / 2) {
+                        body.history = [];
+                    } else
+                    if (body.history.length > 0) {
+                        if (distance < 0.5) return;
+                    }
+                    body.history.push(body.position.clone());
+                    
+                    if (body.history.length > 5000) body.history.shift();
+                    
+                    body.trail.geometry.setFromPoints(body.history);
+                    body.trail.geometry.attributes.position.needsUpdate = true;
+                }
+
+                
+                
 
                 if (gax) {
                     const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
