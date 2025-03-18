@@ -47,7 +47,9 @@
         const stars = new THREE.Points(starsGeometry, starsMaterial);
         scene.add(stars);
 
-        const G = 0.1;
+        let G = 0.1;
+        let E = 3;
+        let R = 2;
         const dt = 0.0004;
         const boundary = 150000;
         const bodies = [];
@@ -141,8 +143,8 @@
 
                 if (gax) {
                     const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
-                    const newTheta = (theta +2*body.mesh.material.color.getHex()/0xFFFFFF) % (2 * Math.PI);
-                    const newPhi = (phi +3*body.mesh.material.color.getHex()/0xFF0FFF ) % (Math.PI);
+                    const newTheta = (theta +E*body.mesh.material.color.getHex()/0xFFFFFF) % (2 * Math.PI);
+                    const newPhi = (phi +R*body.mesh.material.color.getHex()/0xFF0FFF ) % (Math.PI);
                     const newPos = sphericalToCartesian(r, newTheta, newPhi);
                     body.position = newPos;
                     body.mesh.position.copy(body.position);
@@ -161,6 +163,15 @@
         });
         document.addEventListener('keydown', (event) => {
             if (event.key === 'y') gax = true;
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'q') G = G + 1;
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'e') E = (E + 1)%22;
+        };
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'r') R = (R + 1)%22;
         });
 
         update();
