@@ -50,6 +50,7 @@
         let G = 0.1;
         let E = 3;
         let R = 2;
+        let trailLength = 40;
         const dt = 0.004;
         const boundary = 150000;
         const bodies = [];
@@ -62,9 +63,8 @@
             scene.add(mesh);
 
             // Create Trail
-            const trailLength = 5;
             const trailGeometry = new THREE.BufferGeometry();
-            const trailVertices = new Float32Array(trailLength * 3);
+            let trailVertices = new Float32Array(trailLength * 3);
             trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailVertices, 3));
             const trailMaterial = new THREE.LineBasicMaterial({ color, linewidth: 1 });
             const trail = new THREE.Line(trailGeometry, trailMaterial);
@@ -172,6 +172,38 @@
         });
         document.addEventListener('keydown', (event) => {
             if (event.key === 'r') R = (R + 1)%22;
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'e') {
+                trailLength = trailLength + 1;
+                bodies.forEach(body => {
+                    body.trailLength = trailLength;
+                    scene.remove(body.trail);
+                    const trailGeometry = new THREE.BufferGeometry();
+                    let trailVertices = new Float32Array(trailLength * 3);
+                    trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailVertices, 3));
+                    const trailMaterial = new THREE.LineBasicMaterial({ color, linewidth: 1 });
+                    const trail = new THREE.Line(trailGeometry, trailMaterial);
+                    scene.add(trail);
+                    body.trail = trail;
+                });
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'r') {
+                trailLength = trailLength - 1;
+                bodies.forEach(body => {
+                    body.trailLength = trailLength;
+                    scene.remove(body.trail);
+                    const trailGeometry = new THREE.BufferGeometry();
+                    let trailVertices = new Float32Array(trailLength * 3);
+                    trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailVertices, 3));
+                    const trailMaterial = new THREE.LineBasicMaterial({ color, linewidth: 1 });
+                    const trail = new THREE.Line(trailGeometry, trailMaterial);
+                    scene.add(trail);
+                    body.trail = trail;
+                });
+            }
+        });
         });
 
         update();
