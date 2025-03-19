@@ -6,12 +6,11 @@
     <title>Personal Project Manager</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dnd/14.0.2/ReactDnD.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dnd-html5-backend/14.0.2/ReactDnDHTML5Backend.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
-        .task { padding: 8px; margin: 4px; background: #f0f0f0; cursor: grab; }
-        .task-list { padding: 10px; border: 1px solid #ddd; min-height: 100px; }
+        .task, .project { padding: 8px; margin: 4px; background: #f0f0f0; cursor: grab; }
+        .task-list, .project-list { padding: 10px; border: 1px solid #ddd; min-height: 100px; }
+        .input-field { margin: 5px 0; }
     </style>
 </head>
 <body>
@@ -24,6 +23,34 @@
             constructor(props) {
                 super(props);
                 this.state = { projects: [] };
+            }
+
+            addProject() {
+                const name = prompt("Enter project name:");
+                if (name) {
+                    this.setState(prevState => ({ projects: [...prevState.projects, { name, tasks: [] }] }));
+                }
+            }
+
+            addTask(projectIndex) {
+                const taskName = prompt("Enter task name:");
+                if (taskName) {
+                    const projects = [...this.state.projects];
+                    projects[projectIndex].tasks.push({ name: taskName });
+                    this.setState({ projects });
+                }
+            }
+
+            exportProjects() {
+                const dataStr = JSON.stringify(this.state.projects, null, 2);
+                const blob = new Blob([dataStr], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "projects.json";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             }
 
             importProjects(event) {
@@ -41,24 +68,22 @@
                 reader.readAsText(file);
             }
 
-            exportProjects() {
-                const dataStr = JSON.stringify(this.state.projects, null, 2);
-                const blob = new Blob([dataStr], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "projects.json";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
-
             render() {
-                return React.createElement("div", null, 
-                    React.createElement("h2", null, "Projects"),
-                    React.createElement("div", { className: "task-list" }, this.state.projects.map((proj, index) => 
-                        React.createElement("div", { key: index, className: "task" }, proj.name)
-                    ))
+                return React.createElement("div", null,
+                    React.createElement("button", { onClick: () => this.addProject() }, "Add Project"),
+                    React.createElement("div", { className: "project-list" },
+                        this.state.projects.map((project, projIndex) => 
+                            React.createElement("div", { key: projIndex, className: "project" },
+                                React.createElement("strong", null, project.name),
+                                React.createElement("button", { onClick: () => this.addTask(projIndex) }, "Add Task"),
+                                React.createElement("div", { className: "task-list" },
+                                    project.tasks.map((task, taskIndex) => 
+                                        React.createElement("div", { key: taskIndex, className: "task" }, task.name)
+                                    )
+                                )
+                            )
+                        )
+                    )
                 );
             }
         }
