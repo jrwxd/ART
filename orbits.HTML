@@ -21,7 +21,7 @@
         //scene.fog = new THREE.Fog(fogColor, fogNear, fogFar);
 
         const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.2, 5700);
-        camera.position.set(2000, 2000, 2000);
+        camera.position.set(3000, 3000, 3000);
         camera.lookAt(0, 0, 0); // Look at the center of the scene
         camera.far = 18000; // Set far plane distance
         camera.updateProjectionMatrix(); // Update the projection matrix to apply the new far plane distance
@@ -31,6 +31,7 @@
 
         const renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true,alpha: true, antialiasing: false});
         renderer.autoClearColor = false;
+        renderer.setClearColor(0x000000, 1); // Set background color to black
         //const renderer = new THREE.WebGLRenderer();
         renderer.setPixelRatio(window.devicePixelRatio);
         //renderer.setClearColor(0x000000, 1); // Set background color to black
