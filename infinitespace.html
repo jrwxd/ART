@@ -16,9 +16,10 @@
         camera.position.set(1200, 1200, 1200);
         camera.lookAt(0, 0, 0);
         
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true,alpha: true,});
+        renderer.autoClearColor = false;
         renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setClearColor(0x000000);
+        //renderer.setClearColor(0x000000);
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
