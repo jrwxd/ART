@@ -14,11 +14,13 @@
         .project { background: #c8e6c9; border-left: 5px solid #388e3c; }
         .selected { background: #a5d6a7; }
         .task { background: #ffecb3; border-left: 5px solid #ffb300; }
+        canvas { border: 1px solid black; margin-top: 20px; }
     </style>
 </head>
 <body>
     <h1>Personal Project Manager</h1>
     <div id="app"></div>
+    <canvas id="ganttChart" width="800" height="400"></canvas>
     <script>
         const React = window.React;
         const ReactDOM = window.ReactDOM;
@@ -40,7 +42,7 @@
             addProject = () => {
                 if (this.state.newProjectName.trim() !== "") {
                     this.setState(prevState => ({ 
-                        projects: [...prevState.projects, { name: prevState.newProjectName, tasks: [] }],
+                        projects: [...prevState.projects, { name: prevState.newProjectName, tasks: [], startDate: "", endDate: "" }],
                         newProjectName: ""
                     }));
                 }
@@ -54,37 +56,29 @@
                 if (this.state.newTaskName.trim() !== "" && this.state.selectedProjectIndex !== null) {
                     this.setState(prevState => {
                         const projects = [...prevState.projects];
-                        projects[prevState.selectedProjectIndex].tasks.push({ name: prevState.newTaskName, completed: false });
+                        projects[prevState.selectedProjectIndex].tasks.push({ name: prevState.newTaskName, completed: false, subtasks: "", startDate: "", endDate: "" });
                         return { projects, newTaskName: "" };
                     });
                 }
             };
 
-            exportProjects = () => {
-                const dataStr = JSON.stringify(this.state.projects, null, 2);
-                const blob = new Blob([dataStr], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "projects.json";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            };
-
-            importProjects = (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const importedProjects = JSON.parse(e.target.result);
-                        this.setState({ projects: importedProjects });
-                    } catch (error) {
-                        alert("Invalid JSON format");
-                    }
-                };
-                reader.readAsText(file);
+            renderGanttChart = () => {
+                const canvas = document.getElementById("ganttChart");
+                const ctx = canvas.getContext("2d");
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                this.state.projects.forEach((project, pIndex) => {
+                    project.tasks.forEach((task, tIndex) => {
+                        if (task.startDate && task.endDate) {
+                            const startX = new Date(task.startDate).getTime() / 10000000;
+                            const endX = new Date(task.endDate).getTime() / 10000000;
+                            ctx.fillStyle = "blue";
+                            ctx.fillRect(startX, 50 + (pIndex * 50) + (tIndex * 20), endX - startX, 15);
+                            ctx.fillStyle = "black";
+                            ctx.fillText(task.name, startX + 5, 50 + (pIndex * 50) + (tIndex * 20) + 10);
+                        }
+                    });
+                });
             };
 
             render() {
@@ -103,12 +97,17 @@
                             React.createElement("button", { onClick: this.addTask }, "Add Task"),
                             React.createElement("div", { className: "task-list" },
                                 this.state.projects[this.state.selectedProjectIndex].tasks.map((task, idx) => 
-                                    React.createElement("div", { key: idx, className: "task" }, task.name)
+                                    React.createElement("div", { key: idx, className: "task" },
+                                        React.createElement("input", { type: "checkbox", checked: task.completed, onChange: () => this.toggleTaskCompletion(this.state.selectedProjectIndex, idx) }),
+                                        task.name,
+                                        React.createElement("input", { type: "text", value: task.subtasks, placeholder: "Subtasks", onChange: (e) => this.updateTaskSubtasks(this.state.selectedProjectIndex, idx, e) }),
+                                        React.createElement("input", { type: "date", value: task.startDate, onChange: (e) => this.updateTaskDates(this.state.selectedProjectIndex, idx, 'startDate', e) }),
+                                        React.createElement("input", { type: "date", value: task.endDate, onChange: (e) => this.updateTaskDates(this.state.selectedProjectIndex, idx, 'endDate', e) })
+                                    )
                                 )
                             )
                         ),
-                        React.createElement("button", { onClick: this.exportProjects }, "Export Projects"),
-                        React.createElement("input", { type: "file", accept: ".json", onChange: this.importProjects })
+                        React.createElement("button", { onClick: this.renderGanttChart }, "Render Gantt Chart")
                     )
                 );
             }
