@@ -143,8 +143,8 @@
         const initialBodies = 270;
         for(let i = 0; i < initialBodies; i++){
             let temp = sphericalToRectangular(
-                500,
-                i,
+                600,
+                -i,
                 i,
             );
             const position = new THREE.Vector3(
@@ -155,7 +155,7 @@
             let temp2 = sphericalToRectangular(
                 -1,
                 0,
-                0.1
+                0
             );
             const velocity = new THREE.Vector3(
                 temp2.x,
