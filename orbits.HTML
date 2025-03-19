@@ -58,7 +58,7 @@
         
 
         // Constants
-        const G = 1500; // Gravitational constant (arbitrary)
+        const G = 150000; // Gravitational constant (arbitrary)
         const c = 5000; // Speed of light (arbitrary)
         const dt = 0.005; // Time step per frame
         let r = 0;
@@ -164,8 +164,8 @@
                 temp2.z
             );
             const mass = 10**(getRandomInRange(0, 3))*getRandomInRange(0, 20); 
-            const radius = Math.sqrt(mass) * getRandomInRange(0.2, 1.1); //Radius based on mass
-            const color = Math.random() * 0x333333+0x554455; //Random colors
+            const radius = 0.5*Math.sqrt(mass) * getRandomInRange(0.2, 0.3); //Radius based on mass
+            const color = Math.random() * 0x333333+0x554433; //Random colors
             
             bodies.push(createBody(position, velocity, mass, radius, color));
         }
@@ -181,7 +181,7 @@
                     const body2 = bodies[j];
                     const delta = body2.position.clone().sub(body1.position);
                     const r = delta.length();
-                    if (r > 1) { // Prevent singularities
+                    if (r > 0.01) { // Prevent singularities
                         const factor = G / (r ** 3);
                         const acc1 = delta.clone().multiplyScalar(factor * body2.mass);
                         const acc2 = delta.clone().multiplyScalar(-factor * body1.mass);
