@@ -16,29 +16,60 @@
 <body>
     <h1>Personal Project Manager</h1>
     <input type="file" id="importFile" accept=".json">
-    <button onclick="exportProjects()">Export Projects</button>
+    <button id="exportButton">Export Projects</button>
     <div id="app"></div>
     <script>
         class ProjectManager extends React.Component {
             constructor(props) {
                 super(props);
-                this.state = { projects: [] };
+                this.state = { projects: [], newProjectName: "", newTaskName: "", selectedProjectIndex: null, editingTask: null, taskDescription: "", taskCompleted: false };
+            }
+
+            handleProjectNameChange(event) {
+                this.setState({ newProjectName: event.target.value });
+            }
+
+            handleTaskNameChange(event) {
+                this.setState({ newTaskName: event.target.value });
+            }
+
+            handleTaskDescriptionChange(event) {
+                this.setState({ taskDescription: event.target.value });
+            }
+
+            toggleTaskCompletion(index) {
+                const projects = [...this.state.projects];
+                const task = projects[this.state.selectedProjectIndex].tasks[index];
+                task.completed = !task.completed;
+                this.setState({ projects });
             }
 
             addProject() {
-                const name = prompt("Enter project name:");
-                if (name) {
-                    this.setState(prevState => ({ projects: [...prevState.projects, { name, tasks: [] }] }));
+                if (this.state.newProjectName.trim() !== "") {
+                    this.setState(prevState => ({ 
+                        projects: [...prevState.projects, { name: prevState.newProjectName, tasks: [] }],
+                        newProjectName: ""
+                    }));
                 }
             }
 
-            addTask(projectIndex) {
-                const taskName = prompt("Enter task name:");
-                if (taskName) {
+            addTask() {
+                if (this.state.newTaskName.trim() !== "" && this.state.selectedProjectIndex !== null) {
                     const projects = [...this.state.projects];
-                    projects[projectIndex].tasks.push({ name: taskName });
-                    this.setState({ projects });
+                    projects[this.state.selectedProjectIndex].tasks.push({ name: this.state.newTaskName, description: "", completed: false });
+                    this.setState({ projects, newTaskName: "" });
                 }
+            }
+
+            editTask(index) {
+                const task = this.state.projects[this.state.selectedProjectIndex].tasks[index];
+                this.setState({ editingTask: index, taskDescription: task.description });
+            }
+
+            saveTaskDescription(index) {
+                const projects = [...this.state.projects];
+                projects[this.state.selectedProjectIndex].tasks[index].description = this.state.taskDescription;
+                this.setState({ projects, editingTask: null, taskDescription: "" });
             }
 
             exportProjects() {
@@ -70,27 +101,42 @@
 
             render() {
                 return React.createElement("div", null,
+                    React.createElement("input", { type: "text", placeholder: "New Project Name", value: this.state.newProjectName, onChange: (e) => this.handleProjectNameChange(e) }),
                     React.createElement("button", { onClick: () => this.addProject() }, "Add Project"),
                     React.createElement("div", { className: "project-list" },
                         this.state.projects.map((project, projIndex) => 
                             React.createElement("div", { key: projIndex, className: "project" },
                                 React.createElement("strong", null, project.name),
-                                React.createElement("button", { onClick: () => this.addTask(projIndex) }, "Add Task"),
+                                React.createElement("button", { onClick: () => this.setState({ selectedProjectIndex: projIndex }) }, "Select"),
                                 React.createElement("div", { className: "task-list" },
                                     project.tasks.map((task, taskIndex) => 
-                                        React.createElement("div", { key: taskIndex, className: "task" }, task.name)
+                                        React.createElement("div", { key: taskIndex, className: "task" },
+                                            React.createElement("input", { type: "checkbox", checked: task.completed, onChange: () => this.toggleTaskCompletion(taskIndex) }),
+                                            React.createElement("span", null, task.name),
+                                            React.createElement("button", { onClick: () => this.editTask(taskIndex) }, "Edit Description"),
+                                            this.state.editingTask === taskIndex ?
+                                                React.createElement("div", null,
+                                                    React.createElement("textarea", { value: this.state.taskDescription, onChange: (e) => this.handleTaskDescriptionChange(e) }),
+                                                    React.createElement("button", { onClick: () => this.saveTaskDescription(taskIndex) }, "Save")
+                                                ) : null
+                                        )
                                     )
                                 )
                             )
                         )
-                    )
+                    ),
+                    React.createElement("input", { type: "text", placeholder: "New Task Name", value: this.state.newTaskName, onChange: (e) => this.handleTaskNameChange(e) }),
+                    React.createElement("button", { onClick: () => this.addTask() }, "Add Task")
                 );
             }
         }
 
-        ReactDOM.render(React.createElement(ProjectManager), document.getElementById("app"));
+        const projectManager = ReactDOM.render(React.createElement(ProjectManager), document.getElementById("app"));
         document.getElementById("importFile").addEventListener("change", function(event) {
-            ReactDOM.render(React.createElement(ProjectManager, { importFile: event.target }), document.getElementById("app"));
+            projectManager.importProjects(event);
+        });
+        document.getElementById("exportButton").addEventListener("click", function() {
+            projectManager.exportProjects();
         });
     </script>
 </body>
