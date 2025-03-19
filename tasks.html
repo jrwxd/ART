@@ -6,6 +6,7 @@
     <title>Personal Project Manager</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-beautiful-dnd/13.1.1/react-beautiful-dnd.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
         .task, .project { padding: 8px; margin: 4px; background: #f0f0f0; cursor: grab; }
@@ -19,10 +20,12 @@
     <button id="exportButton">Export Projects</button>
     <div id="app"></div>
     <script>
+        const { DragDropContext, Droppable, Draggable } = window.ReactBeautifulDnd;
+
         class ProjectManager extends React.Component {
             constructor(props) {
                 super(props);
-                this.state = { projects: [], newProjectName: "", newTaskName: "", selectedProjectIndex: null, editingTask: null, taskDescription: "", taskCompleted: false };
+                this.state = { projects: [], newProjectName: "", newTaskName: "", selectedProjectIndex: null };
             }
 
             handleProjectNameChange(event) {
@@ -31,17 +34,6 @@
 
             handleTaskNameChange(event) {
                 this.setState({ newTaskName: event.target.value });
-            }
-
-            handleTaskDescriptionChange(event) {
-                this.setState({ taskDescription: event.target.value });
-            }
-
-            toggleTaskCompletion(index) {
-                const projects = [...this.state.projects];
-                const task = projects[this.state.selectedProjectIndex].tasks[index];
-                task.completed = !task.completed;
-                this.setState({ projects });
             }
 
             addProject() {
@@ -56,20 +48,9 @@
             addTask() {
                 if (this.state.newTaskName.trim() !== "" && this.state.selectedProjectIndex !== null) {
                     const projects = [...this.state.projects];
-                    projects[this.state.selectedProjectIndex].tasks.push({ name: this.state.newTaskName, description: "", completed: false });
+                    projects[this.state.selectedProjectIndex].tasks.push({ name: this.state.newTaskName });
                     this.setState({ projects, newTaskName: "" });
                 }
-            }
-
-            editTask(index) {
-                const task = this.state.projects[this.state.selectedProjectIndex].tasks[index];
-                this.setState({ editingTask: index, taskDescription: task.description });
-            }
-
-            saveTaskDescription(index) {
-                const projects = [...this.state.projects];
-                projects[this.state.selectedProjectIndex].tasks[index].description = this.state.taskDescription;
-                this.setState({ projects, editingTask: null, taskDescription: "" });
             }
 
             exportProjects() {
@@ -99,30 +80,50 @@
                 reader.readAsText(file);
             }
 
+            onDragEnd = (result) => {
+                if (!result.destination) return;
+                const { source, destination } = result;
+                const projects = [...this.state.projects];
+
+                if (source.droppableId === "project-list" && destination.droppableId === "project-list") {
+                    const [movedProject] = projects.splice(source.index, 1);
+                    projects.splice(destination.index, 0, movedProject);
+                } else if (source.droppableId.startsWith("tasks-") && destination.droppableId.startsWith("tasks-")) {
+                    const projIndex = parseInt(source.droppableId.split("-")[1]);
+                    const tasks = [...projects[projIndex].tasks];
+                    const [movedTask] = tasks.splice(source.index, 1);
+                    tasks.splice(destination.index, 0, movedTask);
+                    projects[projIndex].tasks = tasks;
+                }
+
+                this.setState({ projects });
+            };
+
             render() {
-                return React.createElement("div", null,
+                return React.createElement(DragDropContext, { onDragEnd: this.onDragEnd },
                     React.createElement("input", { type: "text", placeholder: "New Project Name", value: this.state.newProjectName, onChange: (e) => this.handleProjectNameChange(e) }),
                     React.createElement("button", { onClick: () => this.addProject() }, "Add Project"),
-                    React.createElement("div", { className: "project-list" },
-                        this.state.projects.map((project, projIndex) => 
-                            React.createElement("div", { key: projIndex, className: "project" },
-                                React.createElement("strong", null, project.name),
-                                React.createElement("button", { onClick: () => this.setState({ selectedProjectIndex: projIndex }) }, "Select"),
-                                React.createElement("div", { className: "task-list" },
-                                    project.tasks.map((task, taskIndex) => 
-                                        React.createElement("div", { key: taskIndex, className: "task" },
-                                            React.createElement("input", { type: "checkbox", checked: task.completed, onChange: () => this.toggleTaskCompletion(taskIndex) }),
-                                            React.createElement("span", null, task.name),
-                                            React.createElement("button", { onClick: () => this.editTask(taskIndex) }, "Edit Description"),
-                                            this.state.editingTask === taskIndex ?
-                                                React.createElement("div", null,
-                                                    React.createElement("textarea", { value: this.state.taskDescription, onChange: (e) => this.handleTaskDescriptionChange(e) }),
-                                                    React.createElement("button", { onClick: () => this.saveTaskDescription(taskIndex) }, "Save")
-                                                ) : null
+                    React.createElement(Droppable, { droppableId: "project-list" }, (provided) =>
+                        React.createElement("div", { ref: provided.innerRef, ...provided.droppableProps, className: "project-list" },
+                            this.state.projects.map((project, projIndex) => 
+                                React.createElement(Draggable, { key: projIndex, draggableId: `project-${projIndex}`, index: projIndex }, (provided) =>
+                                    React.createElement("div", { ref: provided.innerRef, ...provided.draggableProps, ...provided.dragHandleProps, className: "project" },
+                                        React.createElement("strong", null, project.name),
+                                        React.createElement("button", { onClick: () => this.setState({ selectedProjectIndex: projIndex }) }, "Select"),
+                                        React.createElement(Droppable, { droppableId: `tasks-${projIndex}` }, (provided) =>
+                                            React.createElement("div", { ref: provided.innerRef, ...provided.droppableProps, className: "task-list" },
+                                                project.tasks.map((task, taskIndex) => 
+                                                    React.createElement(Draggable, { key: taskIndex, draggableId: `task-${projIndex}-${taskIndex}`, index: taskIndex }, (provided) =>
+                                                        React.createElement("div", { ref: provided.innerRef, ...provided.draggableProps, ...provided.dragHandleProps, className: "task" }, task.name)
+                                                    )
+                                                ),
+                                                provided.placeholder
+                                            )
                                         )
                                     )
                                 )
-                            )
+                            ),
+                            provided.placeholder
                         )
                     ),
                     React.createElement("input", { type: "text", placeholder: "New Task Name", value: this.state.newTaskName, onChange: (e) => this.handleTaskNameChange(e) }),
