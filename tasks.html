@@ -9,17 +9,19 @@
     <script src="https://unpkg.com/@hello-pangea/dnd/dist/umd/index.js"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { display: flex; gap: 20px; }
+        .project-list, .task-list { padding: 10px; border: 1px solid #ddd; min-height: 100px; width: 300px; }
         .task, .project { padding: 8px; margin: 4px; background: #f0f0f0; cursor: grab; }
-        .task-list, .project-list { padding: 10px; border: 1px solid #ddd; min-height: 100px; }
-        .input-field { margin: 5px 0; }
+        .selected { background: #d0f0d0; }
+        .input-field { margin: 5px 0; display: block; }
     </style>
 </head>
 <body>
     <h1>Personal Project Manager</h1>
-    <input type="file" id="importFile" accept=".json">
-    <button id="exportButton">Export Projects</button>
     <div id="app"></div>
     <script>
+        const React = window.React;
+        const ReactDOM = window.ReactDOM;
         const { DragDropContext, Droppable, Draggable } = window["@hello-pangea/dnd"] || {};
 
         class ProjectManager extends React.Component {
@@ -49,47 +51,47 @@
                 if (this.state.newTaskName.trim() !== "" && this.state.selectedProjectIndex !== null) {
                     this.setState(prevState => {
                         const projects = [...prevState.projects];
-                        projects[prevState.selectedProjectIndex].tasks.push({ name: prevState.newTaskName, completed: false, subtasks: [] });
+                        projects[prevState.selectedProjectIndex].tasks.push({ name: prevState.newTaskName, completed: false });
                         return { projects, newTaskName: "" };
                     });
                 }
             };
 
-            exportProjects = () => {
-                const dataStr = JSON.stringify(this.state.projects, null, 2);
-                const blob = new Blob([dataStr], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "projects.json";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+            toggleTaskCompletion = (projectIndex, taskIndex) => {
+                this.setState(prevState => {
+                    const projects = [...prevState.projects];
+                    projects[projectIndex].tasks[taskIndex].completed = !projects[projectIndex].tasks[taskIndex].completed;
+                    return { projects };
+                });
             };
 
-            importProjects = (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const importedProjects = JSON.parse(e.target.result);
-                        this.setState({ projects: importedProjects });
-                    } catch (error) {
-                        alert("Invalid JSON format");
-                    }
-                };
-                reader.readAsText(file);
+            selectProject = (index) => {
+                this.setState({ selectedProjectIndex: index });
             };
 
             render() {
-                return React.createElement("div", null,
-                    React.createElement("input", { type: "text", placeholder: "New Project Name", value: this.state.newProjectName, onChange: this.handleProjectNameChange }),
-                    React.createElement("button", { onClick: this.addProject }, "Add Project"),
-                    React.createElement("input", { type: "text", placeholder: "New Task Name", value: this.state.newTaskName, onChange: this.handleTaskNameChange }),
-                    React.createElement("button", { onClick: this.addTask }, "Add Task"),
-                    React.createElement("button", { onClick: this.exportProjects }, "Export Projects"),
-                    React.createElement("input", { type: "file", accept: ".json", onChange: this.importProjects })
+                return React.createElement("div", { className: "container" },
+                    React.createElement("div", { className: "project-list" },
+                        React.createElement("h2", null, "Projects"),
+                        this.state.projects.map((project, index) => 
+                            React.createElement("div", { key: index, className: `project ${this.state.selectedProjectIndex === index ? "selected" : ""}`, onClick: () => this.selectProject(index) }, project.name)
+                        ),
+                        React.createElement("input", { type: "text", placeholder: "New Project Name", value: this.state.newProjectName, onChange: this.handleProjectNameChange, className: "input-field" }),
+                        React.createElement("button", { onClick: this.addProject }, "Add Project")
+                    ),
+                    React.createElement("div", { className: "task-list" },
+                        React.createElement("h2", null, "Tasks"),
+                        this.state.selectedProjectIndex !== null && this.state.projects[this.state.selectedProjectIndex].tasks.map((task, taskIndex) => 
+                            React.createElement("div", { key: taskIndex, className: "task" },
+                                React.createElement("input", { type: "checkbox", checked: task.completed, onChange: () => this.toggleTaskCompletion(this.state.selectedProjectIndex, taskIndex) }),
+                                task.name
+                            )
+                        ),
+                        this.state.selectedProjectIndex !== null && 
+                        React.createElement("input", { type: "text", placeholder: "New Task Name", value: this.state.newTaskName, onChange: this.handleTaskNameChange, className: "input-field" }),
+                        this.state.selectedProjectIndex !== null && 
+                        React.createElement("button", { onClick: this.addTask }, "Add Task")
+                    )
                 );
             }
         }
