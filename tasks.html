@@ -20,6 +20,8 @@
     <button id="exportButton">Export Projects</button>
     <div id="app"></div>
     <script>
+        const React = window.React;
+        const ReactDOM = window.ReactDOM;
         const { DragDropContext, Droppable, Draggable } = window["@hello-pangea/dnd"] || {};
 
         class ProjectManager extends React.Component {
