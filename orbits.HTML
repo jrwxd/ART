@@ -180,7 +180,7 @@
                     const body2 = bodies[j];
                     const delta = body2.position.clone().sub(body1.position);
                     const r = delta.length();
-                    if (r > 5) { // Prevent singularities
+                    if (r > 1) { // Prevent singularities
                         const factor = G / (r ** 3);
                         const acc1 = delta.clone().multiplyScalar(factor * body2.mass);
                         const acc2 = delta.clone().multiplyScalar(-factor * body1.mass);
@@ -238,7 +238,7 @@
                         body.history = [];
                     } else
                     if (body.history.length > 0) {
-                        if (distance < 0.5) return;
+                        if (distance < 0.1) return;
                     }
                     body.history.push(body.position.clone());
                     
