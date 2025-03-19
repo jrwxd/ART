@@ -145,8 +145,8 @@
         for(let i = 0; i < initialBodies; i++){
             let temp = sphericalToRectangular(
                 600,
-                -i,
-                i,
+                -i*0.53,
+                i*0.83,
             );
             const position = new THREE.Vector3(
                 temp.x,
