@@ -239,7 +239,7 @@
                         body.history = [];
                     } else
                     if (body.history.length > 0) {
-                        if (distance < 0.1) return;
+                        if (distance < 5) return;
                     }
                     body.history.push(body.position.clone());
                     
