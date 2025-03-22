@@ -132,7 +132,6 @@
         let wOffset = 0;
         let shift = new Vector4(0, 0, 0, 0);
 
-
         function createBody(position, velocity, mass, radius, color) {
             const geometry = new THREE.SphereGeometry(radius, 16, 16);
             const material = new THREE.MeshStandardMaterial({ color, metalness: 0.4, roughness: 1.0 });
@@ -155,8 +154,6 @@
             const color = new THREE.Color().setHSL(Math.random(), 1, 0.6);
             bodies.push(createBody(pos, velocity, mass, radius, color));
         }
-
-
 
         function update() {
             const accelerations = bodies.map(() => new Vector4(0, 0, 0, 0));
@@ -217,7 +214,6 @@
             }
             return needResize;
         }
-
 
         document.addEventListener('keydown', (event) => {
             const moveAmount = 0.11;
