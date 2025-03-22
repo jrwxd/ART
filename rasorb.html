@@ -20,43 +20,11 @@
             position: relative; /* For absolute positioning of controls */
             background-color: #000;
         }
-        #controls {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px;
-            z-index: 1; /* Ensure controls are above the canvas */
-        }
-        .button {
-            padding: 12px 24px;
-            border-radius: 6px;
-            background-color: #3b82f6;
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            font-size: 16px;
-        }
-        .button:hover {
-            background-color: #2563eb;
-            transform: translateY(-2px);
-        }
-        .button:active {
-            background-color: #1e40af;
-            transform: translateY(0);
-        }
     </style>
 </head>
 <body class="bg-black font-inter antialiased">
     <div id="simulation-container">
         <canvas id="simulation-canvas"></canvas>
-        <div id="controls">
-            <button id="reset-button" class="button">Reset</button>
-        </div>
     </div>
     <script>
         const scene = new THREE.Scene();
@@ -242,10 +210,13 @@
                 case 'e':
                     wOffset += moveAmount;
                     break;
+                case 'r':
+                    resetSimulation();
+                    break;
             }
         });
 
-        document.getElementById('reset-button').addEventListener('click', () => {
+        function resetSimulation() {
             shift = new Vector4(0, 0, 0, 0);
             wOffset = 0;
 
@@ -264,7 +235,7 @@
             }
             camera.position.set(1200, 1200, 1200);
             camera.lookAt(0, 0, 0);
-        });
+        }
 
         resizeRendererToDisplaySize(renderer);
         update();
