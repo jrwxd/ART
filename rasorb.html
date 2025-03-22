@@ -129,7 +129,7 @@
         const dt = 0.004;
         const boundary = 500;
         const bodies = [];
-        let wOffset = new Vector4(0, 0, 0, 0);
+        let wOffset = 0;
         let shift = new Vector4(0, 0, 0, 0);
 
 
@@ -185,11 +185,11 @@
                     body.position.x + shift.x,
                     body.position.y + shift.y,
                     body.position.z + shift.z,
-                    body.position.w  // Keep the original w for scaling
+                    body.position.w + wOffset  // <---- Apply wOffset here
                 );
 
                 // Scale body radius based on distance to the w-offset
-                const distanceToW = Math.abs(body.position.w - wOffset.w);
+                const distanceToW = Math.abs(body.position.w - wOffset); // Use the simplified wOffset here.
                 if (distanceToW < body.radius) {
                     const scaleFactor = 1 - distanceToW / body.radius;
                     body.mesh.scale.setScalar(body.radius * scaleFactor);
@@ -241,17 +241,17 @@
                     shift.z -= moveAmount;
                     break;
                 case 'q':
-                    wOffset.w -= moveAmount;
+                    wOffset -= moveAmount;
                     break;
                 case 'e':
-                    wOffset.w += moveAmount;
+                    wOffset += moveAmount;
                     break;
             }
         });
 
         document.getElementById('reset-button').addEventListener('click', () => {
             shift = new Vector4(0, 0, 0, 0);
-            wOffset = new Vector4(0, 0, 0, 0);
+            wOffset = 0;
 
             bodies.forEach(body => {
                 scene.remove(body.mesh);
