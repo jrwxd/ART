@@ -68,7 +68,7 @@
         renderer.autoClearColor = false;
         renderer.setClearColor(0x000000);
         renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('simulation-canvas').appendChild(renderer.domElement);
+        document.getElementById('simulation-container').appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
