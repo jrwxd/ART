@@ -168,7 +168,7 @@
                     const delta = body2.position.clone().subtract(body1.position.clone());
                     const r = delta.length();
                     if (r > 2) {
-                        const factor = G / (r ** 3);
+                        const factor = G / (r ** 2);
                         const force = delta.clone().multiplyScalar(factor);
                         accelerations[i].add(force.clone().multiplyScalar(body2.mass));
                         accelerations[j].add(force.clone().multiplyScalar(-body1.mass));
