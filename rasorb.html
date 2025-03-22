@@ -92,8 +92,8 @@
         const stars = new THREE.Points(starsGeometry, starsMaterial);
         scene.add(stars);
 
-        const G = 1000;
-        const dt = 0.4;
+        const G = 10000;
+        const dt = 0.04;
         const boundary = 500;
         const bodies = [];
         let wOffset = 0;
@@ -116,7 +116,7 @@
         for (let i = 0; i < 200; i++) {
             const pos = new Vector4(getRandom(-100, 100), getRandom(-100, 100), getRandom(-100, 100), getRandom(-100, 100));
             const velocity = new Vector4(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
-            const mass = getRandom(10, 1000);
+            const mass = getRandom(10, 100);
             const radius = Math.sqrt(mass) * 0.5;
             const color = new THREE.Color().setHSL(Math.random(), 1, 0.6);
             bodies.push(createBody(pos, velocity, mass, radius, color));
