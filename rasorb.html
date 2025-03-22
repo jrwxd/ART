@@ -63,12 +63,14 @@
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 18000);
         camera.position.set(1200, 1200, 1200);
         camera.lookAt(0, 0, 0);
-
-        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('simulation-canvas'), antialias: true });
-        renderer.setPixelRatio(window.devicePixelRatio);
+     
+        const renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true,alpha: true,});
+        renderer.autoClearColor = false;
+        const renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true,alpha: true,});
+        renderer.autoClearColor = false;
         renderer.setClearColor(0x000000);
         renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('simulation-container').appendChild(renderer.domElement);
+        document.getElementById('simulation-canvas').appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
