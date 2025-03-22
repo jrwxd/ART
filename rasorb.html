@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4D Orbital Simulation</title>
+    <title>4D Three-Body Simulation</title>
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.139.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -59,126 +59,130 @@
         </div>
     </div>
     <script>
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 18000);
-        camera.position.set(1200, 1200, 1200);
-        camera.lookAt(0, 0, 0);
+        // --- Scene Setup ---
+        const scene = new THREE.Scene(); // Create a new Three.js scene.
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 18000); // Create a perspective camera.
+        camera.position.set(1200, 1200, 1200); // Set the camera's initial position in 3D space.
+        camera.lookAt(0, 0, 0); // Make the camera look at the origin of the scene.
 
-        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('simulation-canvas'), antialias: true });
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setClearColor(0x000000);
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('simulation-container').appendChild(renderer.domElement);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('simulation-canvas'), antialias: true }); // Create a WebGL renderer with antialiasing.
+        renderer.setPixelRatio(window.devicePixelRatio); // Set the pixel ratio to handle high-DPI screens.
+        renderer.setClearColor(0x000000); // Set the background color of the renderer to black.
+        renderer.setSize(window.innerWidth, window.innerHeight); // Set the size of the renderer to fill the entire window.
+        document.getElementById('simulation-container').appendChild(renderer.domElement); // Add the renderer's canvas to the HTML container.
 
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.screenSpacePanning = true;
-        controls.minDistance = 10;
-        controls.maxDistance = 10000;
-        controls.target.set(0, 0, 0);
+        const controls = new THREE.OrbitControls(camera, renderer.domElement); // Create OrbitControls for interactive camera movement.
+        controls.enableDamping = true; // Enable damping for smoother camera movement.
+        controls.dampingFactor = 0.05; // Set the damping factor.
+        controls.screenSpacePanning = true; // Enable panning in screen space.
+        controls.minDistance = 10;    // Set the minimum distance
+        controls.maxDistance = 10000; // Set the maximum distance
+        controls.target.set(0, 0, 0); // Set the point the controls orbit around.
 
-        const ambientLight = new THREE.AmbientLight(0x606060, 5);
-        scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 6);
-        directionalLight.position.set(5, 3, 5);
-        scene.add(directionalLight);
+        const ambientLight = new THREE.AmbientLight(0x606060, 5); // Create an ambient light to illuminate the scene.
+        scene.add(ambientLight); // Add the ambient light to the scene.
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 6); // Create a directional light.
+        directionalLight.position.set(5, 3, 5); // Set the position of the directional light.
+        scene.add(directionalLight); // Add the directional light to the scene.
 
+        // --- Vector4 Class ---
+        // Define a class to represent 4D vectors.
         class Vector4 {
             constructor(x, y, z, w) {
-                this.x = x;
-                this.y = y;
-                this.z = z;
-                this.w = w;
+                this.x = x; // The x component of the vector.
+                this.y = y; // The y component of the vector.
+                this.z = z; // The z component of the vector.
+                this.w = w; // The w component of the vector (4th dimension).
             }
             clone() {
-                return new Vector4(this.x, this.y, this.z, this.w);
+                return new Vector4(this.x, this.y, this.z, this.w); // Create a new Vector4 with the same values.
             }
             add(v) {
-                return new Vector4(this.x + v.x, this.y + v.y, this.z + v.z, this.w + v.w);
+                return new Vector4(this.x + v.x, this.y + v.y, this.z + v.z, this.w + v.w); // Add another Vector4 to this one.
             }
             subtract(v) {
-                return new Vector4(this.x - v.x, this.y - v.y, this.z - v.z, this.w - v.w);
+                return new Vector4(this.x - v.x, this.y - v.y, this.z - v.z, this.w - v.w); // Subtract another Vector4 from this one.
             }
             multiplyScalar(s) {
-                return new Vector4(this.x * s, this.y * s, this.z * s, this.w * s);
+                return new Vector4(this.x * s, this.y * s, this.z * s, this.w * s); // Multiply this vector by a scalar.
             }
             length() {
-                return Math.sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2 + this.w ** 2);
+                return Math.sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2 + this.w ** 2); // Calculate the length of the vector.
             }
             distanceTo(v) {
                 const dx = this.x - v.x;
                 const dy = this.y - v.y;
                 const dz = this.z - v.z;
                 const dw = this.w - v.w;
-                return Math.sqrt(dx * dx + dy * dy + dz * dz + dw * dw);
+                return Math.sqrt(dx * dx + dy * dy + dz * dz + dw * dw); // Calculate the distance to another Vector4.
             }
         }
 
-        const starsGeometry = new THREE.BufferGeometry();
-        const starsVertices = [];
+        // --- Starfield ---
+        const starsGeometry = new THREE.BufferGeometry(); // Create a geometry to hold the positions of the stars.
+        const starsVertices = []; // Array to store the vertex positions of the stars.
         for (let i = 0; i < 6000; i++) {
-            starsVertices.push((Math.random() - 0.5) * 20000, (Math.random() - 0.5) * 20000, (Math.random() - 0.5) * 20000);
+            starsVertices.push((Math.random() - 0.5) * 20000, (Math.random() - 0.5) * 20000, (Math.random() - 0.5) * 20000); // Generate random star positions.
         }
-        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
-        const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1 });
-        const stars = new THREE.Points(starsGeometry, starsMaterial);
-        scene.add(stars);
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3)); // Set the vertex positions for the geometry.
+        const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1 }); // Create a material for the stars.
+        const stars = new THREE.Points(starsGeometry, starsMaterial); // Create the stars as points.
+        scene.add(stars); // Add the stars to the scene.
 
-        const G = 1000;
-        const dt = 0.04;
-        const boundary = 500;
-        const bodies = [];
-        let wOffset = 0;
-        let shift = new Vector4(0, 0, 0, 0);
+        // --- Simulation Parameters ---
+        const G = 1000; // Gravitational constant.
+        const dt = 0.04; // Time step for the simulation.
+        const boundary = 500; // Boundary for the simulation space.  Not currently used.
+        const bodies = []; // Array to store the bodies in the simulation.
+        let wOffset = 0; // Offset along the 4th dimension.
+        let shift = new Vector4(0, 0, 0, 0); // 3D shift for the entire simulation.
 
-
+        // --- Body Creation Function ---
         function createBody(position, velocity, mass, radius, color) {
-            const geometry = new THREE.SphereGeometry(radius, 16, 16);
-            const material = new THREE.MeshStandardMaterial({ color, metalness: 0.4, roughness: 1.0 });
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(position.x, position.y, position.z);
-            scene.add(mesh);
+            const geometry = new THREE.SphereGeometry(radius, 16, 16); // Create a sphere geometry for the body.
+            const material = new THREE.MeshStandardMaterial({ color, metalness: 0.4, roughness: 1.0 }); // Create a material for the body.
+            const mesh = new THREE.Mesh(geometry, material); // Create a mesh for the body.
+            mesh.position.set(position.x, position.y, position.z); // Set the initial position of the mesh.
+            scene.add(mesh); // Add the mesh to the scene.
 
-            return { position, velocity, mass, radius, mesh }; // Include radius in the returned object
+            return { position, velocity, mass, radius, mesh }; // Return the body object.
         }
 
+        // --- Random Number Function ---
         function getRandom(min, max) {
-            return Math.random() * (max - min) + min;
+            return Math.random() * (max - min) + min; // Generate a random number within a range.
         }
 
-        for (let i = 0; i < 200; i++) {
-            const pos = new Vector4(getRandom(-100, 100), getRandom(-100, 100), getRandom(-100, 100), getRandom(-100, 100));
-            const velocity = new Vector4(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
-            const mass = getRandom(10, 100);
-            const radius = Math.sqrt(mass) * 0.5;
-            const color = new THREE.Color().setHSL(Math.random(), 1, 0.6);
-            bodies.push(createBody(pos, velocity, mass, radius, color));
-        }
+        // --- Initial Body Setup ---
+        // Initialize with three bodies
+        bodies.push(createBody(new Vector4(-100, 0, 0, 0), new Vector4(0, 0.1, 0, 0), 100, 10, 0xff0000)); // Red
+        bodies.push(createBody(new Vector4(100, 0, 0, 0), new Vector4(0, -0.1, 0, 0), 100, 10, 0x00ff00)); // Green
+        bodies.push(createBody(new Vector4(0, 50, 0, 50), new Vector4(0.05, 0, 0, -0.05), 50, 7, 0x0000ff)); // Blue
 
-
-
+        // --- Update Function ---
         function update() {
-            const accelerations = bodies.map(() => new Vector4(0, 0, 0, 0));
+            const accelerations = bodies.map(() => new Vector4(0, 0, 0, 0)); // Array to store accelerations for each body.
 
+            // Calculate gravitational forces between each pair of bodies.
             for (let i = 0; i < bodies.length; i++) {
                 for (let j = i + 1; j < bodies.length; j++) {
                     const body1 = bodies[i];
                     const body2 = bodies[j];
-                    const delta = body2.position.clone().subtract(body1.position.clone());
-                    const r = delta.length();
-                    if (r > 2) {
-                        const factor = G / (r ** 2);
-                        const force = delta.clone().multiplyScalar(factor);
-                        accelerations[i].add(force.clone().multiplyScalar(body2.mass));
-                        accelerations[j].add(force.clone().multiplyScalar(-body1.mass));
+                    const delta = body2.position.clone().subtract(body1.position.clone()); // Vector pointing from body1 to body2.
+                    const r = delta.length(); // Distance between the bodies.
+                    if (r > 2) { // Avoid division by zero or very small distances.
+                        const factor = G / (r ** 3); // Calculate the force factor.
+                        const force = delta.clone().multiplyScalar(factor); // Calculate the force vector.
+                        accelerations[i].add(force.clone().multiplyScalar(body2.mass)); // Apply force to body1's acceleration.
+                        accelerations[j].add(force.clone().multiplyScalar(-body1.mass)); // Apply opposite force to body2's acceleration.
                     }
                 }
             }
 
+            // Update velocities and positions based on calculated accelerations.
             bodies.forEach((body, i) => {
-                body.velocity.add(accelerations[i].multiplyScalar(dt));
-                body.position = body.position.add(body.velocity.clone().multiplyScalar(dt));
+                body.velocity.add(accelerations[i].multiplyScalar(dt)); // Update velocity using acceleration.
+                body.position = body.position.add(body.velocity.clone().multiplyScalar(dt)); // Update position using velocity.
 
                 // Apply the 4D shift, but only to the 3D coordinates for display
                 const displayPosition = new Vector4(
@@ -192,86 +196,85 @@
                 const distanceToW = Math.abs(body.position.w - wOffset); // Use the simplified wOffset here.
                 if (distanceToW < body.radius) {
                     const scaleFactor = 1 - distanceToW / body.radius;
-                    body.mesh.scale.setScalar(body.radius * scaleFactor);
+                    body.mesh.scale.setScalar(body.radius * scaleFactor); // scale the sphere
                 } else {
-                    body.mesh.scale.setScalar(0);
+                    body.mesh.scale.setScalar(0); // make it invisible
                 }
 
-                body.mesh.position.set(displayPosition.x, displayPosition.y, displayPosition.z);
+                body.mesh.position.set(displayPosition.x, displayPosition.y, displayPosition.z); // Update the mesh's position.
             });
 
-            controls.update();
-            renderer.render(scene, camera);
-            requestAnimationFrame(update);
+            controls.update(); // Update the camera controls.
+            renderer.render(scene, camera); // Render the scene.
+            requestAnimationFrame(update); // Request the next frame.
         }
 
+        // --- Renderer Resize Function ---
         function resizeRendererToDisplaySize(renderer) {
-            const canvas = renderer.domElement;
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            const needResize = canvas.width !== width || canvas.height !== height;
+            const canvas = renderer.domElement; // Get the canvas element.
+            const width = window.innerWidth;  // Get the window width.
+            const height = window.innerHeight; // Get the window height.
+            const needResize = canvas.width !== width || canvas.height !== height; // Check if the canvas needs resizing.
             if (needResize) {
-                renderer.setSize(width, height, false);
-                camera.aspect = width / height;
-                camera.updateProjectionMatrix();
+                renderer.setSize(width, height, false); // Resize the renderer.
+                camera.aspect = width / height;    // Update the camera's aspect ratio.
+                camera.updateProjectionMatrix(); // Update the camera's projection matrix.
             }
-            return needResize;
+            return needResize; // Return whether the renderer was resized.
         }
 
-
+        // --- Event Listeners ---
         document.addEventListener('keydown', (event) => {
-            const moveAmount = 0.11;
+            const moveAmount = 10;
             switch (event.key) {
                 case 'w':
-                    shift.y += moveAmount;
+                    shift.y += moveAmount; // Shift the scene up.
                     break;
                 case 's':
-                    shift.y -= moveAmount;
+                    shift.y -= moveAmount; // Shift the scene down.
                     break;
                 case 'a':
-                    shift.x -= moveAmount;
+                    shift.x -= moveAmount; // Shift the scene left.
                     break;
                 case 'd':
-                    shift.x += moveAmount;
+                    shift.x += moveAmount; // Shift the scene right.
                     break;
                 case 'ArrowUp':
-                    shift.z += moveAmount;
+                    shift.z += moveAmount; // Shift the scene forward.
                     break;
                 case 'ArrowDown':
-                    shift.z -= moveAmount;
+                    shift.z -= moveAmount; // Shift the scene backward.
                     break;
                 case 'q':
-                    wOffset -= moveAmount;
+                    wOffset -= moveAmount; // Shift the 4D slice.
                     break;
                 case 'e':
-                    wOffset += moveAmount;
+                    wOffset += moveAmount; // Shift the 4D slice.
                     break;
             }
         });
 
         document.getElementById('reset-button').addEventListener('click', () => {
-            shift = new Vector4(0, 0, 0, 0);
-            wOffset = 0;
+            shift = new Vector4(0, 0, 0, 0); // Reset the 3D shift.
+            wOffset = 0;                   // Reset the 4D offset.
 
             bodies.forEach(body => {
-                scene.remove(body.mesh);
+                scene.remove(body.mesh); // Remove each body's mesh from the scene.
             });
-            bodies.length = 0;
+            bodies.length = 0;             // Clear the bodies array.
 
-            for (let i = 0; i < 200; i++) {
-                const pos = new Vector4(getRandom(-100, 100), getRandom(-100, 100), getRandom(-100, 100), getRandom(-100, 100));
-                const velocity = new Vector4(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
-                const mass = getRandom(10, 100);
-                const radius = Math.sqrt(mass) * 0.5;
-                const color = new THREE.Color().setHSL(Math.random(), 1, 0.6);
-                bodies.push(createBody(pos, velocity, mass, radius, color));
-            }
-            camera.position.set(1200, 1200, 1200);
-            camera.lookAt(0, 0, 0);
+            //Re-initialize with three bodies
+            bodies.push(createBody(new Vector4(-100, 0, 0, 0), new Vector4(0, 0.1, 0, 0), 100, 10, 0xff0000)); // Red
+            bodies.push(createBody(new Vector4(100, 0, 0, 0), new Vector4(0, -0.1, 0, 0), 100, 10, 0x00ff00)); // Green
+            bodies.push(createBody(new Vector4(0, 50, 0, 50), new Vector4(0.05, 0, 0, -0.05), 50, 7, 0x0000ff)); // Blue
+
+            camera.position.set(1200, 1200, 1200); // Reset camera position.
+            camera.lookAt(0, 0, 0);             // Reset camera target.
         });
 
-        resizeRendererToDisplaySize(renderer);
-        update();
+        // --- Start the Simulation ---
+        resizeRendererToDisplaySize(renderer); // Ensure the renderer size is correct.
+        update();                           // Start the animation loop.
     </script>
 </body>
 </html>
