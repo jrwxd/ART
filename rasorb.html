@@ -59,12 +59,12 @@
         </div>
     </div>
     <script>
-       const scene = new THREE.Scene();
+        const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 18000);
         camera.position.set(1200, 1200, 1200);
         camera.lookAt(0, 0, 0);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('simulation-canvas'), antialias: true });
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setClearColor(0x000000);
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -97,7 +97,7 @@
             add(v) {
                 return new Vector4(this.x + v.x, this.y + v.y, this.z + v.z, this.w + v.w);
             }
-             subtract(v) {
+            subtract(v) {
                 return new Vector4(this.x - v.x, this.y - v.y, this.z - v.z, this.w - v.w);
             }
             multiplyScalar(s) {
@@ -147,7 +147,7 @@
             return Math.random() * (max - min) + min;
         }
 
-       for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < 200; i++) {
             const pos = new Vector4(getRandom(-100, 100), getRandom(-100, 100), getRandom(-100, 100), getRandom(-100, 100));
             const velocity = new Vector4(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
             const mass = getRandom(10, 100);
@@ -205,6 +205,18 @@
             requestAnimationFrame(update);
         }
 
+        function resizeRendererToDisplaySize(renderer) {
+            const canvas = renderer.domElement;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const needResize = canvas.width !== width || canvas.height !== height;
+            if (needResize) {
+                renderer.setSize(width, height, false);
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+            }
+            return needResize;
+        }
 
 
         document.addEventListener('keydown', (event) => {
