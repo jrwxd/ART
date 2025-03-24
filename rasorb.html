@@ -78,7 +78,7 @@
 
         const starsGeometry = new THREE.BufferGeometry();
         const starsVertices = [];
-        for (let i = 0; i < 6000; i++) {
+        for (let i = 0; i < 2000; i++) {
             starsVertices.push((Math.random() - 0.5) * 20000, (Math.random() - 0.5) * 20000, (Math.random() - 0.5) * 20000);
         }
         starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
@@ -87,15 +87,15 @@
         scene.add(stars);
 
         const G = 10000;
-        const dt = 4;
-        const boundary = 500;
+        const dt = 0.4;
+        const boundary = 5000;
         const bodies = [];
         let wOffset = 0;
         let shift = new Vector4(0, 0, 0, 0);
 
         function createBody(position, velocity, mass, radius, color) {
-            const geometry = new THREE.SphereGeometry(radius, 16, 16);
-            const material = new THREE.MeshStandardMaterial({ color, metalness: 0.4, roughness: 1.0 });
+            const geometry = new THREE.SphereGeometry(radius, 32, 32);
+            const material = new THREE.MeshStandardMaterial({ color, metalness: 0.4, roughness: 0.3 });
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.set(position.x, position.y, position.z);
             scene.add(mesh);
@@ -125,7 +125,7 @@
                     const body2 = bodies[j];
                     const delta = body2.position.clone().subtract(body1.position.clone());
                     const r = delta.length();
-                    if (r > 2) {
+                    if (r > 1) {
                         const factor = G / (r ** 2);
                         const force = delta.clone().multiplyScalar(factor);
                         accelerations[i].add(force.clone().multiplyScalar(body2.mass));
