@@ -28,8 +28,8 @@
         camera.position.set(120, 120, 120);
         camera.lookAt(0, 0, 0);
      
-        const renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true,alpha: true,});
-        renderer.autoClearColor = false;
+        const renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: false,alpha: true,});
+        //renderer.autoClearColor = false;
         renderer.setClearColor(0x000000);
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('simulation-container').appendChild(renderer.domElement);
