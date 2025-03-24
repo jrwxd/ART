@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced 4D Orbital Simulation</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: black;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        canvas { 
+            display: block; 
+        }
+        #simulation-container {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            background-color: #000;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 100;
+            user-select: none;
+        }
+        .control-group {
+            margin-bottom: 10px;
+        }
+        .control-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+        }
+        .slider {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .slider-value {
+            width: 50px;
+            text-align: right;
+        }
+        button {
+            background-color: #4a4a9e;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #6565c0;
+        }
+        #info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 100;
+            max-width: 250px;
+        }
+        #trails-toggle {
+            margin-top: 10px;
+        }
+        #dimensions-visual {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 100;
+        }
+        .axis {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .axis-label {
+            width: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .axis-line {
+            width: 50px;
+            height: 3px;
+            margin-left: 10px;
+        }
+        .x-axis { color: #ff5555; }
+        .y-axis { color: #55ff55; }
+        .z-axis { color: #5555ff; }
+        .w-axis { color: #ffff55; }
+        
+        .x-axis .axis-line { background-color: #ff5555; }
+        .y-axis .axis-line { background-color: #55ff55; }
+        .z-axis .axis-line { background-color: #5555ff; }
+        .w-axis .axis-line { background-color: #ffff55; }
+        
+        #help-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 101;
+        }
+        
+        #help-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(30, 30, 50, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 102;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        #help-modal h2 {
+            margin-top: 0;
+            color: #aaf;
+        }
+        
+        #help-modal ul {
+            padding-left: 20px;
+        }
+        
+        #close-help {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        kbd {
+            background-color: #333;
+            border-radius: 3px;
+            border: 1px solid #666;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+            color: #fff;
+            display: inline-block;
+            font-size: 0.85em;
+            font-family: monospace;
+            line-height: 1;
+            padding: 2px 4px;
+            margin: 0 2px;
+        }
+    </style>
+</head>
+<body class="bg-black font-inter antialiased">
+    <div id="simulation-container">
+        <div id="dimensions-visual">
+            <div class="axis x-axis">
+                <div class="axis-label">X</div>
+                <div class="axis-line"></div>
+            </div>
+            <div class="axis y-axis">
+                <div class="axis-label">Y</div>
+                <div class="axis-line"></div>
+            </div>
+            <div class="axis z-axis">
+                <div class="axis-label">Z</div>
+                <div class="axis-line"></div>
+            </div>
+            <div class="axis w-axis">
+                <div class="axis-label">W</div>
+                <div class="axis-line"></div>
+            </div>
+        </div>
+        
+        <div id="info-panel">
+            <h3 style="margin-top: 0;">Simulation Info</h3>
+            <div>Bodies: <span id="body-count">200</span></div>
+            <div>W-Slice: <span id="w-slice">0.00</span></div>
+            <div>FPS: <span id="fps">0</span></div>
+            <div>Position: (<span id="pos-x">0.00</span>, <span id="pos-y">0.00</span>, <span id="pos-z">0.00</span>)</div>
+        </div>
+        
+        <div id="controls">
+            <div class="control-group">
+                <div class="control-label">Gravity Strength (G)</div>
+                <div class="slider-container">
+                    <input type="range" min="1000" max="20000" step="100" value="10000" id="gravity-slider" class="slider">
+                    <span class="slider-value" id="gravity-value">10000</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">Time Speed</div>
+                <div class="slider-container">
+                    <input type="range" min="0.1" max="1.0" step="0.05" value="0.4" id="time-slider" class="slider">
+                    <span class="slider-value" id="time-value">0.4</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">W-Slice Speed</div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="50" step="1" value="10" id="w-speed-slider" class="slider">
+                    <span class="slider-value" id="w-speed-value">10</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">Body Count</div>
+                <div class="slider-container">
+                    <input type="range" min="50" max="500" step="10" value="200" id="body-count-slider" class="slider">
+                    <span class="slider-value" id="body-count-value">200</span>
+                </div>
+                <button id="apply-body-count">Apply</button>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">Navigation</div>
+                <button id="reset-view">Reset View</button>
+                <button id="reset-simulation">Reset Simulation</button>
+            </div>
+            
+            <div id="trails-toggle">
+                <input type="checkbox" id="enable-trails">
+                <label for="enable-trails">Enable Motion Trails</label>
+            </div>
+        </div>
+        
+        <button id="help-button">Help</button>
+        
+        <div id="help-modal">
+            <button id="close-help">×</button>
+            <h2>4D Orbital Simulation Help</h2>
+            <p>This simulation visualizes gravitational interactions in 4D space. Objects are visible when they intersect with our 3D "slice" of 4D space.</p>
+            
+            <h3>Controls:</h3>
+            <ul>
+                <li><kbd>W</kbd>/<kbd>S</kbd>: Move up/down (Y-axis)</li>
+                <li><kbd>A</kbd>/<kbd>D</kbd>: Move left/right (X-axis)</li>
+                <li><kbd>↑</kbd>/<kbd>↓</kbd>: Move forward/backward (Z-axis)</li>
+                <li><kbd>Q</kbd>/<kbd>E</kbd>: Move through the 4th dimension (W-axis)</li>
+                <li><kbd>R</kbd>: Reset simulation</li>
+                <li><kbd>Space</kbd>: Pause/resume simulation</li>
+            </ul>
+            
+            <h3>Mouse:</h3>
+            <ul>
+                <li>Left-click + drag: Rotate camera</li>
+                <li>Scroll: Zoom in/out</li>
+                <li>Right-click + drag: Pan camera</li>
+            </ul>
+            
+            <h3>Understanding the Visualization:</h3>
+            <p>In this simulation:</p>
+            <ul>
+                <li>Objects appear when they pass through our 3D slice of 4D space</li>
+                <li>Object size indicates proximity to the current W-slice</li>
+                <li>Colors indicate mass (brighter = higher mass)</li>
+                <li>When trails are enabled, path history is shown</li>
+            </ul>
+            
+            <h3>UI Elements:</h3>
+            <ul>
+                <li><strong>Gravity Strength</strong>: Adjusts the gravitational constant</li>
+                <li><strong>Time Speed</strong>: Controls simulation speed</li>
+                <li><strong>W-Slice Speed</strong>: How quickly we move through the 4th dimension</li>
+                <li><strong>Body Count</strong>: Number of objects in the simulation</li>
+                <li><strong>Motion Trails</strong>: Displays particle paths over time</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+   
+    <script>
+        // Initialize Three.js scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 18000);
+        camera.position.set(120, 120, 120);
+        camera.lookAt(0, 0, 0);
+     
+        const renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true, alpha: true});
+        renderer.setClearColor(0x000011);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('simulation-container').appendChild(renderer.domElement);
+
+        // Initialize controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.screenSpacePanning = true;
+        controls.minDistance = 10;
+        controls.maxDistance = 10000;
+        controls.target.set(0, 0, 0);
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0x606060, 5);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 6);
+        directionalLight.position.set(5, 3, 5);
+        scene.add(directionalLight);
+
+        // 4D Vector class implementation
+        class Vector4 {
+            constructor(x, y, z, w) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.w = w;
+            }
+            
+            clone() {
+                return new Vector4(this.x, this.y, this.z, this.w);
+            }
+            
+            add(v) {
+                return new Vector4(this.x + v.x, this.y + v.y, this.z + v.z, this.w + v.w);
+            }
+            
+            subtract(v) {
+                return new Vector4(this.x - v.x, this.y - v.y, this.z - v.z, this.w - v.w);
+            }
+            
+            multiplyScalar(s) {
+                return new Vector4(this.x * s, this.y * s, this.z * s, this.w * s);
+            }
+            
+            length() {
+                return Math.sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2 + this.w ** 2);
+            }
+            
+            distanceTo(v) {
+                const dx = this.x - v.x;
+                const dy = this.y - v.y;
+                const dz = this.z - v.z;
+                const dw = this.w - v.w;
+                return Math.sqrt(dx * dx + dy * dy + dz * dz + dw * dw);
+            }
+            
+            normalize() {
+                const len = this.length();
+                if (len === 0) return this.clone();
+                return this.multiplyScalar(1 / len);
+            }
+        }
+
+        // Create starfield background
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsVertices = [];
+        for (let i = 0; i < 5000; i++) {
+            starsVertices.push(
+                (Math.random() - 0.5) * 20000, 
+                (Math.random() - 0.5) * 20000, 
+                (Math.random() - 0.5) * 20000
+            );
+        }
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+        
+        const starsMaterial = new THREE.PointsMaterial({ 
+            color: 0xffffff, 
+            size: 2,
+            sizeAttenuation: true
+        });
+        
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
+
+        // Create coordinate axes
+        function createAxes() {
+            const axesGroup = new THREE.Group();
+            
+            // X axis - red
+            const xAxisGeo = new THREE.CylinderGeometry(0.5, 0.5, 100, 8);
+            xAxisGeo.rotateZ(Math.PI/2);
+            const xAxisMat = new THREE.MeshBasicMaterial({color: 0xff5555});
+            const xAxis = new THREE.Mesh(xAxisGeo, xAxisMat);
+            axesGroup.add(xAxis);
+            
+            // Y axis - green
+            const yAxisGeo = new THREE.CylinderGeometry(0.5, 0.5, 100, 8);
+            const yAxisMat = new THREE.MeshBasicMaterial({color: 0x55ff55});
+            const yAxis = new THREE.Mesh(yAxisGeo, yAxisMat);
+            axesGroup.add(yAxis);
+            
+            // Z axis - blue
+            const zAxisGeo = new THREE.CylinderGeometry(0.5, 0.5, 100, 8);
+            zAxisGeo.rotateX(Math.PI/2);
+            const zAxisMat = new THREE.MeshBasicMaterial({color: 0x5555ff});
+            const zAxis = new THREE.Mesh(zAxisGeo, zAxisMat);
+            axesGroup.add(zAxis);
+            
+            return axesGroup;
+        }
+
+        const axesHelper = createAxes();
+        axesHelper.visible = false;  // Hidden by default
+        scene.add(axesHelper);
+
+        // Simulation parameters
+        let G = 10000; // Gravitational constant
+        let dt = 0.4;  // Time step
+        let wSpeed = 10; // Speed of movement through 4th dimension
+        const boundary = 5000;
+        const bodies = [];
+        let trails = [];
+        let wOffset = 0;
+        let shift = new Vector4(0, 0, 0, 0);
+        let paused = false;
+        let showTrails = false;
+        let trailUpdateCounter = 0;
+        const trailUpdateFrequency = 5; // Only add trail point every N frames
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let fps = 0;
+
+        // Central gravitational attractor (optional)
+        let hasAttractor = false;
+        
+        // Create a body with visual representation
+        function createBody(position, velocity, mass, radius, color) {
+            const geometry = new THREE.SphereGeometry(radius, 24, 18);
+            const material = new THREE.MeshStandardMaterial({ 
+                color, 
+                metalness: 0.4, 
+                roughness: 0.3,
+                emissive: color,
+                emissiveIntensity: 0.3
+            });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(position.x, position.y, position.z);
+            scene.add(mesh);
+            
+            // Create trail if enabled
+            let trail = null;
+            if (showTrails) {
+                trail = createTrail(color);
+            }
+            
+            return { 
+                position, 
+                velocity, 
+                mass, 
+                radius, 
+                mesh,
+                trail,
+                trailPositions: [] // Store positions for trail
+            }; 
+        }
+        
+        // Create a trail for a body
+        function createTrail(color) {
+            const trailMaterial = new THREE.LineBasicMaterial({ 
+                color: color,
+                opacity: 0.4,
+                transparent: true
+            });
+            
+            const trailGeometry = new THREE.BufferGeometry();
+            const trailPositions = new Float32Array(600 * 3); // 200 positions * 3 coordinates
+            trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+            trailGeometry.setDrawRange(0, 0);
+            
+            const trail = new THREE.Line(trailGeometry, trailMaterial);
+            scene.add(trail);
+            
+            return {
+                line: trail,
+                positions: trailPositions,
+                pointCount: 0,
+                maxPoints: 200
+            };
+        }
+        
+        // Update a body's trail
+        function updateTrail(body) {
+            if (!body.trail || !showTrails) return;
+            
+            // Only update every few frames for performance
+            if (trailUpdateCounter % trailUpdateFrequency !== 0) return;
+            
+            const trail = body.trail;
+            const positions = trail.positions;
+            
+            // Add new position
+            if (trail.pointCount < trail.maxPoints) {
+                positions[trail.pointCount * 3] = body.mesh.position.x;
+                positions[trail.pointCount * 3 + 1] = body.mesh.position.y;
+                positions[trail.pointCount * 3 + 2] = body.mesh.position.z;
+                trail.pointCount++;
+            } else {
+                // Shift positions to make room for new point
+                for (let i = 0; i < trail.maxPoints - 1; i++) {
+                    positions[i * 3] = positions[(i + 1) * 3];
+                    positions[i * 3 + 1] = positions[(i + 1) * 3 + 1];
+                    positions[i * 3 + 2] = positions[(i + 1) * 3 + 2];
+                }
+                
+                // Add new position at the end
+                positions[(trail.maxPoints - 1) * 3] = body.mesh.position.x;
+                positions[(trail.maxPoints - 1) * 3 + 1] = body.mesh.position.y;
+                positions[(trail.maxPoints - 1) * 3 + 2] = body.mesh.position.z;
+            }
+            
+            // Update the geometry
+            trail.line.geometry.attributes.position.needsUpdate = true;
+            trail.line.geometry.setDrawRange(0, trail.pointCount);
+        }
+        
+        // Get random value between min and max
+        function getRandom(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+        
+        // Initialize simulation bodies
+        function initBodies(count) {
+            // Clear existing bodies
+            bodies.forEach(body => {
+                scene.remove(body.mesh);
+                if (body.trail) {
+                    scene.remove(body.trail.line);
+                }
+            });
+            bodies.length = 0;
+            
+            // Create attractor if enabled
+            if (hasAttractor) {
+                const attractorPos = new Vector4(0, 0, 0, 0);
+                const attractorVel = new Vector4(0, 0, 0, 0);
+                const attractorMass = 5000;
+                const attractorRadius = Math.sqrt(attractorMass) * 0.3;
+                const attractorColor = new THREE.Color(1, 1, 0.8);
+                
+                bodies.push(createBody(attractorPos, attractorVel, attractorMass, attractorRadius, attractorColor));
+            }
+            
+            // Generate bodies in 4D space
+            for (let i = 0; i < count; i++) {
+                // Create bodies in a spherical distribution
+                const distance = getRandom(20, 150);
+                const theta = getRandom(0, Math.PI * 2);
+                const phi = getRandom(0, Math.PI);
+                const wAngle = getRandom(0, Math.PI * 2);
+                
+                // Convert from spherical to Cartesian coordinates in 4D
+                const pos = new Vector4(
+                    distance * Math.sin(phi) * Math.cos(theta),
+                    distance * Math.sin(phi) * Math.sin(theta),
+                    distance * Math.cos(phi) * Math.cos(wAngle),
+                    distance * Math.cos(phi) * Math.sin(wAngle)
+                );
+                
+                // Calculate orbital velocity perpendicular to position vector
+                const orbital = hasAttractor;
+                let velocity;
+                
+                if (orbital) {
+                    // Create an orbital velocity perpendicular to the radius
+                    // This is a simplified approach for initial orbital velocities
+                    const speed = Math.sqrt(G * bodies[0].mass / distance) * 0.7;
+                    
+                    // Create a velocity vector perpendicular to position vector
+                    const v1 = new Vector4(
+                        -pos.y,
+                        pos.x,
+                        -pos.w,
+                        pos.z
+                    ).normalize().multiplyScalar(speed);
+                    
+                    // Add some randomness
+                    velocity = v1.add(new Vector4(
+                        getRandom(-0.05, 0.05),
+                        getRandom(-0.05, 0.05),
+                        getRandom(-0.05, 0.05),
+                        getRandom(-0.05, 0.05)
+                    ));
+                } else {
+                    // Random velocities for non-orbital simulation
+                    velocity = new Vector4(
+                        getRandom(-0.1, 0.1),
+                        getRandom(-0.1, 0.1),
+                        getRandom(-0.1, 0.1),
+                        getRandom(-0.1, 0.1)
+                    );
+                }
+                
+                const mass = getRandom(10, 100);
+                const radius = Math.sqrt(mass) * 0.5;
+                
+                // Calculate color based on mass (larger = brighter)
+                const massRatio = (mass - 10) / 90; // Normalize to 0-1 range
+                const hue = 0.6 - massRatio * 0.5; // From blue to yellow
+                const saturation = 0.8 + massRatio * 0.2;
+                const lightness = 0.4 + massRatio * 0.3;
+                const color = new THREE.Color().setHSL(hue, saturation, lightness);
+                
+                bodies.push(createBody(pos, velocity, mass, radius, color));
+            }
+        }
+        
+        // Reset the simulation to initial state
+        function resetSimulation() {
+            shift = new Vector4(0, 0, 0, 0);
+            wOffset = 0;
+            
+            const bodyCount = parseInt(document.getElementById('body-count-slider').value);
+            initBodies(bodyCount);
+            
+            document.getElementById('body-count').textContent = bodies.length;
+            camera.position.set(120, 120, 120);
+            camera.lookAt(0, 0, 0);
+        }
+        
+        // Update simulation physics
+        function updatePhysics() {
+            if (paused) return;
+            
+            // Update w-offset (slice through 4D space)
+            wOffset = wOffset + wSpeed * dt;
+            if (wOffset > boundary) wOffset = -boundary;
+            document.getElementById('w-slice').textContent = wOffset.toFixed(2);
+            
+            // Calculate forces and accelerations
+            const accelerations = bodies.map(() => new Vector4(0, 0, 0, 0));
+            
+            // Calculate all gravitational interactions
+            for (let i = 0; i < bodies.length; i++) {
+                for (let j = i + 1; j < bodies.length; j++) {
+                    const body1 = bodies[i];
+                    const body2 = bodies[j];
+                    
+                    // Calculate vector between bodies
+                    const delta = body2.position.subtract(body1.position);
+                    const r = delta.length();
+                    
+                    // Apply gravitational force if bodies aren't too close
+                    if (r > 1) {
+                        const factor = G / (r * r * r); // Normalized direction * G/r²
+                        
+                        // Apply force to both bodies (Newton's third law)
+                        accelerations[i] = accelerations[i].add(
+                            delta.multiplyScalar(factor * body2.mass)
+                        );
+                        
+                        accelerations[j] = accelerations[j].add(
+                            delta.multiplyScalar(-factor * body1.mass)
+                        );
+                    }
+                }
+            }
+            
+            // Update velocities and positions based on accelerations
+            bodies.forEach((body, i) => {
+                // Update velocity with acceleration
+                body.velocity = body.velocity.add(accelerations[i].multiplyScalar(dt));
+                
+                // Update position with velocity
+                body.position = body.position.add(body.velocity.multiplyScalar(dt));
+                
+                // Apply the 4D shift for display
+                const displayPosition = new Vector4(
+                    body.position.x + shift.x,
+                    body.position.y + shift.y,
+                    body.position.z + shift.z,
+                    body.position.w + shift.w
+                );
+                
+                // Scale body size based on distance to the w-slice
+                const distanceToW = Math.abs(body.position.w - wOffset);
+                const visibilityThreshold = body.radius * 3; // How far from the slice we can see objects
+                
+                if (distanceToW < visibilityThreshold) {
+                    // Scale factor decreases with distance from the slice
+                    const scaleFactor = Math.max(0, 1 - distanceToW / visibilityThreshold);
+                    
+                    // Apply scale to mesh and make visible
+                    body.mesh.scale.setScalar(scaleFactor);
+                    body.mesh.visible = true;
+                    
+                    // Update color opacity based on w-distance
+                    body.mesh.material.opacity = scaleFactor;
+                    body.mesh.material.transparent = true;
+                    
+                    // Set position
+                    body.mesh.position.set(displayPosition.x, displayPosition.y, displayPosition.z);
+                    
+                    // Update trail if enabled
+                    updateTrail(body);
+                } else {
+                    // Hide body when it's too far from the slice
+                    body.mesh.visible = false;
+                }
+            });
+            
+            // Update trail counter
+            trailUpdateCounter++;
+        }
+        
+        // Main animation loop
+        function update() {
+            requestAnimationFrame(update);
+            
+            // Update physics
+            updatePhysics();
+            
+            // Update orbit controls
+            controls.update();
+            
+            // Render scene
+            renderer.render(scene, camera);
+            
+            // Calculate FPS
+            frameCount++;
+            const now = performance.now();
+            if (now - lastTime >= 1000) {
+                fps = Math.round(frameCount * 1000 / (now - lastTime));
+                document.getElementById('fps').textContent = fps;
+                frameCount = 0;
+                lastTime = now;
+                
+                // Update position display
+                document.getElementById('pos-x').textContent = shift.x.toFixed(2);
+                document.getElementById('pos-y').textContent = shift.y.toFixed(2);
+                document.getElementById('pos-z').textContent = shift.z.toFixed(2);
+            }
+        }
+        
+        // Handle window resize
+        function resizeRendererToDisplaySize() {
+            const canvas = renderer.domElement;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const needResize = canvas.width !== width || canvas.height !== height;
+            
+            if (needResize) {
+                renderer.setSize(width, height, false);
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+            }
+        }
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (event) => {
+            const moveAmount = 1.1;
+            switch (event.key) {
+                case 'w':
+                    shift.y += moveAmount;
+                    break;
+                case 's':
+                    shift.y -= moveAmount;
+                    break;
+                case 'a':
+                    shift.x -= moveAmount;
+                    break;
+                case 'd':
+                    shift.x += moveAmount;
+                    break;
+                case 'ArrowUp':
+                    shift.z += moveAmount
+                    break;
+                case 'ArrowDown':
+                    shift.z -= moveAmount;
+                    break;
+                case 'q':
+                    wOffset -= moveAmount * 5;
+                    break;
+                case 'e':
+                    wOffset += moveAmount * 5;
+                    break;
+                case 'r':
+                    resetSimulation();
+                    break;
+                case ' ':
+                    paused = !paused;
+                    break;
+                case 't':
+                    showTrails = !showTrails;
+                    document.getElementById('enable-trails').checked = showTrails;
+                    toggleTrails(showTrails);
+                    break;
+                case 'x':
+                    axesHelper.visible = !axesHelper.visible;
+                    break;
+            }
+        });
+        
+        // Toggle motion trails
+        function toggleTrails(enabled) {
+            showTrails = enabled;
+            
+            if (enabled) {
+                // Create trails for all bodies
+                bodies.forEach(body => {
+                    if (!body.trail) {
+                        body.trail = createTrail(body.mesh.material.color);
+                    }
+                });
+            } else {
+                // Remove all trails
+                bodies.forEach(body => {
+                    if (body.trail) {
+                        scene.remove(body.trail.line);
+                        body.trail = null;
+                    }
+                });
+            }
+        }
+        
+        // UI Control handlers
+        document.getElementById('gravity-slider').addEventListener('input', function() {
+            G = parseFloat(this.value);
+            document.getElementById('gravity-value').textContent = G;
+        });
+        
+        document.getElementById('time-slider').addEventListener('input', function() {
+            dt = parseFloat(this.value);
+            document.getElementById('time-value').textContent = dt.toFixed(2);
+        });
+        
+        document.getElementById('w-speed-slider').addEventListener('input', function() {
+            wSpeed = parseFloat(this.value);
+            document.getElementById('w-speed-value').textContent = wSpeed;
+        });
+        
+        document.getElementById('body-count-slider').addEventListener('input', function() {
+            document.getElementById('body-count-value').textContent = this.value;
+        });
+        
+        document.getElementById('apply-body-count').addEventListener('click', function() {
+            resetSimulation();
+        });
+        
+        document.getElementById('reset-view').addEventListener('click', function() {
+            camera.position.set(120, 120, 120);
+            camera.lookAt(0, 0, 0);
+            controls.target.set(0, 0, 0);
+            shift = new Vector4(0, 0, 0, 0);
+        });
+        
+        document.getElementById('reset-simulation').addEventListener('click', resetSimulation);
+        
+        document.getElementById('enable-trails').addEventListener('change', function() {
+            toggleTrails(this.checked);
+        });
+        
+        // Help modal controls
+        document.getElementById('help-button').addEventListener('click', function() {
+            document.getElementById('help-modal').style.display = 'block';
+        });
+        
+        document.getElementById('close-help').addEventListener('click', function() {
+            document.getElementById('help-modal').style.display = 'none';
+        });
+        
+        // Color scheme presets
+        const colorSchemes = {
+            default: {
+                background: 0x000011,
+                stars: 0xffffff,
+                axisX: 0xff5555,
+                axisY: 0x55ff55,
+                axisZ: 0x5555ff,
+                axisW: 0xffff55
+            },
+            neon: {
+                background: 0x000022,
+                stars: 0x88ffff,
+                axisX: 0xff00ff,
+                axisY: 0x00ffff,
+                axisZ: 0xffff00,
+                axisW: 0xff8800
+            },
+            monochrome: {
+                background: 0x000000,
+                stars: 0xcccccc,
+                axisX: 0xffffff,
+                axisY: 0xdddddd,
+                axisZ: 0xbbbbbb,
+                axisW: 0x999999
+            }
+        };
+        
+        // Apply a color scheme
+        function applyColorScheme(schemeName) {
+            const scheme = colorSchemes[schemeName] || colorSchemes.default;
+            renderer.setClearColor(scheme.background);
+            starsMaterial.color.set(scheme.stars);
+            
+            // Update UI elements
+            document.querySelectorAll('.x-axis .axis-line').forEach(el => {
+                el.style.backgroundColor = '#' + scheme.axisX.toString(16).padStart(6, '0');
+            });
+            
+            document.querySelectorAll('.y-axis .axis-line').forEach(el => {
+                el.style.backgroundColor = '#' + scheme.axisY.toString(16).padStart(6, '0');
+            });
+            
+            document.querySelectorAll('.z-axis .axis-line').forEach(el => {
+                el.style.backgroundColor = '#' + scheme.axisZ.toString(16).padStart(6, '0');
+            });
+            
+            document.querySelectorAll('.w-axis .axis-line').forEach(el => {
+                el.style.backgroundColor = '#' + scheme.axisW.toString(16).padStart(6, '0');
+            });
+        }
+        
+        // Initialize collision detection
+        function detectCollisions() {
+            // This is a basic collision detection that can be implemented later
+            // It's more complex in 4D and would require handling merging of bodies
+        }
+        
+        // Handle window resize events
+        window.addEventListener('resize', function() {
+            resizeRendererToDisplaySize();
+        });
+        
+        // Initialize the simulation
+        function initialize() {
+            resizeRendererToDisplaySize();
+            initBodies(200);
+            applyColorScheme('default');
+            
+            // Start animation loop
+            update();
+        }
+        
+        // Optimize rendering for specific hardware/browsers
+        function optimizeForPlatform() {
+            // Mobile devices
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                // Reduce quality for mobile
+                renderer.setPixelRatio(window.devicePixelRatio * 0.7);
+                starsMaterial.size = 1.5;
+                
+                // Update UI for touch
+                document.querySelectorAll('.slider').forEach(slider => {
+                    slider.style.height = '30px';
+                });
+                
+                document.querySelectorAll('button').forEach(button => {
+                    button.style.padding = '12px 20px';
+                });
+            } else {
+                // Desktop
+                renderer.setPixelRatio(window.devicePixelRatio);
+            }
+        }
+        
+        // Add visual reference for 4D space
+        function addWVisualizer() {
+            // Create a grid that changes color based on w-coordinate
+            const gridSize = 200;
+            const gridDivisions = 20;
+            const gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0x555555, 0x333333);
+            gridHelper.position.y = -50;
+            scene.add(gridHelper);
+            
+            // Create a "w-direction" indicator
+            const wIndicatorGeometry = new THREE.ConeGeometry(5, 15, 16);
+            const wIndicatorMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+            const wIndicator = new THREE.Mesh(wIndicatorGeometry, wIndicatorMaterial);
+            wIndicator.position.set(60, 60, 60);
+            wIndicator.scale.set(0.5, 0.5, 0.5);
+            scene.add(wIndicator);
+            
+            // Animation for w-indicator
+            function animateWIndicator() {
+                if (!paused) {
+                    wIndicator.rotation.y += 0.01;
+                    wIndicator.scale.x = 0.5 + Math.sin(Date.now() * 0.002) * 0.1;
+                    wIndicator.scale.y = 0.5 + Math.sin(Date.now() * 0.003) * 0.1;
+                    wIndicator.scale.z = 0.5 + Math.sin(Date.now() * 0.002) * 0.1;
+                }
+                requestAnimationFrame(animateWIndicator);
+            }
+            
+            animateWIndicator();
+        }
+        
+        // Presets for orbital configurations
+        const simulationPresets = {
+            'solar-system': {
+                hasAttractor: true,
+                bodies: 100,
+                G: 15000,
+                dt: 0.3,
+                wSpeed: 5
+            },
+            'galaxy': {
+                hasAttractor: true,
+                bodies: 300,
+                G: 8000,
+                dt: 0.5,
+                wSpeed: 15
+            },
+            'chaos': {
+                hasAttractor: false,
+                bodies: 150,
+                G: 12000,
+                dt: 0.4,
+                wSpeed: 20
+            }
+        };
+        
+        // Apply a simulation preset
+        function applyPreset(presetName) {
+            const preset = simulationPresets[presetName];
+            if (!preset) return;
+            
+            hasAttractor = preset.hasAttractor;
+            document.getElementById('body-count-slider').value = preset.bodies;
+            document.getElementById('body-count-value').textContent = preset.bodies;
+            document.getElementById('gravity-slider').value = preset.G;
+            document.getElementById('gravity-value').textContent = preset.G;
+            document.getElementById('time-slider').value = preset.dt;
+            document.getElementById('time-value').textContent = preset.dt.toFixed(2);
+            document.getElementById('w-speed-slider').value = preset.wSpeed;
+            document.getElementById('w-speed-value').textContent = preset.wSpeed;
+            
+            G = preset.G;
+            dt = preset.dt;
+            wSpeed = preset.wSpeed;
+            
+            resetSimulation();
+        }
+        
+        // Add visual feedback for 4D slicing
+        function createSliceVisualizer() {
+            // Create a semi-transparent plane representing the current slice
+            const planeGeometry = new THREE.PlaneGeometry(100, 100);
+            const planeMaterial = new THREE.MeshBasicMaterial({
+                color: 0xffff00,
+                transparent: true,
+                opacity: 0.1,
+                side: THREE.DoubleSide
+            });
+            
+            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane.rotation.x = Math.PI / 2;
+            scene.add(plane);
+            
+            // Animate the plane to indicate w-coordinate changes
+            function animatePlane() {
+                plane.scale.x = 1 + Math.sin(Date.now() * 0.001) * 0.1;
+                plane.scale.y = 1 + Math.sin(Date.now() * 0.001) * 0.1;
+                plane.opacity = 0.05 + Math.sin(Date.now() * 0.002) * 0.05;
+                requestAnimationFrame(animatePlane);
+            }
+            
+            animatePlane();
+        }
+        
+        // Run the optimizations and initialization
+        optimizeForPlatform();
+        initialize();
+        addWVisualizer();
+        createSliceVisualizer();
+    </script>
+</body>
+</html>
