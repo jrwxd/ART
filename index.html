@@ -3,15 +3,602 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PNG Gallery</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>BugBusters - We Squash What Crawls</title>
+    <style>
+        :root {
+            --primary: #ff6b6b;
+            --secondary: #5f27cd;
+            --accent: #48dbfb;
+            --light: #f9f9f9;
+            --dark: #341f97;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: var(--light);
+            overflow-x: hidden;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .code-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            z-index: 1;
+            font-family: monospace;
+            overflow: hidden;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            font-weight: bold;
+            text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+        }
+        
+        h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--secondary);
+        }
+        
+        p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: linear-gradient(135deg, #f9f9f9 0%, #e0f7fa 100%);
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: var(--accent);
+            color: var(--dark);
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2);
+            transform: rotate(-2deg);
+        }
+        
+        .cta-button:hover {
+            background-color: #36c0e3;
+            transform: translateY(-3px) rotate(2deg);
+            box-shadow: 0 8px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .cta-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+            margin: 3rem 0;
+        }
+        
+        .feature-card {
+            flex: 1;
+            min-width: 300px;
+            max-width: 350px;
+            background-color: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            transform: rotate(1deg);
+            border: 3px solid var(--secondary);
+        }
+        
+        .feature-card:nth-child(2) {
+            transform: rotate(-1deg);
+        }
+        
+        .feature-card:nth-child(3) {
+            transform: rotate(2deg);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px) rotate(0);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        
+        .how-it-works {
+            background-color: var(--secondary);
+            color: white;
+            padding: 3rem 1rem;
+            text-align: center;
+            margin: 3rem 0;
+            clip-path: polygon(0 5%, 100% 0, 100% 95%, 0 100%);
+            padding-top: 5rem;
+            padding-bottom: 5rem;
+        }
+        
+        .steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .step {
+            flex: 1;
+            min-width: 250px;
+            max-width: 300px;
+            padding: 1.5rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .step:hover {
+            transform: scale(1.05);
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            background-color: var(--accent);
+            color: var(--dark);
+            border-radius: 50%;
+            line-height: 50px;
+            margin-bottom: 1rem;
+            font-weight: bold;
+            font-size: 1.5rem;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .testimonials {
+            text-align: center;
+            margin: 3rem 0;
+        }
+        
+        .testimonial-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .testimonial-card {
+            flex: 1;
+            min-width: 300px;
+            max-width: 350px;
+            background-color: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            border: 3px dashed var(--primary);
+        }
+        
+        .quote {
+            font-style: italic;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .client {
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        footer {
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            clip-path: polygon(0 30%, 100% 0, 100% 100%, 0 100%);
+            padding-top: 5rem;
+        }
+        
+        .social-links {
+            margin: 1rem 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            color: white;
+            margin: 0 0.5rem;
+            font-size: 1.5rem;
+            text-decoration: none;
+            background-color: rgba(255, 255, 255, 0.1);
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            background-color: var(--accent);
+            color: var(--dark);
+            transform: translateY(-5px);
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .feature-card, .testimonial-card, .step {
+                min-width: 100%;
+            }
+        }
+        
+        .bug-animation {
+            position: relative;
+            height: 200px;
+            margin: 2rem auto;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .bug {
+            position: absolute;
+            font-size: 40px;
+            animation: bugMove 12s linear infinite;
+            top: 50%;
+            z-index: 2;
+        }
+        
+        .bug:nth-child(2) {
+            animation-delay: 3s;
+            top: 30%;
+            font-size: 50px;
+        }
+        
+        .bug:nth-child(3) {
+            animation-delay: 7s;
+            top: 70%;
+            font-size: 60px;
+        }
+        
+        .swatter {
+            position: absolute;
+            font-size: 60px;
+            animation: swatterMove 12s linear infinite, swat 0.5s ease infinite;
+            top: 45%;
+            z-index: 1;
+        }
+        
+        @keyframes bugMove {
+            0% { left: -100px; transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(10deg); }
+            100% { left: calc(100% + 100px); transform: scale(1) rotate(0deg); }
+        }
+        
+        @keyframes swatterMove {
+            0% { left: -150px; }
+            100% { left: calc(100% + 150px); }
+        }
+        
+        @keyframes swat {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-20deg); }
+        }
+        
+        .bouncy {
+            animation: bounce 2s ease infinite;
+            display: inline-block;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .spinning {
+            animation: spin 10s linear infinite;
+            display: inline-block;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .floating-bugs {
+            position: absolute;
+            font-size: 30px;
+            animation: float 10s ease-in-out infinite;
+            z-index: 0;
+            opacity: 0.3;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        
+        .bug-splat {
+            position: absolute;
+            font-size: 40px;
+            opacity: 0;
+            animation: splat 6s ease-in-out infinite;
+        }
+        
+        @keyframes splat {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            10%, 20% { opacity: 1; transform: scale(1.5); }
+            30% { opacity: 0.8; transform: scale(1); }
+            40% { opacity: 0.6; transform: scale(0.9); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+            60% { opacity: 0.2; transform: scale(0.7); }
+            70% { opacity: 0; transform: scale(0.6); }
+        }
+        
+        .crazy-text span {
+            display: inline-block;
+            animation: crazyText 2s ease infinite;
+            animation-delay: calc(0.1s * var(--i));
+        }
+        
+        @keyframes crazyText {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); color: var(--primary); }
+        }
+    </style>
 </head>
 <body>
-    
-<a href="arts.html" class="back-button">look at some arts</a>
-<a href="orbits.HTML" class="back-button">what if billiard balls flew threw space?</a>
-<a href="outliner.html" class="back-button">differnece of Gaussians</a>
-<a href="nostalgia.html" class="back-button">this is a dumb nostalgia inducer</a>
-</body>
+    <header>
+        <div class="code-bg">
+            function fixBug(code) { if (hasErrors(code)) { return cleanCode(code); } else { return code; } }
+            try { runApplication(); } catch(error) { console.error("Found a bug!", error); fixBug(getSourceCode()); }
+            class BugFixer { constructor() { this.experience = 10; this.successRate = 99.9; } fix(problem) { return solution; } }
+        </div>
+        <div class="header-content">
+            <h1><span class="bouncy">🐞</span> BugBusters <span class="bouncy">🔨</span></h1>
+            <p>We Squash What Crawls In Your Code!</p>
+        </div>
+    </header>
 
+    <section class="hero">
+        <div class="container">
+            <h1 class="crazy-text">
+                <span style="--i:1">S</span>
+                <span style="--i:2">m</span>
+                <span style="--i:3">a</span>
+                <span style="--i:4">c</span>
+                <span style="--i:5">k</span>
+                <span style="--i:6">!</span>
+                <span style="--i:7"> </span>
+                <span style="--i:8">Z</span>
+                <span style="--i:9">a</span>
+                <span style="--i:10">p</span>
+                <span style="--i:11">!</span>
+                <span style="--i:12"> </span>
+                <span style="--i:13">P</span>
+                <span style="--i:14">o</span>
+                <span style="--i:15">w</span>
+                <span style="--i:16">!</span>
+            </h1>
+            <p>Is your code crawling with bugs? Don't panic! Our team of elite Bug Exterminators are armed and ready to squash, zap, and obliterate any digital creepy crawlies!</p>
+            
+            <div class="bug-animation">
+                <div class="bug">🐛</div>
+                <div class="bug">🐜</div>
+                <div class="bug">🐞</div>
+                <div class="swatter">🔨</div>
+                <div class="bug-splat" style="top: 30%; left: 25%;">💥</div>
+                <div class="bug-splat" style="top: 60%; left: 50%;">💥</div>
+                <div class="bug-splat" style="top: 40%; left: 75%;">💥</div>
+            </div>
+            
+            <a href="mailto:bugs@bugbusters.example.com" class="cta-button">HELP! I'VE GOT BUGS!</a>
+        </div>
+        
+        <div class="floating-bugs" style="top: 20%; left: 10%;">🐌</div>
+        <div class="floating-bugs" style="top: 70%; left: 80%;">🦗</div>
+        <div class="floating-bugs" style="top: 40%; left: 60%;">🕷️</div>
+        <div class="floating-bugs" style="top: 80%; left: 30%;">🦟</div>
+    </section>
+
+    <section class="container">
+        <h2><span class="spinning">⚡</span> Why Developers Choose Us <span class="spinning">⚡</span></h2>
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🔎</div>
+                <h3>Bug Whisperers</h3>
+                <p>Our team can communicate with bugs telepathically... or at least that's what it seems like when we find those impossible-to-spot errors in seconds flat!</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">⏩</div>
+                <h3>Supersonic Speed</h3>
+                <p>We fix bugs so fast that your computer might get whiplash! Our developers are powered by coffee, pizza, and the tears of junior programmers!</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h3>Mind-Reading Technology</h3>
+                <p>"But that's not what I meant the code to do!" Yeah, we know. We'll fix what you meant, not what you wrote. Our psychic debugging skills are legendary!</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works">
+        <div class="container">
+            <h2>How We Squash Bugs</h2>
+            <p>Our highly scientific, definitely-not-made-up process for eradicating digital pests</p>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Bug Panic!</h3>
+                    <p>You notice your code is more broken than your New Year's resolutions and email us in a caffeine-fueled panic</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Bug Hunt!</h3>
+                    <p>Our experts put on their debugging safari hats and track the elusive bugs through the dense jungle of your spaghetti code</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Bug Squashed!</h3>
+                    <p>WHAM! POW! ZAP! Bugs eliminated! Your code now runs smoothly and you look like a coding superhero to your boss</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials container">
+        <h2>Happy Bug-Free Developers</h2>
+        <div class="testimonial-cards">
+            <div class="testimonial-card">
+                <p class="quote">"I spent three days looking for a bug. BugBusters found it in 7 minutes. It was a semicolon. I'm not crying, you're crying."</p>
+                <p class="client">Dave "The Debugless" Johnson</p>
+            </div>
+            
+            <div class="testimonial-card">
+                <p class="quote">"My app kept crashing every Tuesday at exactly 3:17 PM. Turns out my cat was stepping on my keyboard at the same time every week. BugBusters figured it out somehow!"</p>
+                <p class="client">Linda "Cat Owner" Martinez</p>
+            </div>
+            
+            <div class="testimonial-card">
+                <p class="quote">"They fixed a memory leak that was using more RAM than Chrome with 3 tabs open. I named my firstborn child after them. Little 'BugBusters Smith' is doing great!"</p>
+                <p class="client">Tom "Poor Naming Choices" Smith</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <h3><span class="bouncy">🐞</span> BugBusters <span class="bouncy">🔨</span></h3>
+            <p>Making code work since that one time we accidentally deleted the production database and had to fix it real quick.</p>
+            <div class="social-links">
+                <a href="#">👾</a>
+                <a href="#">🐦</a>
+                <a href="#">👔</a>
+            </div>
+            <p>&copy; 2025 BugBusters. No bugs were harmed in the making of this website. Actually, that's a lie. We smashed hundreds.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Animate code background
+        const codeBg = document.querySelector('.code-bg');
+        let codeSnippets = [
+            'function debugCode(file) { /* magic happens here */ }',
+            'try { runApp(); } catch(e) { blame.intern(); }',
+            'if (code.works) { dontTouchIt(); }',
+            'const fix = await coffee.drink(5);',
+            'bugs.forEach(bug => yeetus.deletus(bug));',
+            '// This works but I have no idea why...',
+            '// I wrote this at 3am, good luck future me',
+            'console.log("WHY?! WHY?! WHY?!");',
+            'git commit -m "Fixed bug. No, really this time"',
+            'setTimeout(() => { /* This fixes it somehow */ }, 100);'
+        ];
+        
+        function populateCodeBg() {
+            let content = '';
+            for (let i = 0; i < 50; i++) {
+                content += codeSnippets[Math.floor(Math.random() * codeSnippets.length)] + '\n';
+            }
+            codeBg.textContent = content;
+        }
+        
+        populateCodeBg();
+        setInterval(populateCodeBg, 10000);
+        
+        // Add random bug splats on click
+        document.addEventListener('click', function(e) {
+            const splat = document.createElement('div');
+            splat.textContent = '💥';
+            splat.className = 'bug-splat';
+            splat.style.position = 'absolute';
+            splat.style.left = e.pageX + 'px';
+            splat.style.top = e.pageY + 'px';
+            splat.style.fontSize = '50px';
+            splat.style.zIndex = '9999';
+            document.body.appendChild(splat);
+            
+            // Play squish sound
+            const squishSound = new Audio('data:audio/wav;base64,UklGRigBAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQBAADpAFgCKALgAfsBpQIPAj4CkwJmAh8CDAISAp0BGQGvAL0AhACTANQAHAFAAXMBYQE7AeQAZQDC/z3/tf42/qL9DP13/AX8yvvd+3H8mv1T/1oBHQMLBJeEmYQgBGkCWwAj/ub8C/zQ+7f7qvs5+7r6U/o7+jz6U/m/+Bf5r/r5/IH/jwH4AnYDHQOMAsgBEAG7AMsA8QA7ATQBMQFvAVUB2QEDAvMB+QKLBZYIpwvnDc8O1Q5RDt4NfA36DP8L2QplCc4H0wW5A+EBv/9R/Bj4rPOl7w3t1OsA7P3to/CA83T1kfZS9Mrwuezj6C/m6ONE4vvhwOJr5IPm/ujK673u0/G+9Pr3hfqs/JX+GQDhAMYBQQK2Ag==');
+            squishSound.play();
+            
+            setTimeout(() => {
+                document.body.removeChild(splat);
+            }, 1000);
+        });
+    </script>
+</body>
 </html>
