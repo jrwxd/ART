@@ -111,21 +111,17 @@
         function update() {
             bodies.forEach((body, i) => {
                 wrapPosition(body.position);
-     body.mesh.position.copy(body.position);
-
-                // Update Trail
+                body.mesh.position.copy(body.position);
                 body.trailVertices.copyWithin(3, 0, body.trailLength * 3 - 3);
                 body.trailVertices.set([body.position.x, body.position.y, body.position.z], 0);
                 body.trail.geometry.attributes.position.needsUpdate = true;
-
-                if (gax) {
-                    const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
-                    const newTheta = (theta +E*body.mesh.material.color.getHex()/0xFFFFFF) % (2 * Math.PI);
-                    const newPhi = (phi +R*body.mesh.material.color.getHex()/0xFFFFFF ) % (Math.PI);
-                    const newPos = sphericalToCartesian(r, newTheta, newPhi);
-                    body.position = newPos;
-                    body.mesh.position.copy(body.position);
-                }
+                const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y,body.position.z);
+                const newTheta = (theta +E*body.mesh.material.color.getHex()/0xFFFFFF) % (2 *Math.PI);
+                const newPhi = (phi +R*body.mesh.material.color.getHex()/0xFFFFFF ) % (Math.PI);
+                const newPos = sphericalToCartesian(r+0.1, newTheta, newPhi);
+                body.position = newPos;
+                body.mesh.position.copy(body.position);
+                
             });
 
             renderer.render(scene, camera);
