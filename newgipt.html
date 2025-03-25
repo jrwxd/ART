@@ -111,8 +111,8 @@
         let shift = new THREE.Vector3(0, 0, 0);
 
         function update() {
-            E = E*Math.sin(R);
-            R = R*Math.sin(E);
+            E = E*Math.sin(R+3);
+            R = R*Math.sin(E+2);
             
             bodies.forEach((body, i) => {
                 wrapPosition(body.position);
