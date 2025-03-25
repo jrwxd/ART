@@ -30,7 +30,7 @@
         controls.enableZoom = true;
         controls.enablePan = true;
         controls.autoRotate = true;
-        controls.autoRotateSpeed = 1.91;
+        controls.autoRotateSpeed = 3.91;
         controls.update();
 
         const ambientLight = new THREE.AmbientLight(0x603030, 5);
@@ -42,6 +42,7 @@
         let gax = true;
 
 
+        let world_theta = 0;
         let G = 1;
         let E = 5;
         let R = 1;
@@ -111,6 +112,11 @@
         let shift = new THREE.Vector3(0, 0, 0);
 
         function update() {
+            world_theta += 0.1;
+
+			camera.position.x = radius * Math.sin( THREE.MathUtils.degToRad( world_theta ) );
+			camera.position.y = radius * Math.sin( THREE.MathUtils.degToRad( world_theta ) );
+			camera.position.z = radius * Math.cos( THREE.MathUtils.degToRad( world_theta ) );
             if (E*R != 0) {
             E = R*Math.cos(R*E);
             R = E*Math.sin(E);
