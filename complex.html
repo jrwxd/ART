@@ -106,7 +106,7 @@
 
         }
 
-        let shift = new THREE.Vector3(0, 0, 0);
+        let shift = new THREE.Vector3(3, 5, 0);
 
         function update() {
             bodies.forEach((body, i) => {
@@ -119,7 +119,7 @@
                 const newTheta = (theta +E*body.mesh.material.color.getHex()/0x847593) % (2 *Math.PI);
                 const newPhi = (phi +R*body.mesh.material.color.getHex()/0x998388 ) % (Math.PI);
                 const newPos = sphericalToCartesian(r+0.1, newTheta, newPhi);
-                body.position = newPos;
+                body.position = newPos+shift;
                 body.mesh.position.copy(body.position);
                 
             });
