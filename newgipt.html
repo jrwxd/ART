@@ -126,7 +126,7 @@
                 if (gax) {
                     const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
                     const newTheta = (theta +E*body.mesh.material.color.getHex()/0xFF3333) % (2 * Math.PI);
-                    const newPhi = (phi +R*body.mesh.material.color.getHex()/0xFF0F3F ) % (Math.PI);
+                    const newPhi = (phi +R*body.mesh.material.color.getHex()/0xFF004F ) % (Math.PI);
                     const newPos = sphericalToCartesian(r, newTheta, newPhi);
                     body.position = newPos;
                     body.mesh.position.copy(body.position);
@@ -148,10 +148,10 @@
             if (event.key === 'q') G = G + 1;
         });
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'e') E = (E + 1)%22;
+            if (event.key === 'e') E = (E + 1)%222;
         });
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'r') R = (R + 1)%22;
+            if (event.key === 'r') R = (R + 1)%222;
         document.addEventListener('keydown', (event) => {
             if (event.key === 'a') {
                 trailLength = trailLength + 1;
