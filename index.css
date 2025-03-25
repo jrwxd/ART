@@ -1,0 +1,392 @@
+
+        :root {
+            --primary: #4a6bde;
+            --secondary: #5c3fc2;
+            --accent: #53c7ff;
+            --light: #f5f8ff;
+            --dark: #282c45;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: var(--light);
+            overflow-x: hidden;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .code-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            z-index: 1;
+            font-family: monospace;
+            overflow: hidden;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            font-weight: bold;
+            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--secondary);
+        }
+        
+        h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--secondary);
+        }
+        
+        p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: linear-gradient(135deg, #f5f8ff 0%, #e0edff 100%);
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: var(--accent);
+            color: var(--dark);
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+            transform: rotate(-1deg);
+        }
+        
+        .cta-button:hover {
+            background-color: #41b6f0;
+            transform: translateY(-3px) rotate(0deg);
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .cta-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+            margin: 3rem 0;
+        }
+        
+        .feature-card {
+            flex: 1;
+            min-width: 300px;
+            max-width: 350px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            transform: rotate(0.5deg);
+            border: 2px solid var(--primary);
+        }
+        
+        .feature-card:nth-child(2) {
+            transform: rotate(-0.5deg);
+        }
+        
+        .feature-card:nth-child(3) {
+            transform: rotate(1deg);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px) rotate(0);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        
+        .how-it-works {
+            background-color: var(--secondary);
+            color: white;
+            padding: 3rem 1rem;
+            text-align: center;
+            margin: 3rem 0;
+            clip-path: polygon(0 3%, 100% 0, 100% 97%, 0 100%);
+            padding-top: 4rem;
+            padding-bottom: 4rem;
+        }
+        
+        .steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .step {
+            flex: 1;
+            min-width: 250px;
+            max-width: 300px;
+            padding: 1.5rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .step:hover {
+            transform: scale(1.05);
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background-color: var(--accent);
+            color: var(--dark);
+            border-radius: 50%;
+            line-height: 40px;
+            margin-bottom: 1rem;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .testimonials {
+            text-align: center;
+            margin: 3rem 0;
+        }
+        
+        .testimonial-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .testimonial-card {
+            flex: 1;
+            min-width: 300px;
+            max-width: 350px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            position: relative;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .quote {
+            font-style: italic;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .client {
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        footer {
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 100%);
+            padding-top: 4rem;
+        }
+        
+        .social-links {
+            margin: 1rem 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            color: white;
+            margin: 0 0.5rem;
+            font-size: 1.5rem;
+            text-decoration: none;
+            background-color: rgba(255, 255, 255, 0.1);
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            background-color: var(--accent);
+            color: var(--dark);
+            transform: translateY(-3px);
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .feature-card, .testimonial-card, .step {
+                min-width: 100%;
+            }
+        }
+        
+        .bug-animation {
+            position: relative;
+            height: 180px;
+            margin: 2rem auto;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .bug {
+            position: absolute;
+            font-size: 32px;
+            animation: bugMove 15s linear infinite;
+            top: 50%;
+            z-index: 2;
+        }
+        
+        .bug:nth-child(2) {
+            animation-delay: 3s;
+            top: 30%;
+            font-size: 36px;
+        }
+        
+        .bug:nth-child(3) {
+            animation-delay: 7s;
+            top: 70%;
+            font-size: 28px;
+        }
+        
+        .swatter {
+            position: absolute;
+            font-size: 40px;
+            animation: swatterMove 15s linear infinite, swat 0.5s ease infinite;
+            top: 45%;
+            z-index: 1;
+        }
+        
+        @keyframes bugMove {
+            0% { left: -80px; transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+            100% { left: calc(100% + 80px); transform: scale(1) rotate(0deg); }
+        }
+        
+        @keyframes swatterMove {
+            0% { left: -120px; }
+            100% { left: calc(100% + 120px); }
+        }
+        
+        @keyframes swat {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-15deg); }
+        }
+        
+        .bouncy {
+            animation: bounce 3s ease infinite;
+            display: inline-block;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .floating-bugs {
+            position: absolute;
+            font-size: 24px;
+            animation: float 15s ease-in-out infinite;
+            z-index: 0;
+            opacity: 0.2;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        
+        .bug-splat {
+            position: absolute;
+            font-size: 32px;
+            opacity: 0;
+            animation: splat 4s ease-in-out infinite;
+        }
+        
+        @keyframes splat {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            10%, 20% { opacity: 1; transform: scale(1.2); }
+            30% { opacity: 0.8; transform: scale(1); }
+            40% { opacity: 0.6; transform: scale(0.9); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+            60% { opacity: 0.2; transform: scale(0.7); }
+            70% { opacity: 0; transform: scale(0.6); }
+        }
+        
+        .highlight-text {
+            color: var(--primary);
+            font-weight: bold;
+        }
