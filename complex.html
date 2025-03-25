@@ -110,7 +110,7 @@
 
         function update() {
             bodies.forEach((body, i) => {
-                body.position -= shift;
+                body.position.sub(shift);
                 wrapPosition(body.position);
                 body.mesh.position.copy(body.position);
                 body.trailVertices.copyWithin(3, 0, body.trailLength * 3 - 3);
