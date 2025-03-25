@@ -43,8 +43,8 @@
 
 
         let G = 1;
-        let E = 77;
-        let R = 0.051;
+        let E = 5;
+        let R = 0;
         let trailLength = 100;
         let dt = 4;
         const boundary = 150000;
@@ -147,11 +147,11 @@
         document.addEventListener('keydown', (event) => {
             if (event.key === 'q') G = G + 1;
         });
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'e') E = (E + 1)%222;
+        document.addEventListener('keydown', (event) => {s
+            if (event.key === 'e') E = (E + 0.1)%500;
         });
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'r') R = (R + 1)%222;
+            if (event.key === 'r') R = (R + 0.1)%500;
         document.addEventListener('keydown', (event) => {
             if (event.key === 'a') {
                 trailLength = trailLength + 1;
