@@ -193,15 +193,6 @@
              return coord;
          }
 
-         // Wrap Around
-         //body.position.set(
-         //    wrapCoordinate(body.position.x, universeSize),
-         //    wrapCoordinate(body.position.y, universeSize),
-         //    wrapCoordinate(body.position.z, universeSize)
-         //);
-         // Update trails
-
-             
          temp = rectangularToSpherical(
                  body.position.x,
                  body.position.y,
@@ -228,7 +219,7 @@
                  body.history = [];
              } else
              if (body.history.length > 0) {
-                 if (distance < 5) return;
+                 if (distance < 80) return;
              }
              body.history.push(body.position.clone());
              
