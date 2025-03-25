@@ -8,7 +8,7 @@
 
  const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.2, 5700);
  camera.position.set(300, 300, 300);
- camera.lookAt(0, 0, 0); // Look at the center of the scene
+ camera.lookAt(0, 0, 200); // Look at the center of the scene
  camera.far = 18000; // Set far plane distance
  camera.updateProjectionMatrix(); // Update the projection matrix to apply the new far plane distance
 
