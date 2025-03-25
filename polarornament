@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Orbitals with Trails</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: black; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 32000);
+        camera.position.set(1200, 1200, 1200);
+        camera.lookAt(0, 0, 0);
+
+        //
+        // const renderer = new THREE.WebGLRenderer({ antialias: true });
+
+        const renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true,alpha: true,});
+        renderer.autoClearColor = false;
+        renderer.setPixelRatio(window.devicePixelRatio);
+        //renderer.setClearColor(0x000000);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableZoom = true;
+        controls.enablePan = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 3.91;
+        controls.update();
+
+        const ambientLight = new THREE.AmbientLight(0x603030, 5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 6);
+        directionalLight.position.set(-5, -3, 5);
+        scene.add(directionalLight);
+
+        let gax = true;
+        let G = 1;
+        let E = 7;
+        let R = 0;
+        let trailLength = 100;
+        let dt = 4;
+        const boundary = 150000;
+        const bodies = [];
+
+        function createBody(position, velocity, mass, radius, color) {
+            const geometry = new THREE.SphereGeometry(radius)
+            const material = new THREE.MeshStandardMaterial({ color });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.copy(position);
+            scene.add(mesh);
+
+            // Create Trail
+            const trailGeometry = new THREE.BufferGeometry();
+            let trailVertices = new Float32Array(trailLength * 3);
+            trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailVertices, 3));
+            const trailMaterial = new THREE.LineBasicMaterial({ color, linewidth: 1 });
+            const trail = new THREE.Line(trailGeometry, trailMaterial);
+            scene.add(trail);
+
+            return { position: position.clone(), velocity: velocity.clone(), mass, mesh, trail, trailVertices, trailLength, trailIndex: 0 };
+        }
+
+        function getRandom(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        function sphericalToCartesian(r, theta, phi) {
+            return new THREE.Vector3(
+                r * Math.sin(phi) * Math.cos(theta),
+                r * Math.sin(phi) * Math.sin(theta),
+                r * Math.cos(phi)
+            );
+        }
+
+        function cartesianToSpherical(x, y, z) {
+            const r = Math.sqrt(x * x + y * y + z * z);
+            const theta = Math.atan2(y, x);
+            const phi = Math.acos(z / r);
+            return { r, theta, phi };
+        }
+
+        for (let i = 0; i < 100; i++) {
+            const pos = sphericalToCartesian(800, getRandom(-Math.PI, Math.PI), getRandom(0, Math.PI));
+            const velocity = new THREE.Vector3(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
+            const mass = getRandom(10, 100);
+            const radius = Math.sqrt(mass) * 0.2;
+            const color = new THREE.Color().setHSL(Math.random(), 1, 0.6);
+
+            bodies.push(createBody(pos, velocity, mass, radius, color));
+        }
+
+        function wrapPosition(position) {
+            // convert position to spherical coordinates
+            let { r, theta, phi } = cartesianToSpherical(position.x, position.y, position.z);
+            // wrap r
+            r = r % boundary;
+            position.x = r * Math.sin(phi) * Math.cos(theta);
+            position.y = r * Math.sin(phi) * Math.sin(theta);
+            position.z = r * Math.cos(phi);
+
+        }
+
+        let shift = new THREE.Vector3(0, 0, 0);
+
+        function update() {
+            bodies.forEach((body, i) => {
+                wrapPosition(body.position);
+                body.mesh.position.copy(body.position);
+
+                // Update Trail
+                body.trailVertices.copyWithin(3, 0, body.trailLength * 3 - 3);
+                body.trailVertices.set([body.position.x, body.position.y, body.position.z], 0);
+                body.trail.geometry.attributes.position.needsUpdate = true;
+
+                if (gax) {
+                    const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
+                    const newTheta = (theta +E*body.mesh.material.color.getHex()/0xFFFFFF) % (2 * Math.PI);
+                    const newPhi = (phi +R*body.mesh.material.color.getHex()/0xFFFFFF ) % (Math.PI);
+                    const newPos = sphericalToCartesian(r, newTheta, newPhi);
+                    body.position = newPos;
+                    body.mesh.position.copy(body.position);
+                }
+            });
+
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(update);
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'u') gax = false;
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'y') gax = true;
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'q') G = G + 1;
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'e') E = (E + 0.1)%500;
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'r') R = (R + 0.1)%500;
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'a') {
+                trailLength = trailLength + 1;
+                bodies.forEach(body => {
+                    body.trailLength = trailLength;
+                    scene.remove(body.trail);
+                    const trailGeometry = new THREE.BufferGeometry();
+                    let trailVertices = new Float32Array(trailLength * 3);
+                    trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailVertices, 3));
+                    const trailMaterial = new THREE.LineBasicMaterial({color: body.mesh.material.color, linewidth: 1 });
+                    const trail = new THREE.Line(trailGeometry, trailMaterial);
+                    scene.add(trail);
+                    body.trail = trail;
+                });
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 's') {
+                trailLength = trailLength - 1;
+                bodies.forEach(body => {
+                    body.trailLength = trailLength;
+                    scene.remove(body.trail);
+                    const trailGeometry = new THREE.BufferGeometry();
+                    let trailVertices = new Float32Array(trailLength * 3);
+                    trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailVertices, 3));
+                    const trailMaterial = new THREE.LineBasicMaterial({color: body.mesh.material.color, linewidth: 1 });
+                    const trail = new THREE.Line(trailGeometry, trailMaterial);
+                    scene.add(trail);
+                    body.trail = trail;
+                });
+            }
+        });
+
+        update();
+    </script>
+</body>
+</html>
