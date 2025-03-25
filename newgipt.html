@@ -152,6 +152,7 @@
         });
         document.addEventListener('keydown', (event) => {
             if (event.key === 'r') R = (R + 0.1)%500;
+        });
         document.addEventListener('keydown', (event) => {
             if (event.key === 'a') {
                 trailLength = trailLength + 1;
@@ -183,7 +184,6 @@
                     body.trail = trail;
                 });
             }
-        });
         });
 
         update();
