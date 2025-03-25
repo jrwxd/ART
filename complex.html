@@ -111,7 +111,7 @@
         function update() {
             bodies.forEach((body, i) => {
                 wrapPosition(body.position);
-                body.mesh.position.copy(body.position);
+     body.mesh.position.copy(body.position);
 
                 // Update Trail
                 body.trailVertices.copyWithin(3, 0, body.trailLength * 3 - 3);
@@ -127,7 +127,6 @@
                     body.mesh.position.copy(body.position);
                 }
             });
-
 
             renderer.render(scene, camera);
             requestAnimationFrame(update);
