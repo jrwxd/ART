@@ -111,9 +111,14 @@
         let shift = new THREE.Vector3(0, 0, 0);
 
         function update() {
+            if (E*R != 0) {
             E = R*Math.cos(R*E);
-            R = E*Math.sin(E+2);
-            
+            R = E*Math.sin(E);
+            }
+            else {
+            E = Math.random()*10;
+            R = Math.random()*10;
+            }
             bodies.forEach((body, i) => {
                 wrapPosition(body.position);
                 body.mesh.position.copy(body.position);
