@@ -112,7 +112,7 @@
 
         function update() {
             E = E*Math.sin(R);
-            R = R*Math.cos(E);
+            R = R*Math.sin(E);
             
             bodies.forEach((body, i) => {
                 wrapPosition(body.position);
