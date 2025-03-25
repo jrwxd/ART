@@ -112,6 +112,7 @@
         let shift = new THREE.Vector3(0, 0, 0);
 
         function update() {
+            let radius = 400;
             world_theta += 0.1;
 
 			camera.position.x = radius * Math.sin( THREE.MathUtils.degToRad( world_theta ) );
