@@ -33,7 +33,7 @@
         controls.autoRotateSpeed = 1.91;
         controls.update();
 
-        const ambientLight = new THREE.AmbientLight(0x606060, 5);
+        const ambientLight = new THREE.AmbientLight(0x603030, 5);
         scene.add(ambientLight);
         const directionalLight = new THREE.DirectionalLight(0xffffff, 6);
         directionalLight.position.set(-5, -3, 5);
@@ -125,8 +125,8 @@
 
                 if (gax) {
                     const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
-                    const newTheta = (theta +E*body.mesh.material.color.getHex()/0xFFFFFF) % (2 * Math.PI);
-                    const newPhi = (phi +R*body.mesh.material.color.getHex()/0xFF0FFF ) % (Math.PI);
+                    const newTheta = (theta +E*body.mesh.material.color.getHex()/0xFF3333) % (2 * Math.PI);
+                    const newPhi = (phi +R*body.mesh.material.color.getHex()/0xFF0F3F ) % (Math.PI);
                     const newPos = sphericalToCartesian(r, newTheta, newPhi);
                     body.position = newPos;
                     body.mesh.position.copy(body.position);
