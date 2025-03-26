@@ -79,6 +79,15 @@
             );
         }
 
+        function colorShuffle() {
+            bodies.forEach((body, i) => {
+                // Convert position to spherical coordinates
+                body.mesh.material.color = colorPicker(parm, parn, i);
+            });
+            
+
+        }
+
         function cartesianToSpherical(x, y, z) {
             const r = Math.sqrt(x * x + y * y + z * z);
             const theta = Math.atan2(y, x);
