@@ -118,7 +118,7 @@
                 // Convert position to spherical coordinates
                 const newPos = colorShifter(body.position, body.mesh.material.color.getHex() / 0xFFFFFF);
                 shift = colorShifter(shift2, 0x333333);
-                shift2 = colorShifter(shift1,0x444444);
+                shift2 = colorShifter(shift,0x444444);
                 body.position.copy(newPos);
                 if (i%2) {
                     body.mesh.position.copy(newPos.clone().add(shift));
