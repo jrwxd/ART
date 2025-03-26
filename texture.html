@@ -171,9 +171,11 @@
         });
         document.addEventListener('keydown', (event) => {
             if (event.key === 'x') parn = (parn + 0.1)%1.0;
+            colorShuffle();
         });
         document.addEventListener('keydown', (event) => {
             if (event.key === 'c') parm = (parm + 0.1)%1.0;
+            colorShuffle();
         });
         document.addEventListener('keydown', (event) => {
             if (event.key === 'a') {
