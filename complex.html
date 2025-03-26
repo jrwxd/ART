@@ -16,13 +16,9 @@
         camera.position.set(1200, 1200, 1200);
         camera.lookAt(0, 0, 0);
 
-        //
-        // const renderer = new THREE.WebGLRenderer({ antialias: true });
-
         const renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true,alpha: true,});
         renderer.autoClearColor = false;
         renderer.setPixelRatio(window.devicePixelRatio);
-        //renderer.setClearColor(0x000000);
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
@@ -54,7 +50,6 @@
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.copy(position);
             scene.add(mesh);
-
             // Create Trail
             const trailGeometry = new THREE.BufferGeometry();
             let trailVertices = new Float32Array(trailLength * 3);
@@ -96,9 +91,7 @@
         }
 
         function wrapPosition(position) {
-            // convert position to spherical coordinates
             let { r, theta, phi } = cartesianToSpherical(position.x, position.y, position.z);
-            // wrap r
             r = r % boundary;
             position.x = r * Math.sin(phi) * Math.cos(theta);
             position.y = r * Math.sin(phi) * Math.sin(theta);
@@ -110,7 +103,7 @@
 
         function update() {
             bodies.forEach((body, i) => {
-                body.position.sub(shift);
+                body.position.clone().sub(shift);
                 wrapPosition(body.position);
                 body.mesh.position.copy(body.position);
                 body.trailVertices.copyWithin(3, 0, body.trailLength * 3 - 3);
@@ -120,7 +113,7 @@
                 const newTheta = (theta +E*body.mesh.material.color.getHex()/0x847593) % (2 *Math.PI);
                 const newPhi = (phi +R*body.mesh.material.color.getHex()/0x998388 ) % (Math.PI);
                 const newPos = sphericalToCartesian(r+0.1, newTheta, newPhi);
-                body.position = newPos+shift;
+                body.position = newPos.clone().add(shift);
                 body.mesh.position.copy(body.position);
                 
             });
