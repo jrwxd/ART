@@ -109,7 +109,7 @@
             bodies.forEach((body, i) => {
                 //rapPosition(body.position);
                 
-                body.position.sub(shift);
+                //body.position.sub(shift);
                 body.mesh.position.copy(body.position);
                 body.trailVertices.copyWithin(3, 0, body.trailLength * 3 - 3);
                 body.trailVertices.set([body.position.x, body.position.y, body.position.z], 0);
@@ -120,7 +120,7 @@
                 const newPhi = (phi +R*body.mesh.material.color.getHex()/0x998388 ) % (Math.PI);
                 const newPos = sphericalToCartesian(r, newTheta, newPhi);
                 
-                body.position.add(shift);
+                //body.position.add(shift);
             });
 
             renderer.render(scene, camera);
