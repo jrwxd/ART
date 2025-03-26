@@ -107,24 +107,35 @@
             //out_i -= 1 ; 
             //camera.zoom = out_i;
             bodies.forEach((body, i) => {
-                //rapPosition(body.position);
-                
-                const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y,body.position.z);
-                const newTheta = (theta +E*body.mesh.material.color.getHex()/0x847593) % (2 *Math.PI);
-                const newPhi = (phi +R*body.mesh.material.color.getHex()/0x998388 ) % (Math.PI);
+                // Convert position to spherical coordinates
+                const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
+
+                // Normalize color to a 0–1 range
+                const colorFactor = body.mesh.material.color.getHex() / 0xFFFFFF;
+
+                // Modify angles based on color factor
+                const newTheta = (theta + E * colorFactor) % (2 * Math.PI);
+                const newPhi = (phi + R * colorFactor) % Math.PI;
+
+                // Convert back to Cartesian
                 const newPos = sphericalToCartesian(r, newTheta, newPhi);
-                                
-                body.position.copy(newPos.clone().add(shift));
-                body.mesh.position.copy(newPos.clone().add(shift));
-                body.trailVertices.copyWithin(3, 0, body.trailLength * 3 - 3);
+
+                // Apply shift safely
+                const newPosShifted = newPos.clone().add(shift);
+                body.position.copy(newPosShifted);
+                body.mesh.position.copy(newPosShifted);
+
+                // Update trail
+                body.trailVertices.set(body.trailVertices.slice(0, body.trailLength * 3 - 3), 3);
                 body.trailVertices.set([body.position.x, body.position.y, body.position.z], 0);
                 body.trail.geometry.attributes.position.needsUpdate = true;
-                
-                body.position.copy(newPos.clone().sub(shift));
-                body.mesh.position.copy(newPos.clone().sub(shift));
 
-                //body.position.add(shift);
+                // Revert shift safely
+                const newPosReverted = newPos.clone().sub(shift);
+                body.position.copy(newPosReverted);
+                body.mesh.position.copy(newPosReverted);
             });
+
 
             renderer.render(scene, camera);
             requestAnimationFrame(update);
