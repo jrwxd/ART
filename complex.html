@@ -120,8 +120,8 @@
                 body.trailVertices.set([body.position.x, body.position.y, body.position.z], 0);
                 body.trail.geometry.attributes.position.needsUpdate = true;
                 
-                body.position.copy(newPos);
-                body.mesh.position.copy(newPos);
+                body.position.copy(newPos.sub(shift));
+                body.mesh.position.copy(newPos.sub(shift));
 
                 //body.position.add(shift);
             });
