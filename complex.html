@@ -100,6 +100,13 @@
 
         }
 
+        function colorShifter(bp, colorFactor) {
+            let { r, theta, phi } = cartesianToSpherical(bp.x, bp.y, bp.z);
+            const newTheta = (theta + E * colorFactor) % (2 * Math.PI);
+            const newPhi = (phi + R * colorFactor) % Math.PI;
+            return sphericalToCartesian(r, newTheta, newPhi);
+        }
+
         let shift = new THREE.Vector3(-500, 700, 500);
         let shift2 = new THREE.Vector3(500, -700, -500);
 
@@ -109,20 +116,9 @@
             //camera.zoom = out_i;
             bodies.forEach((body, i) => {
                 // Convert position to spherical coordinates
-                const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
-
-                // Normalize color to a 0–1 range
-                const colorFactor = body.mesh.material.color.getHex() / 0xFFFFFF;
-
-                // Modify angles based on color factor
-                const newTheta = (theta + E * colorFactor) % (2 * Math.PI);
-                const newPhi = (phi + R * colorFactor) % Math.PI;
-
-                // Convert back to Cartesian
-                const newPos = sphericalToCartesian(r, newTheta, newPhi);
-
-                // Apply shift safely
-                //const newPosShifted = newPos.clone().add(shift);
+                const newPos = colorShifter(body.position, body.mesh.material.color.getHex() / 0xFFFFFF);
+                shift = colorShifter(shift2, 0x333333);
+                shift2 = colorShifter(shift1,0x444444);
                 body.position.copy(newPos);
                 if (i%2) {
                     body.mesh.position.copy(newPos.clone().add(shift));
