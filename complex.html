@@ -86,7 +86,7 @@
             const velocity = new THREE.Vector3(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
             const mass = getRandom(10, 100);
             const radius = Math.sqrt(mass) * 0.2;
-            const color = new THREE.Color().setHSL(Math.random(), (0.2*i)%1.0, 0.6);
+            const color = new THREE.Color().setHSL(Math.random(), 0.7+(0.1*i)%0.3, (0.7*i)%1.0);
 
             bodies.push(createBody(pos, velocity, mass, radius, color));
         }
