@@ -105,7 +105,6 @@
         function update() {
             let radius = 300+out_i;
             out_i -= 1 ; 
-            world_theta += 0.1;
             camera.zoom(out_i);
             bodies.forEach((body, i) => {
                 body.position.clone().sub(shift);
