@@ -119,6 +119,9 @@
                 body.trailVertices.copyWithin(3, 0, body.trailLength * 3 - 3);
                 body.trailVertices.set([body.position.x, body.position.y, body.position.z], 0);
                 body.trail.geometry.attributes.position.needsUpdate = true;
+                
+                body.position.copy(newPos);
+                body.mesh.position.copy(newPos);
 
                 //body.position.add(shift);
             });
