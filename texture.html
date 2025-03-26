@@ -69,7 +69,7 @@
             return Math.random() * (max - min) + min;
         }
 
-        colorPicker = (a, b, i) => {return new THREE.Color().setHSL(Math.random(), a+(0.1*i)%(1.0-a), (b+(0.1*i)%(1.0-b)))};
+        colorPicker = (a, b, i) => {return new THREE.Color().setHSL(Math.random(), a+(0.1*i)%(1.0-a), b+(0.1*i)%(1.0-b))};
 
         function sphericalToCartesian(r, theta, phi) {
             return new THREE.Vector3(
