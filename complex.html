@@ -121,9 +121,9 @@
                 const newPos = sphericalToCartesian(r, newTheta, newPhi);
 
                 // Apply shift safely
-                const newPosShifted = newPos.clone().add(shift);
-                body.position.copy(newPosShifted);
-                body.mesh.position.copy(newPosShifted);
+                //const newPosShifted = newPos.clone().add(shift);
+                //body.position.copy(newPosShifted);
+                //body.mesh.position.copy(newPosShifted);
 
                 // Update trail
                 body.trailVertices.set(body.trailVertices.slice(0, body.trailLength * 3 - 3), 3);
@@ -131,9 +131,9 @@
                 body.trail.geometry.attributes.position.needsUpdate = true;
 
                 // Revert shift safely
-                const newPosReverted = newPos.clone().sub(shift);
-                body.position.copy(newPosReverted);
-                body.mesh.position.copy(newPosReverted);
+                //const newPosReverted = newPos.clone().sub(shift);
+                //body.position.copy(newPosReverted);
+                //body.mesh.position.copy(newPosReverted);
             });
 
 
