@@ -103,9 +103,9 @@
         let shift = new THREE.Vector3(300, 5, 0);
 
         function update() {
-            let radius = 300+out_i;
+            //let radius = 300+out_i;
             out_i -= 1 ; 
-            camera.zoom = out_i;
+            //camera.zoom = out_i;
             bodies.forEach((body, i) => {
                 wrapPosition(body.position);
                 body.mesh.position.copy(body.position);
