@@ -114,7 +114,7 @@
                 const newPhi = (phi +R*body.mesh.material.color.getHex()/0x998388 ) % (Math.PI);
                 const newPos = sphericalToCartesian(r, newTheta, newPhi);
                                 
-                //body.position.sub(shift);
+                body.position.copy(newPos);
                 body.mesh.position.copy(newPos);
                 body.trailVertices.copyWithin(3, 0, body.trailLength * 3 - 3);
                 body.trailVertices.set([body.position.x, body.position.y, body.position.z], 0);
