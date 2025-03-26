@@ -127,7 +127,7 @@
 
                 // Update trail
                 body.trailVertices.set(body.trailVertices.slice(0, body.trailLength * 3 - 3), 3);
-                body.trailVertices.set([body.position.x, body.position.y, body.position.z], 0);
+                body.trailVertices.set([body.mesh.position.x, body.mesh.position.y, body.mesh.position.z], 0);
                 body.trail.geometry.attributes.position.needsUpdate = true;
 
                 // Revert shift safely
