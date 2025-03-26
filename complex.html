@@ -101,6 +101,7 @@
         }
 
         let shift = new THREE.Vector3(-500, 700, 500);
+        let shift2 = new THREE.Vector3(500, -700, -500);
 
         function update() {
             //let radius = 300+out_i;
@@ -123,8 +124,11 @@
                 // Apply shift safely
                 //const newPosShifted = newPos.clone().add(shift);
                 body.position.copy(newPos);
-                body.mesh.position.copy(newPos.clone().add(shift));
-
+                if (i%2) {
+                    body.mesh.position.copy(newPos.clone().add(shift));
+                } else {
+                    body.mesh.position.copy(newPos.clone().add(shift2));
+                }
                 // Update trail
                 body.trailVertices.set(body.trailVertices.slice(0, body.trailLength * 3 - 3), 3);
                 body.trailVertices.set([body.mesh.position.x, body.mesh.position.y, body.mesh.position.z], 0);
