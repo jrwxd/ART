@@ -37,7 +37,7 @@
 
         let gax = true;
         let G = 10;
-        let out_i=1000;
+        let out_i=10;
         let E = 8;
         let R = 0;
         let trailLength = 100;
@@ -105,7 +105,7 @@
         function update() {
             let radius = 300+out_i;
             out_i -= 1 ; 
-            camera.zoom(out_i);
+            camera.zoom = out_i;
             bodies.forEach((body, i) => {
                 body.position.clone().sub(shift);
                 wrapPosition(body.position);
