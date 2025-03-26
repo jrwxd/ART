@@ -107,7 +107,6 @@
             out_i -= 1 ; 
             camera.zoom = out_i;
             bodies.forEach((body, i) => {
-                body.position.clone().sub(shift);
                 wrapPosition(body.position);
                 body.mesh.position.copy(body.position);
                 body.trailVertices.copyWithin(3, 0, body.trailLength * 3 - 3);
