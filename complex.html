@@ -122,8 +122,8 @@
 
                 // Apply shift safely
                 //const newPosShifted = newPos.clone().add(shift);
-                //body.position.copy(newPosShifted);
-                //body.mesh.position.copy(newPosShifted);
+                body.position.copy(newPos);
+                body.mesh.position.copy(newPos);
 
                 // Update trail
                 body.trailVertices.set(body.trailVertices.slice(0, body.trailLength * 3 - 3), 3);
