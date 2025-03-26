@@ -13,7 +13,7 @@
     <script>
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.3, 32000);
-        camera.position.set(1200, 1200, 1200);
+        camera.position.set(1800, 1800, 1800);
         camera.lookAt(0, 0, 0);
 
         const renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true,alpha: true,});
@@ -120,8 +120,8 @@
             return sphericalToCartesian(r, newTheta, newPhi);
         }
 
-        let shift = new THREE.Vector3(-500, 700, 500);
-        let shift2 = new THREE.Vector3(500, -700, -500);
+        let shift = new THREE.Vector3(-900, 700, 500);
+        let shift2 = new THREE.Vector3(500, -400, -500);
 
         function update() {
             //let radius = 300+out_i;
