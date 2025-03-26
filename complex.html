@@ -123,7 +123,7 @@
                 // Apply shift safely
                 //const newPosShifted = newPos.clone().add(shift);
                 body.position.copy(newPos);
-                body.mesh.position.copy(newPos);
+                body.mesh.position.copy(newPos.clone().add(shift));
 
                 // Update trail
                 body.trailVertices.set(body.trailVertices.slice(0, body.trailLength * 3 - 3), 3);
