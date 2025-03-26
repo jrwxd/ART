@@ -37,7 +37,7 @@
 
         let gax = true;
         let G = 10;
-        let out_i=0;
+        let out_i=1000;
         let E = 8;
         let R = 0;
         let trailLength = 100;
@@ -104,7 +104,7 @@
 
         function update() {
             let radius = 300+out_i;
-            out_i += 1; 
+            out_i -= 1 ; 
             world_theta += 0.1;
             camera.zoom(out_i);
             bodies.forEach((body, i) => {
