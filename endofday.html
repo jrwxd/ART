@@ -16,9 +16,13 @@
         camera.position.set(1200, 1200, 1200);
         camera.lookAt(0, 0, 0);
 
+        //
+        // const renderer = new THREE.WebGLRenderer({ antialias: true });
+
         const renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true,alpha: true,});
         renderer.autoClearColor = false;
         renderer.setPixelRatio(window.devicePixelRatio);
+        //renderer.setClearColor(0x000000);
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
@@ -29,20 +33,21 @@
         controls.autoRotateSpeed = 3.91;
         controls.update();
 
-        const ambientLight = new THREE.AmbientLight(0x628463, 5);
+        const ambientLight = new THREE.AmbientLight(0x603030, 5);
         scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0x384640, 6);
-        directionalLight.position.set(-9, -3, 2);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 6);
+        directionalLight.position.set(-5, -3, 5);
         scene.add(directionalLight);
 
-        let numBodies = 100;
-        
-        let G = 10;
+        let gax = true;
 
-        let E = 1;
-        let R = 0.1;
+
+        let world_theta = 0;
+        let G = 1;
+        let E = 5;
+        let R = 1;
         let trailLength = 100;
-        let dt = 0.004;
+        let dt = 4;
         const boundary = 150000;
         const bodies = [];
 
@@ -52,6 +57,7 @@
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.copy(position);
             scene.add(mesh);
+
             // Create Trail
             const trailGeometry = new THREE.BufferGeometry();
             let trailVertices = new Float32Array(trailLength * 3);
@@ -66,8 +72,6 @@
         function getRandom(min, max) {
             return Math.random() * (max - min) + min;
         }
-
-        colorPicker = (a, b) => {return new THREE.Color().setHSL(Math.random(), a+(0.1*i)%(1.0-a), (b+(0.1*i)%(1.0-b)))};
 
         function sphericalToCartesian(r, theta, phi) {
             return new THREE.Vector3(
@@ -84,58 +88,61 @@
             return { r, theta, phi };
         }
 
-        for (let i = 0; i < numBodies; i++) {
-            const pos = sphericalToCartesian(getRandom(0,1000), getRandom(-Math.PI, Math.PI), getRandom(0, Math.PI));
+        for (let i = 0; i < 100; i++) {
+            const pos = sphericalToCartesian(800, getRandom(-Math.PI, Math.PI), getRandom(0, Math.PI));
             const velocity = new THREE.Vector3(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
             const mass = getRandom(10, 100);
             const radius = Math.sqrt(mass) * 0.2;
-            const color = colorPicker(0.3, 0.7);
+            const color = new THREE.Color().setHSL(Math.random(), 1, 0.6);
+
             bodies.push(createBody(pos, velocity, mass, radius, color));
         }
 
         function wrapPosition(position) {
+            // convert position to spherical coordinates
             let { r, theta, phi } = cartesianToSpherical(position.x, position.y, position.z);
+            // wrap r
             r = r % boundary;
             position.x = r * Math.sin(phi) * Math.cos(theta);
             position.y = r * Math.sin(phi) * Math.sin(theta);
             position.z = r * Math.cos(phi);
-
+            
         }
 
-        function colorShifter(bp, colorFactor) {
-            let { r, theta, phi } = cartesianToSpherical(bp.x, bp.y, bp.z);
-            const newTheta = (theta + E * colorFactor) % (2 * Math.PI);
-            const newPhi = (phi + R * colorFactor) % Math.PI;
-            return sphericalToCartesian(r, newTheta, newPhi);
-        }
-
-        let shift = new THREE.Vector3(-500, 700, 500);
-        let shift2 = new THREE.Vector3(500, -700, -500);
+        let shift = new THREE.Vector3(0, 0, 0);
 
         function update() {
-            //let radius = 300+out_i;
-            //out_i -= 1 ; 
-            //camera.zoom = out_i;
+            let radius = 400;
+            world_theta += 0.1;
+
+			camera.position.x = radius * Math.sin( THREE.MathUtils.degToRad( world_theta ) );
+			camera.position.y = radius * Math.sin( THREE.MathUtils.degToRad( world_theta ) );
+			camera.position.z = radius * Math.cos( THREE.MathUtils.degToRad( world_theta ) );
+            if (E*R != 0) {
+            E = R*Math.cos(R*E);
+            R = E*Math.sin(E);
+            }
+            else {
+            E = E+0.1;
+            R = R+0.11;
+            }
             bodies.forEach((body, i) => {
-                // Convert position to spherical coordinates
-                const newPos = colorShifter(body.position, body.mesh.material.color.getHex() / 0xFFFFFF);
-                //hift = colorShifter(shift, 3);
-                //shift2 = colorShifter(shift2,2);
-                body.position.copy(newPos);
-                if (i%2) {
-                    body.mesh.position.copy(newPos.clone().add(shift));
-                } else {
-                    body.mesh.position.copy(newPos.clone().add(shift2));
-                }
-                // Update trail
-                body.trailVertices.set(body.trailVertices.slice(0, body.trailLength * 3 - 3), 3);
-                body.trailVertices.set([body.mesh.position.x, body.mesh.position.y, body.mesh.position.z], 0);
+                wrapPosition(body.position);
+                body.mesh.position.copy(body.position);
+
+                // Update Trail
+                body.trailVertices.copyWithin(3, 0, body.trailLength * 3 - 3);
+                body.trailVertices.set([body.position.x, body.position.y, body.position.z], 0);
                 body.trail.geometry.attributes.position.needsUpdate = true;
 
-                // Revert shift safely
-                //const newPosReverted = newPos.clone().sub(shift);
-                //body.position.copy(newPosReverted);
-                //body.mesh.position.copy(newPosReverted);
+                if (gax) {
+                    const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y, body.position.z);
+                    const newTheta = (theta +E*body.mesh.material.color.getHex()/0xFFFFFF) % (2 * Math.PI);
+                    const newPhi = (phi +R*body.mesh.material.color.getHex()/0xFFFFFF ) % (Math.PI);
+                    const newPos = sphericalToCartesian(r, newTheta, newPhi);
+                    body.position = newPos;
+                    body.mesh.position.copy(body.position);
+                }
             });
 
 
@@ -194,3 +201,4 @@
         update();
     </script>
 </body>
+</html>
