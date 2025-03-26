@@ -116,7 +116,7 @@
                 const { r, theta, phi } = cartesianToSpherical(body.position.x, body.position.y,body.position.z);
                 const newTheta = (theta +E*body.mesh.material.color.getHex()/0x847593) % (2 *Math.PI);
                 const newPhi = (phi +R*body.mesh.material.color.getHex()/0x998388 ) % (Math.PI);
-                const newPos = sphericalToCartesian(r+0.1, newTheta, newPhi);
+                const newPos = sphericalToCartesian(r-0.1, newTheta, newPhi);
                 body.position = newPos.clone().add(shift);
                 body.mesh.position.copy(body.position);
                 
