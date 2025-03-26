@@ -38,6 +38,8 @@
         let numBodies = 100;
         
         let G = 10;
+        let parn = 0.0;
+        let parm = 0.0;
 
         let E = 1;
         let R = 0.1;
@@ -89,7 +91,7 @@
             const velocity = new THREE.Vector3(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
             const mass = getRandom(10, 100);
             const radius = Math.sqrt(mass) * 0.2;
-            const color = colorPicker(0.6, 0.7, i);
+            const color = colorPicker(parn, parm, i);
             bodies.push(createBody(pos, velocity, mass, radius, color));
         }
 
@@ -157,6 +159,12 @@
         });
         document.addEventListener('keydown', (event) => {
             if (event.key === 'r') R = (R + 0.1)%500;
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'x') parn = (parn + 0.1)%1.0;
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'c') parm = (parm + 0.1)%1.0;
         });
         document.addEventListener('keydown', (event) => {
             if (event.key === 'a') {
