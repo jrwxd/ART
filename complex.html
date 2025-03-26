@@ -81,7 +81,7 @@
             return { r, theta, phi };
         }
 
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 1000; i++) {
             const pos = sphericalToCartesian(getRandom(0,1000), getRandom(-Math.PI, Math.PI), getRandom(0, Math.PI));
             const velocity = new THREE.Vector3(getRandom(-0.1, 0.1), getRandom(-0.1, 0.1), getRandom(-0.1, 0.1));
             const mass = getRandom(10, 100);
