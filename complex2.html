@@ -16,7 +16,7 @@
         document.addEventListener('DOMContentLoaded', () => {
 
             // --- Configuration Constants ---
-            let k = false;
+            let k = true;
             const CAMERA_FOV = 40;
             const CAMERA_NEAR = 0.3;
             const CAMERA_FAR = 320000000;
@@ -45,7 +45,7 @@
             // Simulation Parameters (Adjustable via keys)
             let thetaShiftRate = 0.1; // Formerly 'E'
             let phiShiftRate = 0.0;   // Formerly 'R'
-            let j = 0;
+            let j = 21;
             let currentTrailLength = INITIAL_TRAIL_LENGTH;
 
             // --- Global Variables (Scene Setup) ---
@@ -76,10 +76,10 @@
                     antialias: false // Enable anti-aliasing for smoother edges
                 });
                 // Set to false because we explicitly don't want trails cleared each frame
-                renderer.autoClearColor = true;
+                renderer.autoClearColor = false;
                 renderer.setPixelRatio(window.devicePixelRatio);
                 renderer.setSize(window.innerWidth, window.innerHeight);
-                renderer.setClearColor(RENDERER_CLEAR_COLOR, RENDERER_ALPHA ? 0 : 1); // Set clear color if needed
+                //renderer.setClearColor(RENDERER_CLEAR_COLOR, RENDERER_ALPHA ? 0 : 1); // Set clear color if needed
                 document.body.appendChild(renderer.domElement);
 
                 // Controls
@@ -245,7 +245,6 @@
 
             // --- Update Loop ---
             function update() {
-                scene.
                 // Update shift vectors based on cross products (original logic, potentially chaotic)
                 // Using specific bodies - ensure NUM_BODIES is large enough!
                 shiftVectors[0].copy(bodies[41].mesh.position.clone()); // This will always be zero vector
