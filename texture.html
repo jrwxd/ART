@@ -36,15 +36,16 @@
         scene.add(directionalLight);
 
         let numBodies = 100;
+        let k = true;
         
         let G = 10;
         let parn = 0.0;
         let parm = 0.0;
 
-        let E = 1;
+        let E = 0.1;
         let R = 0.1;
         let trailLength = 100;
-        let dt = 0.004;
+        let dt = 0.00004;
         const boundary = 150000;
         const bodies = [];
 
@@ -124,9 +125,9 @@
         let shift2 = new THREE.Vector3(500, -400, -500);
 
         function update() {
-            //let radius = 300+out_i;
-            //out_i -= 1 ; 
-            //camera.zoom = out_i;
+            if (k) {
+                    camera.position.copy(bodies[4].mesh.position.clone());
+                }
             bodies.forEach((body, i) => {
                 // Convert position to spherical coordinates
                 const newPos = colorShifter(body.position, body.mesh.material.color.getHex() / 0xFFFFFF);

@@ -76,7 +76,7 @@
                     antialias: false // Enable anti-aliasing for smoother edges
                 });
                 // Set to false because we explicitly don't want trails cleared each frame
-                renderer.autoClearColor = false;
+                renderer.autoClearColor = true;
                 renderer.setPixelRatio(window.devicePixelRatio);
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 renderer.setClearColor(RENDERER_CLEAR_COLOR, RENDERER_ALPHA ? 0 : 1); // Set clear color if needed
@@ -245,8 +245,13 @@
 
             // --- Update Loop ---
             function update() {
+                scene.
                 // Update shift vectors based on cross products (original logic, potentially chaotic)
                 // Using specific bodies - ensure NUM_BODIES is large enough!
+                shiftVectors[0].copy(bodies[41].mesh.position.clone()); // This will always be zero vector
+                shiftVectors[1].copy(bodies[42].mesh.position.clone()); // This will always be zero vector
+                shiftVectors[2].copy(bodies[43].mesh.position.clone());
+                shiftVectors[3].copy(bodies[46].mesh.position.clone());
                 if (k) {
                     camera.position.copy(bodies[j].mesh.position.clone());
 
