@@ -120,8 +120,6 @@
         }
 
         function update() {
-            wOffset = wOffset + 10;
-            wOffset = (wOffset-boundary)%boundary/2;
             const accelerations = bodies.map(() => new Vector4(0, 0, 0, 0));
 
             for (let i = 0; i < bodies.length; i++) {
