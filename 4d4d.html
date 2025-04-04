@@ -125,21 +125,18 @@
                     const geometry = new THREE.SphereGeometry(radius, 16, 12);
                     const material = new THREE.MeshPhysicalMaterial({
                         transparent: true,
-                        opacity: 0.1,
-                        map: lion,
+                        opacity: 1.0,
                         depthWrite: true,
                         depthTest: true,
-                        metalness: 0.4,
-                        roughness:  0.1,
-                        //metalnessMap: new THREE.TextureLoader().load('https://cdn.jsdelivr.net/gh/mrdoob/three.js/examples/textures/fibers.jpg'),
-
+                        metalness: 0.9,
+                        roughness:  0.01,
+                        transmission: 1.0,
                     });
 
                     // Calculate initial theta3 from initial position to set initial color
                     const initialHyperspherical = cartesian4DToHyperspherical(this.position);
-                    const initialHue = Math.random();
-                    //material.color.setHSL(initialHue, 1.0, 0.5);
-                    //material.emissive.setHSL((initialHue+0.5)%1.0, 1.0, 0.5);
+                    const initialHue = 0.6;
+                    material.color.setHSL(initialHue, 1.0, 0.5);
 
                     this.mesh = new THREE.Mesh(geometry, material);
                     this.mesh.position.set(this.position.x, this.position.y, this.position.z);
@@ -251,6 +248,15 @@
                 }
             }
 
+            function resetLight(pl, orbiter) {
+                if (!pl || !orbiter) return;
+                if (orbiter.position) {
+                    pl.position.set(orbiter.position.x, orbiter.position.y, orbiter.position.z);
+                } else {
+                    console.warn("Orbiter position not defined for light update.");
+                }
+            }
+
             // --- Physics Update Function (4D Cartesian Gravity) ---
             function updatePhysics(deltaTime) {
                 if (!orbiters || orbiters.length === 0) return;
@@ -261,28 +267,12 @@
                         orbiter.acceleration.set(0, 0, 0, 0);
                     }
                 }
-                // ...existing code...
-
-                // Helper function to update light properties
-                function updatePointLight(light, orbiterIndex) {
-                    if (orbiters[orbiterIndex]) {
-                        light.position.set(
-                            orbiters[orbiterIndex].position.x,
-                            orbiters[orbiterIndex].position.y,
-                            orbiters[orbiterIndex].position.z
-                        );
-                        //const colorHSL = orbiters[orbiterIndex].mesh.material.color.getHSL();
-                        //light.color.setHSL(colorHSL.h, 1.0, 0.5);
-                    }
-                }
-
-                // Update lights dynamically
-                updatePointLight(pointLight, 0);
-                updatePointLight(pointLight2, 19);
-                updatePointLight(pointLight3, 20);
-                updatePointLight(pointLight4, 23);
-                updatePointLight(pointLight5, 22);
-                updatePointLight(pointLight6, 24);
+                pointLight.position.set(orbiters[0].position.x, orbiters[0].position.y, orbiters[0].position.z);
+                pointLight2.position.set(orbiters[19].position.x, orbiters[0].position.y, orbiters[0].position.z);
+                pointLight3.position.set(orbiters[20].position.x, orbiters[0].position.y, orbiters[0].position.z);
+                pointLight4.position.set(orbiters[21].position.x, orbiters[0].position.y, orbiters[0].position.z);
+                pointLight5.position.set(orbiters[22].position.x, orbiters[0].position.y, orbiters[0].position.z);
+                pointLight6.position.set(orbiters[24].position.x, orbiters[0].position.y, orbiters[0].position.z);
 
                 // 2. Calculate 4D gravitational forces
                 for (let i = 0; i < orbiters.length; i++) {
@@ -332,12 +322,25 @@
                     const currentHue = (currentHyperspherical.theta3) /Math.PI;
 
                     if (!isNaN(currentHue)) {
-                        orbiter.mesh.material.color.setHSL((currentHue+0.5)%1.0, 5.0, 0.3);
-                        orbiter.mesh.material.emissive.setHSL((currentHue+0.5)%1.0, 5.0, 0.3);
+                        orbiter.mesh.material.color.setHSL(currentHue, 5.0, 0.3);
                     } else {
                         console.warn("NaN hue calculated for orbiter:", orbiter);
                     }
                 }
+            }
+
+
+            function isValidPair(orbiterA, orbiterB) {
+            return orbiterA && orbiterB && 
+                    orbiterA.position && orbiterB.position && 
+                    orbiterA.acceleration && orbiterB.acceleration;
+            }
+
+            function isValidOrbiter(orbiter) {
+            return orbiter?.velocity && 
+                    orbiter?.acceleration && 
+                    orbiter?.position && 
+                    orbiter?.mesh?.material;
             }
 
 
