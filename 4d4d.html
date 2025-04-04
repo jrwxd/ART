@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>4D Cartesian N-Body Simulation </title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; }
+        body { margin: 0; overflow: hidden; background-color: #0f0909; font-family: sans-serif; }
         canvas { display: block; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
@@ -17,15 +17,18 @@
         document.addEventListener('DOMContentLoaded', () => {
 
             // --- Constants and Configuration ---
-            const NUM_SPHERES = 500;
+            const NUM_SPHERES = 300;
             const G = 0.50;                  // Gravitational constant (NEEDS TUNING for 1/r^3 law)
             const MIN_MASS = 5.0;
             const A = Math.random(); //
             const B = Math.random(); //
             const C = Math.random(); // Random constant for theta3 range
-            const MAX_MASS = 60.0;
-            const MAX_INITIAL_R = 20;
+            const MAX_MASS = 10.0;
+            const MAX_INITIAL_R = 80;
             const TIME_STEP = 0.016;
+            
+            const loader = new THREE.TextureLoader();
+            const lion = loader.load( 'https://jrwood.dev/images/image6.png' );
             const TWO_PI = 2 * Math.PI;
 
             // --- Global Variables ---
@@ -99,12 +102,12 @@
 
                 return { r: r, theta1: theta1, theta2: theta2, theta3: theta3 };
             }
-            const pointLight = new THREE.PointLight(0xffffff, 50);
-            const pointLight2 = new THREE.PointLight(0xffffff, 40);
-            const pointLight3 = new THREE.PointLight(0xffffff, 30);
-            const pointLight4 = new THREE.PointLight(0xffffff, 20);
-            const pointLight5 = new THREE.PointLight(0xffffff, 10);
-            const pointLight6 = new THREE.PointLight(0xffffff, 80);
+            const pointLight = new THREE.PointLight(0xffffff, 500);
+            const pointLight2 = new THREE.PointLight(0xffffff, 900);
+            const pointLight3 = new THREE.PointLight(0xffffff, 300);
+            const pointLight4 = new THREE.PointLight(0xffffff, 200);
+            const pointLight5 = new THREE.PointLight(0xffffff, 100);
+            const pointLight6 = new THREE.PointLight(0xffffff, 800);
                             
 
 
@@ -118,22 +121,25 @@
                     this.velocity = initial4DVelocity || new THREE.Vector4();
                     this.acceleration = new THREE.Vector4();
 
-                    const radius = Math.pow(this.mass, 1/3) * 0.5;
+                    const radius = Math.pow(this.mass, 1/7) * 0.7;
                     const geometry = new THREE.SphereGeometry(radius, 16, 12);
-                    const material = new THREE.MeshStandardMaterial({
+                    const material = new THREE.MeshPhysicalMaterial({
                         transparent: true,
-                        opacity: 0.12,
+                        opacity: 0.1,
+                        map: lion,
                         depthWrite: true,
                         depthTest: true,
-                        metalness: 0.7,
-                        roughness:  0.403,
-                        transmission: 1.0,
+                        metalness: 0.4,
+                        roughness:  0.1,
+                        //metalnessMap: new THREE.TextureLoader().load('https://cdn.jsdelivr.net/gh/mrdoob/three.js/examples/textures/fibers.jpg'),
+
                     });
 
                     // Calculate initial theta3 from initial position to set initial color
                     const initialHyperspherical = cartesian4DToHyperspherical(this.position);
-                    const initialHue = 0.6;
-                    material.color.setHSL(initialHue, 1.0, 0.5);
+                    const initialHue = Math.random();
+                    //material.color.setHSL(initialHue, 1.0, 0.5);
+                    //material.emissive.setHSL((initialHue+0.5)%1.0, 1.0, 0.5);
 
                     this.mesh = new THREE.Mesh(geometry, material);
                     this.mesh.position.set(this.position.x, this.position.y, this.position.z);
@@ -148,15 +154,14 @@
                     scene.background = new THREE.Color(0x050505);
 
                     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                    camera.position.set(89, 90, 35);
+                    camera.position.set(56, 45, 35);
 
                     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true , preserveDrawingBuffer: true });
                     renderer.autoClearColor = false;
                     renderer.setSize(window.innerWidth, window.innerHeight);
                     document.body.appendChild(renderer.domElement);
 
-                    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-                    scene.add(ambientLight);
+                    const ambientLight = new THREE.AmbientLight(0xffffff, 0);
                     pointLight.position.set(0, 0, 0);
                     scene.add(pointLight);
                     pointLight2.position.set(0, -10, -15);
@@ -184,12 +189,20 @@
                     controls.update(); // Initial update
 
                     orbiters = [];
-                    for (let i = 0; i < NUM_SPHERES; i++) {
+                    for (let i = 0; i < NUM_SPHERES/2; i++) {
                         const mass = i*(MAX_MASS - MIN_MASS)/NUM_SPHERES + MIN_MASS;
-                        const r = 90;
+                        const r =  MAX_INITIAL_R;
                         const theta1 = i%(A*Math.PI); // theta1 varies from 0 to PI
                         const theta2 =  B*i%(Math.PI);
-                        const theta3 = C*i%(C*B*Math.PI); // Keep in radians for position calc
+                        //const theta3 = C*i%(C*B*Math.PI); // Keep in radians for position calc
+
+                        //const theta1 = A*i%(B*Math.PI); // theta1 varies from 0 to PI
+                        //const theta2 =  B*i%(C*Math.PI);
+                        //const theta3 = C*i%(C*A*Math.PI); // Keep in radians for position calc
+
+                        //const theta1 = Math.random() * Math.PI; // Random theta1 in [0, PI]
+                        //const theta2 = Math.random() * Math.PI; // Random theta2 in [0, PI]
+                        const theta3 = Math.random() * TWO_PI; // Random theta3 in [0, 2*PI]
 
                         const initialPos4D = hypersphericalTo4DCartesian(r, theta1, theta2, theta3);
                         const initialVel4D = new THREE.Vector4(0, 0, 0, 0);
@@ -199,6 +212,31 @@
                         orbiters.push(orbiter);
                         scene.add(orbiter.mesh);
                     }
+
+                    for (let i = NUM_SPHERES/2; i < NUM_SPHERES; i++) {
+                        const mass = i*(MAX_MASS - MIN_MASS)/NUM_SPHERES + MIN_MASS;
+                        const r =  MAX_INITIAL_R;
+                        const theta1 = i%(B*Math.PI); // theta1 varies from 0 to PI
+                        const theta2 =  A*i%(Math.PI);
+                        //const theta3 = C*i%(C*B*Math.PI); // Keep in radians for position calc
+
+                        //const theta1 = A*i%(B*Math.PI); // theta1 varies from 0 to PI
+                        //const theta2 =  B*i%(C*Math.PI);
+                        //const theta3 = C*i%(C*A*Math.PI); // Keep in radians for position calc
+
+                        //const theta1 = Math.random() * Math.PI; // Random theta1 in [0, PI]
+                        //const theta2 = Math.random() * Math.PI; // Random theta2 in [0, PI]
+                        const theta3 = Math.random() * TWO_PI; // Random theta3 in [0, 2*PI]
+
+                        const initialPos4D = hypersphericalTo4DCartesian(r, theta1, theta2, theta3);
+                        const initialVel4D = new THREE.Vector4(0, 0, 0, 0);
+
+                        // Create the Orbiter instance (no longer pass theta3_hue)
+                        const orbiter = new Orbiter(mass, initialPos4D, initialVel4D);
+                        orbiters.push(orbiter);
+                        scene.add(orbiter.mesh);
+                    }
+
 
                     window.addEventListener('resize', onWindowResize, false);
                     console.log("Initialization complete.");
@@ -223,12 +261,28 @@
                         orbiter.acceleration.set(0, 0, 0, 0);
                     }
                 }
-                pointLight.position.set(orbiters[0].position.x, orbiters[0].position.y, orbiters[0].position.z);
-                pointLight2.position.set(orbiters[19].position.x, orbiters[0].position.y, orbiters[0].position.z);
-                pointLight3.position.set(orbiters[20].position.x, orbiters[0].position.y, orbiters[0].position.z);
-                pointLight4.position.set(orbiters[21].position.x, orbiters[0].position.y, orbiters[0].position.z);
-                pointLight5.position.set(orbiters[22].position.x, orbiters[0].position.y, orbiters[0].position.z);
-                pointLight6.position.set(orbiters[24].position.x, orbiters[0].position.y, orbiters[0].position.z);
+                // ...existing code...
+
+                // Helper function to update light properties
+                function updatePointLight(light, orbiterIndex) {
+                    if (orbiters[orbiterIndex]) {
+                        light.position.set(
+                            orbiters[orbiterIndex].position.x,
+                            orbiters[orbiterIndex].position.y,
+                            orbiters[orbiterIndex].position.z
+                        );
+                        //const colorHSL = orbiters[orbiterIndex].mesh.material.color.getHSL();
+                        //light.color.setHSL(colorHSL.h, 1.0, 0.5);
+                    }
+                }
+
+                // Update lights dynamically
+                updatePointLight(pointLight, 0);
+                updatePointLight(pointLight2, 19);
+                updatePointLight(pointLight3, 20);
+                updatePointLight(pointLight4, 23);
+                updatePointLight(pointLight5, 22);
+                updatePointLight(pointLight6, 24);
 
                 // 2. Calculate 4D gravitational forces
                 for (let i = 0; i < orbiters.length; i++) {
@@ -275,10 +329,11 @@
                     // Convert current 4D position back to hyperspherical
                     const currentHyperspherical = cartesian4DToHyperspherical(orbiter.position);
                     // Normalize theta3 (in radians [0, 2PI]) to hue ([0, 1])
-                    const currentHue = (currentHyperspherical.theta3) / 2*Math.PI;
+                    const currentHue = (currentHyperspherical.theta3) /Math.PI;
 
                     if (!isNaN(currentHue)) {
-                        orbiter.mesh.material.color.setHSL(currentHue, 5.0, 0.3);
+                        orbiter.mesh.material.color.setHSL((currentHue+0.5)%1.0, 5.0, 0.3);
+                        orbiter.mesh.material.emissive.setHSL((currentHue+0.5)%1.0, 5.0, 0.3);
                     } else {
                         console.warn("NaN hue calculated for orbiter:", orbiter);
                     }
@@ -290,7 +345,7 @@
             function animate() {
                 try {
                     requestAnimationFrame(animate);
-                    const deltaTime = Math.min(clock.getDelta(), 0.1);
+                    const deltaTime = Math.min(clock.getDelta(), 0.01);
 
                     let accumulatedTime = deltaTime;
                     while (accumulatedTime >= TIME_STEP) {
