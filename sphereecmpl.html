@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js - DOM as Sphere Texture (html2canvas)</title>
+    <style>
+        /* Basic reset and full viewport setup */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* Prevent scrollbars if calculations are slightly off */
+            background-color: #a8c5ef; /* Black background */
+        }
+
+        /* Container for the characters */
+        #character-container {
+            width: 100vw; /* Fill viewport width */
+            height: 100vh; /* Fill viewport height */
+            /**font-family: monospace; /* CRUCIAL: Use a monospace font */
+            /* Common CJK monospace fonts (user must have them installed) */
+            font-family: monospace; 
+            white-space: pre;       /* Preserve whitespace and newlines */
+            overflow: hidden;       /* Hide any accidental overflow */
+            font-size: 8px;        /* Base font size - adjust as needed */
+            line-height: 1.1;       /* Line height - adjust for vertical spacing */
+            color: #c10ca0;         /* Green text color (like old terminals) */
+            /* Optional: Add some padding if desired */
+            /* box-sizing: border-box; padding: 5px; */
+        }
+
+        /* Helper element for measuring character size (kept off-screen) */
+        #measure-span {
+            position: relative;
+            visibility: hidden;
+            height: auto;
+            width: auto;
+            white-space: nowrap; /* Ensure single char measurement */
+            /* Must inherit font styles */
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+        }
+
+
+        #webgl-container {
+            position: absolute;
+            top: 0;
+            left: -999p;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* The source DOM element we want to render onto the sphere */
+        /* It can be visible on the page or hidden (e.g., position: bsolute; left: -9999px;) */
+       
+        #source-element {
+            position: absolute;
+            top: 0;
+            left: -999p;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        #update-button {
+            position: absolute;
+            top: 150px; /* Position below the source element */
+            left: 10px;
+            z-index: 10;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <span id="measure-span"></span>
+    <div id="character-container">>
+    </div>
+    <div id="webgl-container"></div>
+    <button id="update-button">Update Sphere Texture</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.163.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        let scene, camera, renderer, controls;
+        let sphere, sphereMaterial, canvasTexture;
+        const sphereRadius = 100;
+        const sourceElement = document.getElementById('character-container');
+        const updateButton = document.getElementById('update-button');
+
+        // Offscreen canvas to draw the result onto (optional, but good practice)
+        // We could directly use the canvas from html2canvas, but this gives control over texture size/clearing
+        const textureCanvas = document.createElement('canvas');
+        const textureContext = textureCanvas.getContext('2d');
+
+        function init() {
+            // --- Scene ---
+            scene = new THREE.Scene();
+
+            // --- Camera ---
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 250;
+
+            // --- Renderer ---
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('webgl-container').appendChild(renderer.domElement);
+            //renderer.setClearColor(0x000000, 1); // Set background color to black
+            // --- Controls ---
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            // --- Lighting ---
+            const ambientLight = new THREE.AmbientLight(0xaaaaaa);
+            scene.add(ambientLight);
+            const pointLight = new THREE.PointLight(0xffffff, 3, 1000); // Stronger light
+             pointLight.position.set(150, 100, 200);
+            scene.add(pointLight);
+
+            // --- Texture Setup ---
+            // Initialize canvas texture with the offscreen canvas
+            canvasTexture = new THREE.CanvasTexture(textureCanvas);
+            canvasTexture.colorSpace = THREE.SRGBColorSpace; // Important for color accuracy if using standard materials
+
+            // --- Sphere Geometry ---
+            const sphereGeometry = new THREE.SphereGeometry(sphereRadius, 64, 32); // More segments for smoother texture mapping
+            sphereMaterial = new THREE.MeshStandardMaterial({
+                map: canvasTexture, // Apply the texture here
+                color: 0xffffff, // Start with white base color
+                metalness: 0.2,
+                roughness: 0.7,
+            });
+            sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            scene.add(sphere);
+
+             // --- Initial Texture Update ---
+            updateTextureFromDOM(); // Capture and apply the texture initially
+
+            // --- Event Listeners ---
+            window.addEventListener('resize', onWindowResize);
+            updateButton.addEventListener('click', updateTextureFromDOM);
+
+            // --- Start Animation ---
+            animate();
+        }
+
+        // --- Function to capture DOM and update texture ---
+        function updateTextureFromDOM() {
+            console.log("Updating texture from DOM...");
+            updateButton.disabled = true; // Disable button during capture
+            updateButton.textContent = "Rendering...";
+
+            // Options for html2canvas (optional)
+            const options = {
+                scale: 2, // Increase resolution for better texture quality
+                useCORS: true, // Important if the source element includes cross-origin images/fonts
+                backgroundColor: null, // Use null for transparency if element has no background
+                logging: false
+            };
+
+            html2canvas(sourceElement, options).then(renderedCanvas => {
+                console.log("html2canvas rendering complete.");
+
+                //Option 1: Use the canvas generated by html2canvas directly
+                canvasTexture.image = renderedCanvas;
+
+                // Option 2: Draw the result onto our persistent textureCanvas
+                // This gives more control if you need a fixed texture size or manipulations
+                //textureCanvas.width = renderedCanvas.width;
+                //textureCanvas.height = renderedCanvas.height;
+                //textureContext.clearRect(0, 0, textureCanvas.width, textureCanvas.height); // Clear previous drawing
+                //textureContext.drawImage(renderedCanvas, 0, 0); // Draw the new capture
+
+                // Update the Three.js texture
+                if (!sphereMaterial.map) { // Assign map only once
+                    sphereMaterial.map = canvasTexture;
+                }
+                canvasTexture.needsUpdate = true; // Tell Three.js to re-upload the texture
+                sphereMaterial.needsUpdate = true; // Ensure material updates if map was just added
+
+                 console.log("Texture updated.");
+                 updateButton.disabled = false;
+                 updateButton.textContent = "Update Sphere Texture";
+
+            }).catch(error => {
+                 console.error("html2canvas error:", error);
+                 updateButton.disabled = false;
+                 updateButton.textContent = "Update Sphere Texture";
+            });
+        }
+
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        
+        
+        const container = document.getElementById('character-container');
+        const measureSpan = document.getElementById('measure-span');
+        const mandarinChars = "上.海|市烪.,,,孑上.海|市烪,,,&&8|-/8&8|-/上00/上海市./|-/ &*"; // Simplified for demo, use a larger set in practice
+        /** Debounce function: Limits the rate at which a function can fire.
+         * Useful for resize e%%5vents to avoid performance issues.
+         */
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        /**
+         * Measures the rendered width and height of a single character
+         * using the styles applied to the main container.
+         */
+        function getCharSize() {
+            // Use a representative character for measurement. '字' is common.
+            measureSpan.textContent = '|';
+            // Get the computed style of the container AFTER CSS is applied
+             const containerStyle = window.getComputedStyle(container);
+             measureSpan.style.fontFamily = containerStyle.fontFamily;
+             measureSpan.style.fontSize = containerStyle.fontSize;
+             measureSpan.style.lineHeight = containerStyle.lineHeight;
+
+            const rect = measureSpan.getBoundingClientRect();
+            measureSpan.textContent = ''; // Clear the span
+
+            // Basic validation
+            if (!rect.width || !rect.height) {
+                console.warn("Could not measure character size accurately. Using estimated defaults.");
+                // Estimate based on font-size (very approximate)
+                const fontSize = parseFloat(containerStyle.fontSize) || 16;
+                 // Assume roughly square for monospace, adjust line height slightly
+                return { width: fontSize * 1, height: fontSize * parseFloat(containerStyle.lineHeight || 1.2) };
+            }
+             // Use measured height directly as it often reflects line-height better
+            return { width: rect.width, height: rect.height};
+           }
+
+
+        /**
+         * Fills the container element with random Mandarin characters
+         * based on calculated screen dimensions and character size.
+         */
+        let A = Math.random(); // A constant to help with pseudo-randomness, can be adjusted or removed
+        let B = Math.random()*10; // A constant to help with pseudo-randomness, can be adjusted or removed
+        let C = Math.random(); // A constant to help with pseudo-randomness, can be adjusted or removed
+        let D = Math.random()*2; // A constant to help with pseudo-randomness, can be adjusted or removed
+
+        function fillScreen() {
+            A = D*(0.05-C)+B*0.4; // Update D to introduce pseudo-randomness in the pattern, can be adjusted or removed
+            B = C*0.43-1.3*A*(0.39+D);
+            C = B*(0.05-A)+D; // Increment to change the pattern over time, can be adjusted or removed
+            D = -1.3*C*(0.04+B)+A*0.34; // Increment to change the pattern over time, can be adjusted or removed  
+            const { width: charWidth, height: charHeight } = getCharSize();
+
+            // Check if measurements are valid
+            if (!charWidth || !charHeight || charWidth <= 0 || charHeight <= 0) {
+                 console.error("Character dimensions are invalid (<= 0), cannot fill screen.");
+                 container.textContent = "Error: Invalid character size measured.";
+                 return;
+            }
+
+
+            const viewportWidth = textureCanvas.width = window.innerWidth;
+            const viewportHeight = textureCanvas.height = window.innerHeight;
+
+            // Calculate how many columns and rows fit
+            // Use Math.floor to ensure we don't try to draw partial characters
+            const cols = Math.floor(viewportWidth / charWidth);
+            const rows = Math.floor(viewportHeight / charHeight);
+
+            // Prevent calculations resulting in zero or negative cols/rows
+            if (cols <= 0 || rows <= 0) {
+                 console.warn("Calculated columns or rows are zero or less. Nothing to display.");
+                 container.textContent = ''; // Clear container
+                 return;
+            }
+
+            let content = ''; // Build the entire content string for efficiency
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    // Select a random character
+                    //const randomIndex = Math.floor(((i*(Math.sin(j*D*34)+1)+j*i)%mandarinChars.length));
+                    const randomIndex = Math.abs(Math.floor(
+                        (i*A*Math.sin(D*j)+ B*i*Math.cos(C*i)+1) 
+                    ))% mandarinChars.length;
+                    if (mandarinChars[randomIndex] != 'undefined') {
+                        content += mandarinChars[randomIndex];
+                    }
+                }
+                // Add a newline character after each row is complete
+                // The 'white-space: pre' style will respect this
+                if (i < rows - 1) { // Avoid trailing newline if not needed
+                   content += '\n';
+                }
+            }
+
+            // Update the DOM efficiently by setting textContent once
+            container.textContent = content;
+        }
+
+        // --- Event Listeners ---
+
+        // Initial fill when the DOM is ready
+         // Using 'load' might be safer to ensure fonts/styles are fully applied
+         window.addEventListener('load', fillScreen);
+
+         //ipdate every 2 s3econds
+         window.setInterval(() => {
+            if (document.body.contains(container)) { // Ensure container is still in the DOM
+                fillScreen();
+            }
+        }, 200);// Adjust the interval (ms) as needed, 2000ms = 2 seconds
+
+        // Update the characters when the window is resized
+        // Use the debounced version to avoid excessive updates
+        window.addEventListener('resize', debounce(fillScreen, 550)); // Adjust debounce delay (ms) as needed
+        // --- Initialize ---
+        init();
+
+    </script>
+</body>
+</html>

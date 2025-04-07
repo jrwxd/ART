@@ -12,25 +12,20 @@
             height: 100%;
             width: 100%;
             overflow: hidden; /* Prevent scrollbars if calculations are slightly off */
-            background-color: #000; /* Black background */
+            background-color: #ffffff; /* Black background */
         }
-
         /* Container for the characters */
         #character-container {
             width: 100vw; /* Fill viewport width */
             height: 100vh; /* Fill viewport height */
-            font-family: monospace; /* CRUCIAL: Use a monospace font */
-            /* Common CJK monospace fonts (user must have them installed) */
-            /* font-family: "Source Han Mono", "Noto Sans Mono CJK SC", monospace; */
+            font-family: monospace; 
             white-space: pre;       /* Preserve whitespace and newlines */
             overflow: hidden;       /* Hide any accidental overflow */
             font-size: 16px;        /* Base font size - adjust as needed */
             line-height: 1.1;       /* Line height - adjust for vertical spacing */
-            color: #00ff00;         /* Green text color (like old terminals) */
-            /* Optional: Add some padding if desired */
-            /* box-sizing: border-box; padding: 5px; */
+            color: #000000;         /* Green text color (like old terminals) */
+            /* Optional: Add some padding if desired */            /* box-sizing: border-box; padding: 5px; */
         }
-
         /* Helper element for measuring character size (kept off-screen) */
         #measure-span {
             position: absolute;
@@ -47,21 +42,43 @@
 </head>
 <body>
     <span id="measure-span"></span>
-
     <div id="character-container"></div>
-
     <script>
         const container = document.getElementById('character-container');
         const measureSpan = document.getElementById('measure-span');
-        // String containing a variety of Mandarin characters
-        //const mandarinChars = "泠屮亇孑风泠屮亇孑风泠屮亇孑风泠屮亇孑风泠屮亇孑风泠屮亇孑风拧忇壭丝宂対厏汱乓声矢苶穿円芙皿弔紾烪伤诩灺耸莟梓佈砏咮彶绾跏羪繋矮鏍鎌蚶螜輮鴈萺噻蟡窵蛧蓁疀蜫嚲潇颗臱靡鬀閹鱇虀蟣驕繣僮櫻蹗灪軅藕圑贔";
+        let Ai = 0;
+        let Bi = 0;
+        let Ci = 0;
+        let Di = 0;
+        let A = 0;
+        let B = 0;
+        let C = 0;
+        let D = 0;
+        let mandarinChars = "上海市烪孑上市上海上海市烪孑上市烪&&8|/8&8|-/上/上海市./|-/ &*./|-/上海市烪孑上市烪&&8|/8&8|-/上/上海市./|-/ &*./|-/市烪孑上市烪&&8|/8&8|-/上/上海市./|-/ &*./|-/烪&&8|/8&8|-/上/上海市./|-/ &*./|-/"; // Simplified for demo, use a larger set in practice
+            
 
-        const mandarinChars = "上海市...-/烪烪烪烪烪烪|&&&&|-/.....|-上海市/|-/*&&&**+++++**....|-/|-/|-/|莟烪烪烪烪烪萺萺萺萺萺蹗蹗蹗蹗蹗厏厏厏厏厏泠泠泠泠亇亇亇亇风风风风苶苶苶苶泠泠泠泠烪烪烪烪鴈鴈鴈鴈櫻櫻櫻櫻蟣"; // Simplified for demo, use a larger set in practice
-        //const mandarinChars = "伤孑閹羪螜臱佈忇軅亇亇贔颗亇蛧砏汱宂彶泠屮噻蟣櫻鴈烪泠苶风亇泠厏蹗萺烪莟螜苶屮颗孑风鬀鎌孑跏穿孑风皿屮閹彶蟡蜫佈丝繣亇泠圑閹亇蜫砏宂乓梓亇亇螜櫻驕鴈灺泠皿孑泠泠忇軅萺芙彶鏍苶风疀亇亇靡鴈风矮穿泠风矢亇虀莟蜫蛧佈汱鱇忇风軅驕亇颗砏拧円诩亇泠繋圑虀輮佈灪伤孑亇风亇圑蟡矢繋羪苶亇噻亇泠颗蛧风蚶穿亇风厏孑驕伤臱蟡梓矢颗宂风櫻灪孑靡彶屮烪紾亇孑彶亇閹蚶绾驕耸孑孑风孑贔蛧対螜彶矢屮蚶泠风声亇櫻佈蟣潇鏍烪櫻皿泠孑亇风屮窵弔蚶螜伤孑靡屮屮軅鱇风臱咮厏皿砏宂泠窵泠圑臱鏍泠繋穿泠风弔亇僮矮靡閹蚶皿屮穿孑孑孑汱泠蛧莟羪窵灺屮僮亇泠泠臱孑潇绾穿矢鏍宂风臱屮孑鬀羪风绾皿拧泠梓屮櫻噻嚲櫻輮円泠乓壭亇贔皿藕疀跏咮臱灺屮泠亇屮亇嚲厏蓁繋紾厏蟡丝泠驕軅泠鱇跏亇佈诩宂屮矮风灪蜫窵屮輮円孑宂乓风藕梓蹗潇鎌莟繣诩亇亇孑孑风蜫皿噻螜灺丝颗拧亇軅僮孑鱇绾対诩砏厏孑蟡泠圑靡鴈风蚶芙泠风皿泠灪繋驕閹輮伤泠紾风孑孑厏孑疀莟螜窵莟拧繣亇屮屮虀屮鬀羪穿弔矮汱亇颗屮孑鱇蚶孑鏍弔忇泠莟泠灪萺鬀僮萺紾风円丝孑风芙亇嚲绾繋颗梓风贔孑屮风靡対颗矮烪苶噻汱亇蟣亇泠蟣矮屮跏诩対屮繋孑藕蜫潇泠噻弔亇声乓屮屮莟贔颗鎌彶驕莟风亇孑亇屮颗芙疀螜耸汱潇対拧矢屮軅羪灪鱇窵砏孑咮厏屮屮円孑繣鏍鱇虀噻伤亇诩対孑孑紾孑虀螜蜫驕鴈芙屮円対孑屮灺亇閹萺鴈蹗鎌声泠対厏屮贔砏泠鬀噻羪圑跏厏孑屮声风櫻跏僮鬀噻莟亇梓宂泠孑穿泠蟣矮靡鱇鴈紾屮紾丝屮泠弔泠閹蚶蛧蟣螜苶泠矢丝屮孑诩风靡輮蚶櫻矮汱风壭対风軅佈藕臱鴈彶藕彶宂亇孑乓亇繣绾蟣靡鴈诩屮灺壭风泠苶孑鱇繋潇鬀螜芙泠芙忇泠亇皿亇靡鎌噻虀鎌声风汱壭风泠伤屮颗螜繋僮跏宂孑孑宂亇蹗梓蹗潇輮佈軅佈壭泠泠汱风虀彶閹颗螜烪泠伤拧亇亇矢泠靡羪疀靡鎌苶风苶拧孑风芙泠颗鏍輮鱇繋厏孑丝忇亇藕伤圑嚲蚶绾繣彶壭亇泠丝泠繣莟繣嚲蚶耸灪耸拧风亇厏亇閹咮臱潇鎌皿贔弔孑屮风声孑颗跏窵臱矮声孑乓孑屮屮円亇嚲矮鏍閹跏宂亇拧风泠蹗烪灪疀鏍砏驕佈拧屮亇壭孑虀耸虀疀鏍伤蹗诩忇苶泠贔蚶亇櫻靡鎌孑鴈紾対対彶宂亇鬀屮亇灪噻拧蓁绾诩矢蓁円亇屮屮孑屮嚲紾颗蟡矮皿蹗伤孑亇泠声泠虀鏍鱇蟣蛧灺亇佈矢忇泠砏孑圑臱繣风鱇绾风羪莟芙屮蛧拧风圑軅屮軅螜弔鎌輮佈壭櫻厏屮亇屮乓风蜫繋萺閹蚶声屮苶対泠屮佈屮驕蜫蛧亇蓁烪亇弔伤厏孑窵屮亇櫻潇风鬀彶円诩鎌紾泠僮屮屮屮鱇汱繣鴈绾佈靡砏风风屮忇亇櫻梓藕臱蟡跏屮矮声泠忇紾孑屮蟡亇藕鱇鎌孑萺诩矢対矮厏风驕屮亇圑蟡厏蓁矮梓矢臱芙泠屮屮孑孑潇莟颗疀蚶弔泠诩忇屮屮皿亇驕萺鱇蹗蜫莟孑砏芙対屮繋风屮虀繣泠蟣跏対羪彶紾屮颗忇亇亇軅屮圑鴈灺鎌窵彶丝贔厏泠屮屮芙泠颗螜萺繣輮苶屮苶声孑亇羪屮櫻靡蓁孑疀诩丝弔梓声风潇亇屮藕颗泠閹羪烪诩噻伤亇圑亇泠风虀円僮蟡矮佈驕咮忇风屮厏泠灪跏藕鱇疀跏亇鏍壭円风亇噻孑贔櫻窵亇臱彶伤伤蟡灺孑孑屮屮亇蹗莟屮鬀疀蚶风蟡弔丝円佈苶风閹风屮泠鱇対蹗萺羪跏鱇矮対屮汱声风屮蚶孑藕繣嚲亇閹彶皿梓輮莟屮圑忇孑亇圑烪屮靡蛧蟡贔蓁紾孑烪灺苶亇嚲风风孑繣拧圑萺彶蚶颗鎌汱屮穿厏风泠跏亇軅虀鬀亇蟣绾苶跏鏍莟风櫻厏屮泠孑穿风靡萺蜫灪蜫伤孑梓烪苶屮窵风孑泠軅风泠噻莟噻疀鎌矢屮紾丝亇风佈屮軅鬀驕亇繣羪厏鎌跏莟丝鱇矢泠孑孑汱亇靡蚶鬀驕蜫耸孑绾弔矢屮螜丝孑藕亇泠亇窵伤蜫窵鎌芙泠耸壭泠风诩风軅嚲軅孑繣鏍忇萺彶耸汱颗芙泠风孑壭风閹羪驕鱇蜫砏孑矮芙汱忇繋厏孑櫻亇泠孑蓁円靡萺鏍伤灪砏壭亇泠皿屮圑蛧屮贔繣螜泠蓁砏诩穿蓁紾泠泠风孑泠蟣砏灪靡疀跏亇螜芙宂厏咮乓泠虀孑亇孑潇乓虀輮繋梓蟣绾壭孑拧矢亇屮鴈亇藕驕蟡泠潇丝芙丝泠疀风泠屮靡壭蹗鴈矮矮蟣輮声亇皿弔声泠疀屮风泠灪壭风蓁鏍蓁蟣疀烪亇咮烪皿屮疀汱风孑亇壭孑靡鎌蟣繣靡彶亇輮耸伤汱疀紾泠泠风丝屮櫻蚶屮蹗驕鴈亇潇咮灺伤疀砏亇屮壭宂亇亇蚶孑藕蹗颗屮僮矮莟繋疀鏍厏屮芙汱丝孑鎌风亇藕蹗屮屮萺梓蛧嚲萺皿屮佈矢汱风鎌宂孑贔屮亇风嚲佈虀颗疀砏屮蚶皿矢厏鎌円泠泠孑孑泠驕佈泠鬀颗螜屮蜫灺穿烪鎌灺孑泠拧泠屮泠梓屮驕閹潇屮虀彶円羪螜彶壭泠穿风屮屮梓屮軅虀櫻屮軅蚶芙窵鴈鏍円泠梓丝风孑梓忇亇蟣泠亇孑蓁芙鱇蟡鴈梓泠鏍声忇対佈声泠驕亇风风鱇芙圑疀蟡鎌泠蛧皿壭紾砏弔泠驕风亇风圑円风靡蓁嚲泠靡莟丝跏咮耸拧蟣苶屮亇泠円孑驕疀僮屮繣繋丝蟡跏咮苶蟣灺亇泠亇芙亇圑蜫风孑藕蟡丝鬀鏍羪耸蟣羪丝屮宂皿宂亇蜫屮屮亇鬀丝軅宂皿汱风靡屮屮泠僮穿屮颗蜫疀孑鱇砏矢鏍鎌羪汱屮灺丝壭亇跏宂屮圑风亇孑靡彶軅鱇鱇鎌风颗砏莟耸嚲羪忇亇声苶汱亇疀屮风风藕厏泠颗窵靡圑蟣彶対萺繋羪苶軅佈壭风亇梓汱亇櫻泠孑孑虀莟屮鬀鬀萺孑鬀砏伤彶窵矮宂亇皿乓汱屮萺忇孑屮孑忇孑臱輮驕蹗蟣羪风蓁绾绾弔驕绾壭屮丝伤声风虀泠风孑僮紾屮靡颗疀孑虀咮皿矮鴈矮汱屮诩対対屮鏍対孑亇孑屮风鬀矮軅繣蟣鎌孑颗彶砏灺靡繋丝屮声皿声亇臱屮亇屮藕苶泠靡疀靡亇驕绾声鴈鎌矮苶泠佈宂丝亇绾乓孑圑风屮泠虀咮屮虀虀萺孑閹彶莟咮蜫鏍宂屮皿苶声屮蓁忇泠风亇対孑靡蟡蟣圑繣繋宂蓁繋繋弔蹗绾宂风壭梓矢泠櫻泠孑泠僮灺屮閹鬀蓁亇蟣彶伤矮蟡鎌汱泠诩乓乓屮鴈対泠屮孑拧屮閹螜灪蹗繣鎌孑颗跏跏灺蟣矮宂泠乓伤苶孑鱇泠泠风藕弔泠対紾苶亇蟣亇亇风泠耸孑櫻僮僮孑风蟡绾鬀閹鬀彶泠蓁咮绾烪驕鏍対拧苶梓烪孑藕宂风亇亇跏风泠泠贔泠屮嚲蚶僮櫻僮鏍壭靡鏍蚶佈藕噻穿汱紾繋佈泠风矢壭宂孑螜忇亇亇泠丝孑鱇蛧圑屮贔噻矢驕噻蛧羪泠蜫伤皿梓鴈繋壭亇弔声苶泠蓁汱风风屮苶风蹗靡风孑屮嚲紾軅嚲臱螜孑閹砏耸跏蜫鴈乓泠莟弔烪屮鬀芙屮亇孑烪忇屮繣屮屮孑閹佈孑虀驕蛧泠僮矮跏蚶閹蓁皿亇绾梓佈丝僮诩孑风风砏乓孑贔亇孑泠櫻矮风灪藕颗孑贔萺螜窵蹗靡耸対鎌羪繋声泠咮対汱拧矮皿风屮孑忇亇贔萺屮亇泠蟣対屮蜫蓁潇屮繣绾穿蟡輮鴈弔孑矮穿芙汱噻灺屮风拧乓宂屮嚲亇风亇灪円亇閹靡鱇风圑鎌诩嚲疀疀耸泠萺伤灺円潇彶孑屮厏弔苶孑虀孑亇风亇灺风櫻繣蹗亇泠蟡彶鱇鬀鬀绾孑疀砏绾伤虀鎌対风穿莟烪风灪対风屮孑彶泠厏烪皿泠蹗宂孑孑风繋风风屮屮壭屮驕蜫风泠亇潇烪亇臱虀蓁亇軅鏍羪窵蟣鬀莟丝噻繋螜弔孑螜穿皿円噻绾亇孑穿芙皿风虀声屮屮风砏丝风亇亇亇孑僮蟡泠亇亇閹苶屮颗鬀臱亇贔鎌砏潇靡鬀砏亇蜫绾鎌耸藕噻穿矢伤蚶羪拧亇烪矢皿孑颗芙泠孑泠诩厏泠藕孑孑孑軅蚶屮贔泠繣対屮颗潇蟣屮屮輮灺鱇潇鬀羪屮臱彶繋咮繣蛧円厏砏羪羪丝屮莟乓円孑蛧烪泠风屮皿乓亇僮风风孑泠绾屮圑亇藕风风臱蛧灪亇屮噻皿櫻疀臱蚶泠虀彶彶矮鬀疀皿拧繋咮羪乓泠彶厏矢宂輮灺泠泠壭矢声泠閹拧屮亇泠莟泠圑圑孑风屮鬀鴈屮圑屮蓁声圑蛧潇噻风繣彶莟萺潇蜫烪风輮梓跏円蹗矮厏汱矢繋梓亇风乓厏声泠嚲対风风屮紾风圑蹗风风亇虀矮亇灪泠颗丝亇蛧蓁蜫孑蹗跏烪疀蛧蜫耸孑窵耸咮烪虀蚶厏壭弔彶佈泠风芙丝乓风噻矢汱伤伤孑泠矢风汱亇蟡苶泠泠泠紾乓屮圑风泠风亇噻屮亇泠孑皿屮灪灪亇屮泠蟣鴈泠屮风虀芙亇閹繣驕孑风蛧螜蹗軅泠噻穿藕疀閹蟡亇軅鏍鎌蓁僮繣咮苶潇萺嚲砏泠颗佈羪彶驕嚲皿声繋鎌鴈苶风鎌紾砏穿虀鎌対厏皿繋跏孑孑伤苶伤亇鱇灺屮壭风跏烪屮屮壭汱矢亇閹対孑亇亇彶対屮孑屮宂忇贔靡风孑泠藕咮屮藕风贔忇风鱇颗孑孑屮臱砏屮驕圑臱拧屮蓁蜫閹泠屮螜梓驕靡繣鎌孑僮蚶窵螜孑驕砏耸噻嚲颗灺亇蛧绾螜灺屮蓁弔伤梓蓁萺乓屮彶莟跏厏泠跏汱芙乓窵彶屮孑苶伤灺亇贔皿拧声亇噻皿亇泠泠弔苶风藕孑泠忇屮萺忇孑屮孑芙风藕灪亇屮亇僮鴈泠屮泠僮円屮虀僮灪孑亇蜫螜贔軅亇蓁穿屮蜫鱇疀屮泠蚶鏍颗僮櫻羪矢鬀噻潇跏风閹咮羪矮驕臱烪乓螜蚶噻皿孑鴈烪砏紾虀輮汱厏诩繋繋忇亇梓穿诩忇閹佈乓灺莟屮泠弔対弔屮靡莟屮宂宂羪佈亇屮円芙灺风軅灺忇穿拧窵佈风亇声莟佈孑孑烪乓烪亇鱇梓孑厏対鏍咮风风芙弔莟泠贔耸丝芙忇蓁咮屮风矢砏咮风泠伤矢灺孑蟣砏拧声厏螜彶泠亇皿伤佈亇屮梓対弔丝嚲绾孑壭苶彶绾屮孑诩穿莟拧僮咮壭苶汱鴈跏亇风紾灺咮孑风佈汱伤宂臱跏拧宂円羪羪孑屮耸皿佈忇灪绾宂円声蟡繋风亇烪梓绾拧亇砏矢灺対閹繋壭汱芙鏍繋风孑莟紾咮丝藕跏厏弔矢蓁鏍忇风伤砏羪忇风彶穿莟汱虀矮宂声皿蚶鏍忇屮梓诩绾宂泠繋乓烪苶蜫鎌丝壭诩绾矮丝亇绾芙佈乓繣鎌厏穿弔鴈蚶丝风砏耸羪厏孑矮矢灺円颗螜宂宂耸羪鎌宂泠跏紾彶矢蹗蚶乓芙烪噻輮対屮咮梓矮汱屮鎌穿莟芙鬀鴈厏汱莟鏍螜厏孑繋伤跏苶軅輮矢紾伤蛧萺厏风彶咮鎌声孑蚶芙佈皿鱇萺乓矢梓蚶鴈乓泠矮灺繋穿贔鴈声耸咮风泠莟穿佈宂蹗鎌汱烪紾疀蟡乓対繋矮窵皿风蓁佈鴈咮亇鱇莟彶噻虀僮咮芙鱇蓁驕蚶孑贔萺臱颗亇亇噻輮軅圑孑蜫莟泠驕风繣厏泠虀蹗泠屮泠僮嚲风泠风屮羪壭泠屮风皿声泠风孑壭苶亇虀穿孑汱孑萺耸屮孑汱佈彶风孑耸芙咮丝藕鏍乓诩弔潇蟡乓乓羪鎌蛧芙亇蛧咮噻砏屮鱇梓羪萺驕僮咮紾閹蜫僮蚶忇圑噻鬀嚲泠亇噻噻灪屮风蜫砏风僮屮驕声泠蟣藕风风泠僮臱孑亇泠泠鏍忇屮风孑烪声屮亇亇宂穿亇僮苶泠声亇窵耸亇拧厏彶彶风屮灺弔彶丝泠矮声耸皿靡蟡声苶跏輮蓁芙泠蛧彶蟡佈风鱇佈鏍輮櫻櫻咮诩鬀潇櫻鎌宂圑蟡鱇蜫孑亇噻蛧蹗孑泠蜫绾孑蹗孑蟣穿风驕贔孑亇屮僮閹亇泠屮贔輮拧亇屮亇灺声屮泠屮汱円屮灪矢亇苶屮疀耸孑丝対羪彶风风伤烪绾壭孑矮苶梓芙鱇蟡声円彶噻疀芙孑窵跏蛧梓亇閹矢莟羪孑屮绾烪鏍穿风疀烪羪羪僮繣梓莟臱靡藕蚶穿亇潇圑鬀拧亇靡僮泠泠亇櫻颗风风拧孑輮穿风孑屮咮佈泠泠弔伤羪壭风鎌皿繋烪藕臱烪咮輮鱇櫻咮紾驕嚲藕噻対亇嚲蹗僮风泠鬀鱇亇泠亇藕蛧忇屮孑风繋弔风孑丝灺咮亇风莟皿羪汱亇噻芙绾佈驕閹伤灺蓁颗櫻羪矢軅疀灪蜫孑亇嚲驕圑孑亇虀嚲孑屮亇亇螜厏泠泠泠佈诩泠孑矢弔咮屮亇绾穿绾穿灪蓁芙梓繋靡虀耸皿靡蓁櫻鎌丝亇蛧繣鬀亇泠潇靡泠孑孑僮蟡泠孑泠孑跏苶泠屮亇伤耸亇亇紾穿咮忇泠鎌矢砏伤蟣潇皿伤鴈蜫蟣佈声驕蟡繣噻亇屮蛧鱇僮屮孑臱蜫亇孑孑軅鎌拧屮亇风莟皿泠屮宂芙莟屮泠莟声砏厏櫻萺矢耸佈颗靡紾円蓁窵蟣跏壭軅萺蟣蜫泠泠蛧颗贔泠风閹萺风泠亇亇彶対屮孑屮紾紾亇泠苶声莟泠圑绾汱莟円鱇蛧矢紾繋蓁鬀诩汱靡鴈虀鎌泠屮苶佈鎌忇屮蚶梓窵灺风驕绾蓁蓁亇孑萺蟡亇孑风蟣鎌屮泠泠亇彶紾孑风汱耸繋亇风繋灺萺紾屮閹砏窵噻泠泠螜鴈贔屮屮閹矮孑亇亇孑砏円泠屮丝诩绾风屮彶烪輮芙风臱莟萺螜亇屮矮螜灪圑孑颗羪风贔风风莟矢亇风风烪砏泠风梓弔鎌矢亇蜫诩螜鏍泠圑跏鎌繣軅泠蜫绾泠藕亇屮灺汱风屮泠皿耸亇亇灺円繋厏泠蛧紾鎌跏圑灪咮繋鱇櫻亇窵砏亇蹗风藕伤丝屮风亇円伤风泠紾苶绾丝亇萺芙繋砏灪繣梓跏臱繣风萺梓孑繣屮櫻紾拧圑亇孑苶弔泠亇円乓砏风泠螜苶跏耸櫻虀灺彶嚲虀屮蚶耸风虀孑驕芙屮灪风风乓円亇泠声対莟屮圑矮乓咮伤繣鬀紾佈蛧閹圑矮诩屮閹屮閹穿孑僮亇泠厏矢风孑厏丝诩亇軅绾対梓皿蟣潇芙莟萺靡灪跏紾藕臱孑颗矢风蟣风亇丝厏泠泠壭拧紾风蹗砏丝耸苶閹疀苶灺蚶潇僮砏皿櫻嚲泠蜫乓屮穿砏鴈宂屮蟡跏靡绾孑亇萺繣繣屮泠虀僮亇孑苶屮驕灺风灺乓虀蜫穿佈鴈鱇贔羪佈屮驕亇蟣耸风泠风孑诩耸屮屮伤灺鴈乓风嚲咮颗蚶屮屮萺閹圑泠亇繣閹孑风苶屮臱咮孑烪皿潇颗円诩疀颗贔蚶烪孑鱇泠灪皿宂泠泠泠芙佈风风砏紾鴈円亇閹砏疀蟡泠泠噻嚲泠泠亇灪蜫対屮乓亇蛧羪孑円耸窵靡弔円鬀蓁贔噻苶孑閹亇亇乓乓屮风壭声佈孑亇繋芙螜伤泠繣砏蟡颗孑亇蛧蟡亇屮亇泠鴈苶风対风螜鎌风乓跏螜鬀诩厏僮蟡藕蜫丝孑閹亇风壭矢风孑声宂佈孑泠輮穿鏍砏圑灪咮蚶蟣圑孑嚲鎌风孑泠屮繋弔风忇厏羪輮忇忇螜矮鬀佈风圑萺蹗鬀屮亇閹藕屮屮苶亇軅弔忇梓丝櫻窵穿绾矮繣圑绾跏軅櫻孑靡彶泠泠亇孑佈诩风屮円佈鴈対泠窵绾靡羪亇孑萺驕僮泠泠蟣繣孑亇苶亇蟣耸风灺矢閹嚲穿梓萺閹贔繋莟孑蟣亇驕灺拧円彶窵汱忇嚲蚶櫻輮丝孑臱泠泠厏穿风屮苶穿矮壭孑疀莟嚲鎌泠风噻蟣孑风宂圑櫻声亇耸孑灪蟡穿鏍矮圑亇矮萺屮孑风僮窵厏风矢泠蓁螜壭伤羪潇灪砏莟贔蟣风虀佈壭孑屮孑咮羪风壭绾矮鬀灺対軅窵屮鬀汱孑櫻泠屮矢梓亇泠咮烪窵紾亇櫻繋鱇臱风亇靡蹗风风芙屮藕梓対跏芙贔虀耸萺潇亇风蓁蓁亇泠宂亇蜫灺孑紾苶潇颗円梓蜫閹泠萺咮泠軅亇风彶紾孑忇声繋窵厏厏疀鴈灪蚶乓亇靡孑亇苶苶风泠乓皿鏍拧孑窵佈臱繋泠亇蟡櫻泠孑宂藕圑厏拧梓屮泠萺円螜跏亇亇矮蓁圑亇泠繣嚲丝亇穿孑颗蚶丝莟彶鬀灪佈彶軅僮泠閹跏拧风风泠繋跏孑汱砏螜閹伤矢蹗疀孑臱穿屮蹗风孑皿梓屮泠梓灺蛧皿亇繣矮驕嚲风屮靡圑屮孑皿泠亇耸汱矮苶风鱇莟蛧疀屮风蓁潇风孑対泠靡伤泠诩乓閹潇円彶蛧驕屮輮繋亇贔风亇矮皿芙绾蜫矢汱鱇蟡亇疀円泠蹗孑孑诩绾泠风跏羪鱇莟汱亇蜫亇蹗円乓亇屮対灺鴈壭拧疀鏍蹗輮厏亇閹屮风円诩亇亇灺梓蜫皿风櫻鴈泠鬀厏拧蹗孑屮芙羪孑亇螜咮鱇绾风孑疀孑屮厏穿风泠穿弔鴈厏亇鬀繋僮蛧风亇閹屮亇汱莟泠泠彶伤蜫诩亇贔輮軅僮风宂灪亇丝声羪孑泠蛧梓靡鎌屮孑疀贔孑风芙屮孑诩穿鴈穿泠繣跏虀臱屮泠鱇泠泠忇莟风孑鎌弔蓁咮风泠輮繣贔亇厏圑屮苶宂羪丝亇颗耸潇蟡风亇蜫櫻屮风皿屮屮咮乓螜烪亇軅跏靡繣泠孑驕櫻壭亇莟风泠蟡芙噻矮亇风鴈鬀亇屮汱亇櫻烪忇绾声泠鱇耸蛧颗孑泠潇閹孑风皿屮櫻矮厏鏍佈泠泠跏疀圑风风蹗閹声孑灺拧櫻蜫芙螜噻泠屮噻蜫风屮汱亇閹梓孑砏弔櫻僮耸鴈蟣亇屮鬀蜫拧泠芙亇閹輮厏绾繋櫻孑矮萺屮风风圑蜫弔屮伤汱鬀臱芙羪嚲蹗孑蓁萺亇孑厏孑疀跏皿跏臱円穿櫻嚲屮鱇莟汱泠壭壭鎌疀厏烪潇颗风蛧跏亇孑宂泠噻輮忇耸螜閹屮蚶蚶泠风宂风蜫绾孑砏梓繣泠绾噻孑屮壭贔閹伤屮彶穿藕櫻梓疀繣泠风驕僮乓亇彶忇孑靡灺潇疀泠孑靡藕泠风佈屮风噻诩臱鎌泠泠蜫亇孑丝耸孑泠跏诩臱梓亇屮蛧泠屮乓弔屮屮烪莟嚲芙丝軅窵屮蟣芙乓亇泠対咮蛧厏声靡蛧屮疀灺孑贔孑孑繋輮风皿萺疀孑蚶咮孑圑拧屮輮跏泠伤咮臱贔彶矮屮贔风泠蛧灺亇耸皿虀櫻耸輮蹗亇屮繣臱矢屮莟丝蹗鬀烪蟡潇屮亇臱蟣孑孑耸孑泠窵皿蓁螜亇泠蓁蹗屮屮伤孑亇繋皿疀砏孑亇噻圑风拧皿泠孑诩弔蓁皿风圑輮屮繣対乓泠孑乓伤蟡厏忇鱇輮屮嚲穿拧軅亇屮梓螜孑厏窵萺泠螜烪泠櫻风风绾羪亇苶跏窵藕彶梓风櫻泠亇鎌耸风皿烪蜫僮灺跏藕灪孑僮蟡穿亇紾厏鬀鬀皿鎌靡贔泠臱嚲忇亇烪风繣蓁弔繋鱇弔紾泠閹泠灪矮伤屮弔弔颗蹗耸蚶泠屮忇圑鬀灺亇羪紾泠泠跏閹屮孑苶亇风莟苶蛧烪泠风萺孑屮厏烪孑孑莟砏鱇灺矢亇臱亇亇佈梓屮苶梓窵藕砏绾孑藕拧风蓁咮屮咮梓櫻风繋嚲风孑苶亇軅跏乓蟡佈亇风萺藕风拧诩屮屮羪耸鱇咮壭孑颗风风烪咮亇宂繋螜藕跏灺泠蹗孑泠螜矮屮耸繋閹屮鎌噻屮孑苶亇蟣蚶厏輮繋泠孑噻繣亇风灺泠孑輮烪靡鏍风孑颗风亇苶跏泠亇鴈繋藕蚶円屮僮泠孑绾螜亇弔萺嚲亇鴈矮风风声风潇蟡厏矮萺圑屮蛧靡泠风灺屮泠蓁弔潇噻屮亇臱孑泠対羪风泠蜫绾灪蟡厏亇僮泠泠耸萺拧声嚲窵亇蛧佈拧亇対屮噻疀汱咮嚲僮亇嚲蓁壭泠伤亇僮颗弔蛧潇风泠鬀軅丝拧羪拧亇鬀咮僮潇孑壭僮风丝弔噻丝壭鱇鴈屮臱紾厏亇忇宂鏍潇声灺虀閹亇鬀螜声孑弔宂鬀鱇弔鴈虀孑亇蟣虀矢屮跏厏风繣紾矮繣诩莟屮僮风孑窵跏亇跏跏軅屮輮鱇风屮莟风孑疀灺驕窵孑拧繣孑丝灺疀厏苶僮嚲屮驕羪紾风紾弔靡圑佈窵屮孑矢泠軅繋乓蓁绾屮屮疀泠风乓矮孑孑疀鎌孑蛧伤丝屮対壭萺鬀穿跏僮軅亇僮靡烪屮矮弔风孑矮櫻泠屮伤风屮繋莟繣跏汱风虀亇孑咮鴈孑烪疀臱风疀萺対孑诩壭僮蟣诩潇繣风厏軅风伤矢疀紾泠屮窵泠风皿砏泠厏繋鴈屮矮咮屮泠汱孑嚲蛧汱蚶蓁屮孑颗僮対孑矮丝亇僮跏藕驕丝円亇风烪咮虀伤皿亇虀泠风蚶跏风梓羪蟣泠螜嚲屮泠诩风泠疀紾鬀蓁屮风蟣屮宂芙窵厏丝櫻窵亇繣莟紾屮穿紾蓁藕梓鎌亇孑汱屮虀矮宂萺羪风屮蛧贔泠壭跏亇屮蜫跏贔蓁苶丝圑风丝矮臱矢莟櫻驕风僮蛧伤亇彶紾藕亇跏鱇屮泠紾风风鏍烪鱇羪风泠鬀亇泠诩輮亇苶蜫疀屮疀繋対风皿丝靡蟣紾蟡僮亇宂灪藕诩対蟡紾亇屮烪鏍灪莟彶亇圑乓亇鬀蟡乓蛧窵屮孑閹泠声矢蓁矢忇亇蓁亇亇砏跏泠伤鎌鬀孑萺蜫风亇砏风风繣砏蹗櫻风弔风风砏彶灪彶诩泠灪対风蓁蜫乓輮靡风忇驕圑紾対蛧弔孑风蛧孑泠烪鏍亇円窵蜫孑蓁鴈汱风梓厏軅藕砏蟣屮亇烪亇亇鏍梓灪鏍穿屮蹗忇亇螜臱声繋僮圑忇蹗驕梓壭蟡莟泠风蛧亇孑苶蚶泠対臱蟡孑臱羪円亇诩芙虀屮咮颗风屮伤亇风噻诩僮噻丝壭蹗屮対跏閹円梓泠櫻忇泠潇羪拧輮羪亇风蓁屮屮対螜风亇驕鴈屮驕耸伤亇皿耸潇风跏窵亇屮伤孑泠";
+        function init() {
+            
+            A = 10*Math.random(); // A constant to help with pseudo-randomness, can be adjusted or removed
+            B = 10*Math.random(); // A constant to help with pseudo-randomness, can be adjusted or removed
+            C = 10*Math.random(); // A constant to help with pseudo-randomness, can be adjusted or removed
+            D = 10*Math.random(); // A constant to help with pseudo-randomness, can be adjusted or removed
+        
+            // ... (previous setup code)
+            // --- Sphere Geometry ---
+            // ... (sphere setup code)
+            // --- Initial Content Fill and Texture Update ---
+            fillScreen(); // <--- ADD THIS: Fill content before first capture
+            updateTextureFromDOM(); // Capture and apply the texture initially
 
-        /** Debounce function: Limits the rate at which a function can fire.
-         * Useful for resize e%%5vents to avoid performance issues.
-         */
+            // --- Event Listeners ---
+            // ... (rest of init)}
+            //const mandarinChars = "上.海|市烪.,,,孑上.海|市烪,,,.孑=上.海|市烪.孑=烪烪|.&8上.海|,,市烪.孑=烪烪,,|.&8&8|-/上海市./|-/*&.|8&&8|-/上海市./|-/*&.|8&烪烪|.&8&8|-/上海市./|-/*&.|8&=烪烪|.&8&8|-/上海市./|-/*&.|8&*"; // Simplified for demo, use a larger set in practice
+            //const mandarinChars = "伤孑閹羪螜臱佈忇軅亇亇贔颗亇蛧砏汱宂彶泠屮噻蟣櫻鴈烪泠苶风亇泠厏蹗萺烪莟螜苶屮颗孑风鬀鎌孑跏穿孑风皿屮閹彶蟡蜫佈丝繣亇泠圑閹亇蜫砏宂乓梓亇亇螜櫻驕鴈灺泠皿孑泠泠忇軅萺芙彶鏍苶风疀亇亇靡鴈风矮穿泠风矢亇虀莟蜫蛧佈汱鱇忇风軅驕亇颗砏拧円诩亇泠繋圑虀輮佈灪伤孑亇风亇圑蟡矢繋羪苶亇噻亇泠颗蛧风蚶穿亇风厏孑驕伤臱蟡梓矢颗宂风櫻灪孑靡彶屮烪紾亇孑彶亇閹蚶绾驕耸孑孑风孑贔蛧対螜彶矢屮蚶泠风声亇櫻佈蟣潇鏍烪櫻皿泠孑亇风屮窵弔蚶螜伤孑靡屮屮軅鱇风臱咮厏皿砏宂泠窵泠圑臱鏍泠繋穿泠风弔亇僮矮靡閹蚶皿屮穿孑孑孑汱泠蛧莟羪窵灺屮僮亇泠泠臱孑潇绾穿矢鏍宂风臱屮孑鬀羪风绾皿拧泠梓屮櫻噻嚲櫻輮円泠乓壭亇贔皿藕疀跏咮臱灺屮泠亇屮亇嚲厏蓁繋紾厏蟡丝泠驕軅泠鱇跏亇佈诩宂屮矮风灪蜫窵屮輮円孑宂乓风藕梓蹗潇鎌莟繣诩亇亇孑孑风蜫皿噻螜灺丝颗拧亇軅僮孑鱇绾対诩砏厏孑蟡泠圑靡鴈风蚶芙泠风皿泠灪繋驕閹輮伤泠紾风孑孑厏孑疀莟螜窵莟拧繣亇屮屮虀屮鬀羪穿弔矮汱亇颗屮孑鱇蚶孑鏍弔忇泠莟泠灪萺鬀僮萺紾风円丝孑风芙亇嚲绾繋颗梓风贔孑屮风靡対颗矮烪苶噻汱亇蟣亇泠蟣矮屮跏诩対屮繋孑藕蜫潇泠噻弔亇声乓屮屮莟贔颗鎌彶驕莟风亇孑亇屮颗芙疀螜耸汱潇対拧矢屮軅羪灪鱇窵砏孑咮厏屮屮円孑繣鏍鱇虀噻伤亇诩対孑孑紾孑虀螜蜫驕鴈芙屮円対孑屮灺亇閹萺鴈蹗鎌声泠対厏屮贔砏泠鬀噻羪圑跏厏孑屮声风櫻跏僮鬀噻莟亇梓宂泠孑穿泠蟣矮靡鱇鴈紾屮紾丝屮泠弔泠閹蚶蛧蟣螜苶泠矢丝屮孑诩风靡輮蚶櫻矮汱风壭対风軅佈藕臱鴈彶藕彶宂亇孑乓亇繣绾蟣靡鴈诩屮灺壭风泠苶孑鱇繋潇鬀螜芙泠芙忇泠亇皿亇靡鎌噻虀鎌声风汱壭风泠伤屮颗螜繋僮跏宂孑孑宂亇蹗梓蹗潇輮佈軅佈壭泠泠汱风虀彶閹颗螜烪泠伤拧亇亇矢泠靡羪疀靡鎌苶风苶拧孑风芙泠颗鏍輮鱇繋厏孑丝忇亇藕伤圑嚲蚶绾繣彶壭亇泠丝泠繣莟繣嚲蚶耸灪耸拧风亇厏亇閹咮臱潇鎌皿贔弔孑屮风声孑颗跏窵臱矮声孑乓孑屮屮円亇嚲矮鏍閹跏宂亇拧风泠蹗烪灪疀鏍砏驕佈拧屮亇壭孑虀耸虀疀鏍伤蹗诩忇苶泠贔蚶亇櫻靡鎌孑鴈紾対対彶宂亇鬀屮亇灪噻拧蓁绾诩矢蓁円亇屮屮孑屮嚲紾颗蟡矮皿蹗伤孑亇泠声泠虀鏍鱇蟣蛧灺亇佈矢忇泠砏孑圑臱繣风鱇绾风羪莟芙屮蛧拧风圑軅屮軅螜弔鎌輮佈壭櫻厏屮亇屮乓风蜫繋萺閹蚶声屮苶対泠屮佈屮驕蜫蛧亇蓁烪亇弔伤厏孑窵屮亇櫻潇风鬀彶円诩鎌紾泠僮屮屮屮鱇汱繣鴈绾佈靡砏风风屮忇亇櫻梓藕臱蟡跏屮矮声泠忇紾孑屮蟡亇藕鱇鎌孑萺诩矢対矮厏风驕屮亇圑蟡厏蓁矮梓矢臱芙泠屮屮孑孑潇莟颗疀蚶弔泠诩忇屮屮皿亇驕萺鱇蹗蜫莟孑砏芙対屮繋风屮虀繣泠蟣跏対羪彶紾屮颗忇亇亇軅屮圑鴈灺鎌窵彶丝贔厏泠屮屮芙泠颗螜萺繣輮苶屮苶声孑亇羪屮櫻靡蓁孑疀诩丝弔梓声风潇亇屮藕颗泠閹羪烪诩噻伤亇圑亇泠风虀円僮蟡矮佈驕咮忇风屮厏泠灪跏藕鱇疀跏亇鏍壭円风亇噻孑贔櫻窵亇臱彶伤伤蟡灺孑孑屮屮亇蹗莟屮鬀疀蚶风蟡弔丝円佈苶风閹风屮泠鱇対蹗萺羪跏鱇矮対屮汱声风屮蚶孑藕繣嚲亇閹彶皿梓輮莟屮圑忇孑亇圑烪屮靡蛧蟡贔蓁紾孑烪灺苶亇嚲风风孑繣拧圑萺彶蚶颗鎌汱屮穿厏风泠跏亇軅虀鬀亇蟣绾苶跏鏍莟风櫻厏屮泠孑穿风靡萺蜫灪蜫伤孑梓烪苶屮窵风孑泠軅风泠噻莟噻疀鎌矢屮紾丝亇风佈屮軅鬀驕亇繣羪厏鎌跏莟丝鱇矢泠孑孑汱亇靡蚶鬀驕蜫耸孑绾弔矢屮螜丝孑藕亇泠亇窵伤蜫窵鎌芙泠耸壭泠风诩风軅嚲軅孑繣鏍忇萺彶耸汱颗芙泠风孑壭风閹羪驕鱇蜫砏孑矮芙汱忇繋厏孑櫻亇泠孑蓁円靡萺鏍伤灪砏壭亇泠皿屮圑蛧屮贔繣螜泠蓁砏诩穿蓁紾泠泠风孑泠蟣砏灪靡疀跏亇螜芙宂厏咮乓泠虀孑亇孑潇乓虀輮繋梓蟣绾壭孑拧矢亇屮鴈亇藕驕蟡泠潇丝芙丝泠疀风泠屮靡壭蹗鴈矮矮蟣輮声亇皿弔声泠疀屮风泠灪壭风蓁鏍蓁蟣疀烪亇咮烪皿屮疀汱风孑亇壭孑靡鎌蟣繣靡彶亇輮耸伤汱疀紾泠泠风丝屮櫻蚶屮蹗驕鴈亇潇咮灺伤疀砏亇屮壭宂亇亇蚶孑藕蹗颗屮僮矮莟繋疀鏍厏屮芙汱丝孑鎌风亇藕蹗屮屮萺梓蛧嚲萺皿屮佈矢汱风鎌宂孑贔屮亇风嚲佈虀颗疀砏屮蚶皿矢厏鎌円泠泠孑孑泠驕佈泠鬀颗螜屮蜫灺穿烪鎌灺孑泠拧泠屮泠梓屮驕閹潇屮虀彶円羪螜彶壭泠穿风屮屮梓屮軅虀櫻屮軅蚶芙窵鴈鏍円泠梓丝风孑梓忇亇蟣泠亇孑蓁芙鱇蟡鴈梓泠鏍声忇対佈声泠驕亇风风鱇芙圑疀蟡鎌泠蛧皿壭紾砏弔泠驕风亇风圑円风靡蓁嚲泠靡莟丝跏咮耸拧蟣苶屮亇泠円孑驕疀僮屮繣繋丝蟡跏咮苶蟣灺亇泠亇芙亇圑蜫风孑藕蟡丝鬀鏍羪耸蟣羪丝屮宂皿宂亇蜫屮屮亇鬀丝軅宂皿汱风靡屮屮泠僮穿屮颗蜫疀孑鱇砏矢鏍鎌羪汱屮灺丝壭亇跏宂屮圑风亇孑靡彶軅鱇鱇鎌风颗砏莟耸嚲羪忇亇声苶汱亇疀屮风风藕厏泠颗窵靡圑蟣彶対萺繋羪苶軅佈壭风亇梓汱亇櫻泠孑孑虀莟屮鬀鬀萺孑鬀砏伤彶窵矮宂亇皿乓汱屮萺忇孑屮孑忇孑臱輮驕蹗蟣羪风蓁绾绾弔驕绾壭屮丝伤声风虀泠风孑僮紾屮靡颗疀孑虀咮皿矮鴈矮汱屮诩対対屮鏍対孑亇孑屮风鬀矮軅繣蟣鎌孑颗彶砏灺靡繋丝屮声皿声亇臱屮亇屮藕苶泠靡疀靡亇驕绾声鴈鎌矮苶泠佈宂丝亇绾乓孑圑风屮泠虀咮屮虀虀萺孑閹彶莟咮蜫鏍宂屮皿苶声屮蓁忇泠风亇対孑靡蟡蟣圑繣繋宂蓁繋繋弔蹗绾宂风壭梓矢泠櫻泠孑泠僮灺屮閹鬀蓁亇蟣彶伤矮蟡鎌汱泠诩乓乓屮鴈対泠屮孑拧屮閹螜灪蹗繣鎌孑颗跏跏灺蟣矮宂泠乓伤苶孑鱇泠泠风藕弔泠対紾苶亇蟣亇亇风泠耸孑櫻僮僮孑风蟡绾鬀閹鬀彶泠蓁咮绾烪驕鏍対拧苶梓烪孑藕宂风亇亇跏风泠泠贔泠屮嚲蚶僮櫻僮鏍壭靡鏍蚶佈藕噻穿汱紾繋佈泠风矢壭宂孑螜忇亇亇泠丝孑鱇蛧圑屮贔噻矢驕噻蛧羪泠蜫伤皿梓鴈繋壭亇弔声苶泠蓁汱风风屮苶风蹗靡风孑屮嚲紾軅嚲臱螜孑閹砏耸跏蜫鴈乓泠莟弔烪屮鬀芙屮亇孑烪忇屮繣屮屮孑閹佈孑虀驕蛧泠僮矮跏蚶閹蓁皿亇绾梓佈丝僮诩孑风风砏乓孑贔亇孑泠櫻矮风灪藕颗孑贔萺螜窵蹗靡耸対鎌羪繋声泠咮対汱拧矮皿风屮孑忇亇贔萺屮亇泠蟣対屮蜫蓁潇屮繣绾穿蟡輮鴈弔孑矮穿芙汱噻灺屮风拧乓宂屮嚲亇风亇灪円亇閹靡鱇风圑鎌诩嚲疀疀耸泠萺伤灺円潇彶孑屮厏弔苶孑虀孑亇风亇灺风櫻繣蹗亇泠蟡彶鱇鬀鬀绾孑疀砏绾伤虀鎌対风穿莟烪风灪対风屮孑彶泠厏烪皿泠蹗宂孑孑风繋风风屮屮壭屮驕蜫风泠亇潇烪亇臱虀蓁亇軅鏍羪窵蟣鬀莟丝噻繋螜弔孑螜穿皿円噻绾亇孑穿芙皿风虀声屮屮风砏丝风亇亇亇孑僮蟡泠亇亇閹苶屮颗鬀臱亇贔鎌砏潇靡鬀砏亇蜫绾鎌耸藕噻穿矢伤蚶羪拧亇烪矢皿孑颗芙泠孑泠诩厏泠藕孑孑孑軅蚶屮贔泠繣対屮颗潇蟣屮屮輮灺鱇潇鬀羪屮臱彶繋咮繣蛧円厏砏羪羪丝屮莟乓円孑蛧烪泠风屮皿乓亇僮风风孑泠绾屮圑亇藕风风臱蛧灪亇屮噻皿櫻疀臱蚶泠虀彶彶矮鬀疀皿拧繋咮羪乓泠彶厏矢宂輮灺泠泠壭矢声泠閹拧屮亇泠莟泠圑圑孑风屮鬀鴈屮圑屮蓁声圑蛧潇噻风繣彶莟萺潇蜫烪风輮梓跏円蹗矮厏汱矢繋梓亇风乓厏声泠嚲対风风屮紾风圑蹗风风亇虀矮亇灪泠颗丝亇蛧蓁蜫孑蹗跏烪疀蛧蜫耸孑窵耸咮烪虀蚶厏壭弔彶佈泠风芙丝乓风噻矢汱伤伤孑泠矢风汱亇蟡苶泠泠泠紾乓屮圑风泠风亇噻屮亇泠孑皿屮灪灪亇屮泠蟣鴈泠屮风虀芙亇閹繣驕孑风蛧螜蹗軅泠噻穿藕疀閹蟡亇軅鏍鎌蓁僮繣咮苶潇萺嚲砏泠颗佈羪彶驕嚲皿声繋鎌鴈苶风鎌紾砏穿虀鎌対厏皿繋跏孑孑伤苶伤亇鱇灺屮壭风跏烪屮屮壭汱矢亇閹対孑亇亇彶対屮孑屮宂忇贔靡风孑泠藕咮屮藕风贔忇风鱇颗孑孑屮臱砏屮驕圑臱拧屮蓁蜫閹泠屮螜梓驕靡繣鎌孑僮蚶窵螜孑驕砏耸噻嚲颗灺亇蛧绾螜灺屮蓁弔伤梓蓁萺乓屮彶莟跏厏泠跏汱芙乓窵彶屮孑苶伤灺亇贔皿拧声亇噻皿亇泠泠弔苶风藕孑泠忇屮萺忇孑屮孑芙风藕灪亇屮亇僮鴈泠屮泠僮円屮虀僮灪孑亇蜫螜贔軅亇蓁穿屮蜫鱇疀屮泠蚶鏍颗僮櫻羪矢鬀噻潇跏风閹咮羪矮驕臱烪乓螜蚶噻皿孑鴈烪砏紾虀輮汱厏诩繋繋忇亇梓穿诩忇閹佈乓灺莟屮泠弔対弔屮靡莟屮宂宂羪佈亇屮円芙灺风軅灺忇穿拧窵佈风亇声莟佈孑孑烪乓烪亇鱇梓孑厏対鏍咮风风芙弔莟泠贔耸丝芙忇蓁咮屮风矢砏咮风泠伤矢灺孑蟣砏拧声厏螜彶泠亇皿伤佈亇屮梓対弔丝嚲绾孑壭苶彶绾屮孑诩穿莟拧僮咮壭苶汱鴈跏亇风紾灺咮孑风佈汱伤宂臱跏拧宂円羪羪孑屮耸皿佈忇灪绾宂円声蟡繋风亇烪梓绾拧亇砏矢灺対閹繋壭汱芙鏍繋风孑莟紾咮丝藕跏厏弔矢蓁鏍忇风伤砏羪忇风彶穿莟汱虀矮宂声皿蚶鏍忇屮梓诩绾宂泠繋乓烪苶蜫鎌丝壭诩绾矮丝亇绾芙佈乓繣鎌厏穿弔鴈蚶丝风砏耸羪厏孑矮矢灺円颗螜宂宂耸羪鎌宂泠跏紾彶矢蹗蚶乓芙烪噻輮対屮咮梓矮汱屮鎌穿莟芙鬀鴈厏汱莟鏍螜厏孑繋伤跏苶軅輮矢紾伤蛧萺厏风彶咮鎌声孑蚶芙佈皿鱇萺乓矢梓蚶鴈乓泠矮灺繋穿贔鴈声耸咮风泠莟穿佈宂蹗鎌汱烪紾疀蟡乓対繋矮窵皿风蓁佈鴈咮亇鱇莟彶噻虀僮咮芙鱇蓁驕蚶孑贔萺臱颗亇亇噻輮軅圑孑蜫莟泠驕风繣厏泠虀蹗泠屮泠僮嚲风泠风屮羪壭泠屮风皿声泠风孑壭苶亇虀穿孑汱孑萺耸屮孑汱佈彶风孑耸芙咮丝藕鏍乓诩弔潇蟡乓乓羪鎌蛧芙亇蛧咮噻砏屮鱇梓羪萺驕僮咮紾閹蜫僮蚶忇圑噻鬀嚲泠亇噻噻灪屮风蜫砏风僮屮驕声泠蟣藕风风泠僮臱孑亇泠泠鏍忇屮风孑烪声屮亇亇宂穿亇僮苶泠声亇窵耸亇拧厏彶彶风屮灺弔彶丝泠矮声耸皿靡蟡声苶跏輮蓁芙泠蛧彶蟡佈风鱇佈鏍輮櫻櫻咮诩鬀潇櫻鎌宂圑蟡鱇蜫孑亇噻蛧蹗孑泠蜫绾孑蹗孑蟣穿风驕贔孑亇屮僮閹亇泠屮贔輮拧亇屮亇灺声屮泠屮汱円屮灪矢亇苶屮疀耸孑丝対羪彶风风伤烪绾壭孑矮苶梓芙鱇蟡声円彶噻疀芙孑窵跏蛧梓亇閹矢莟羪孑屮绾烪鏍穿风疀烪羪羪僮繣梓莟臱靡藕蚶穿亇潇圑鬀拧亇靡僮泠泠亇櫻颗风风拧孑輮穿风孑屮咮佈泠泠弔伤羪壭风鎌皿繋烪藕臱烪咮輮鱇櫻咮紾驕嚲藕噻対亇嚲蹗僮风泠鬀鱇亇泠亇藕蛧忇屮孑风繋弔风孑丝灺咮亇风莟皿羪汱亇噻芙绾佈驕閹伤灺蓁颗櫻羪矢軅疀灪蜫孑亇嚲驕圑孑亇虀嚲孑屮亇亇螜厏泠泠泠佈诩泠孑矢弔咮屮亇绾穿绾穿灪蓁芙梓繋靡虀耸皿靡蓁櫻鎌丝亇蛧繣鬀亇泠潇靡泠孑孑僮蟡泠孑泠孑跏苶泠屮亇伤耸亇亇紾穿咮忇泠鎌矢砏伤蟣潇皿伤鴈蜫蟣佈声驕蟡繣噻亇屮蛧鱇僮屮孑臱蜫亇孑孑軅鎌拧屮亇风莟皿泠屮宂芙莟屮泠莟声砏厏櫻萺矢耸佈颗靡紾円蓁窵蟣跏壭軅萺蟣蜫泠泠蛧颗贔泠风閹萺风泠亇亇彶対屮孑屮紾紾亇泠苶声莟泠圑绾汱莟円鱇蛧矢紾繋蓁鬀诩汱靡鴈虀鎌泠屮苶佈鎌忇屮蚶梓窵灺风驕绾蓁蓁亇孑萺蟡亇孑风蟣鎌屮泠泠亇彶紾孑风汱耸繋亇风繋灺萺紾屮閹砏窵噻泠泠螜鴈贔屮屮閹矮孑亇亇孑砏円泠屮丝诩绾风屮彶烪輮芙风臱莟萺螜亇屮矮螜灪圑孑颗羪风贔风风莟矢亇风风烪砏泠风梓弔鎌矢亇蜫诩螜鏍泠圑跏鎌繣軅泠蜫绾泠藕亇屮灺汱风屮泠皿耸亇亇灺円繋厏泠蛧紾鎌跏圑灪咮繋鱇櫻亇窵砏亇蹗风藕伤丝屮风亇円伤风泠紾苶绾丝亇萺芙繋砏灪繣梓跏臱繣风萺梓孑繣屮櫻紾拧圑亇孑苶弔泠亇円乓砏风泠螜苶跏耸櫻虀灺彶嚲虀屮蚶耸风虀孑驕芙屮灪风风乓円亇泠声対莟屮圑矮乓咮伤繣鬀紾佈蛧閹圑矮诩屮閹屮閹穿孑僮亇泠厏矢风孑厏丝诩亇軅绾対梓皿蟣潇芙莟萺靡灪跏紾藕臱孑颗矢风蟣风亇丝厏泠泠壭拧紾风蹗砏丝耸苶閹疀苶灺蚶潇僮砏皿櫻嚲泠蜫乓屮穿砏鴈宂屮蟡跏靡绾孑亇萺繣繣屮泠虀僮亇孑苶屮驕灺风灺乓虀蜫穿佈鴈鱇贔羪佈屮驕亇蟣耸风泠风孑诩耸屮屮伤灺鴈乓风嚲咮颗蚶屮屮萺閹圑泠亇繣閹孑风苶屮臱咮孑烪皿潇颗円诩疀颗贔蚶烪孑鱇泠灪皿宂泠泠泠芙佈风风砏紾鴈円亇閹砏疀蟡泠泠噻嚲泠泠亇灪蜫対屮乓亇蛧羪孑円耸窵靡弔円鬀蓁贔噻苶孑閹亇亇乓乓屮风壭声佈孑亇繋芙螜伤泠繣砏蟡颗孑亇蛧蟡亇屮亇泠鴈苶风対风螜鎌风乓跏螜鬀诩厏僮蟡藕蜫丝孑閹亇风壭矢风孑声宂佈孑泠輮穿鏍砏圑灪咮蚶蟣圑孑嚲鎌风孑泠屮繋弔风忇厏羪輮忇忇螜矮鬀佈风圑萺蹗鬀屮亇閹藕屮屮苶亇軅弔忇梓丝櫻窵穿绾矮繣圑绾跏軅櫻孑靡彶泠泠亇孑佈诩风屮円佈鴈対泠窵绾靡羪亇孑萺驕僮泠泠蟣繣孑亇苶亇蟣耸风灺矢閹嚲穿梓萺閹贔繋莟孑蟣亇驕灺拧円彶窵汱忇嚲蚶櫻輮丝孑臱泠泠厏穿风屮苶穿矮壭孑疀莟嚲鎌泠风噻蟣孑风宂圑櫻声亇耸孑灪蟡穿鏍矮圑亇矮萺屮孑风僮窵厏风矢泠蓁螜壭伤羪潇灪砏莟贔蟣风虀佈壭孑屮孑咮羪风壭绾矮鬀灺対軅窵屮鬀汱孑櫻泠屮矢梓亇泠咮烪窵紾亇櫻繋鱇臱风亇靡蹗风风芙屮藕梓対跏芙贔虀耸萺潇亇风蓁蓁亇泠宂亇蜫灺孑紾苶潇颗円梓蜫閹泠萺咮泠軅亇风彶紾孑忇声繋窵厏厏疀鴈灪蚶乓亇靡孑亇苶苶风泠乓皿鏍拧孑窵佈臱繋泠亇蟡櫻泠孑宂藕圑厏拧梓屮泠萺円螜跏亇亇矮蓁圑亇泠繣嚲丝亇穿孑颗蚶丝莟彶鬀灪佈彶軅僮泠閹跏拧风风泠繋跏孑汱砏螜閹伤矢蹗疀孑臱穿屮蹗风孑皿梓屮泠梓灺蛧皿亇繣矮驕嚲风屮靡圑屮孑皿泠亇耸汱矮苶风鱇莟蛧疀屮风蓁潇风孑対泠靡伤泠诩乓閹潇円彶蛧驕屮輮繋亇贔风亇矮皿芙绾蜫矢汱鱇蟡亇疀円泠蹗孑孑诩绾泠风跏羪鱇莟汱亇蜫亇蹗円乓亇屮対灺鴈壭拧疀鏍蹗輮厏亇閹屮风円诩亇亇灺梓蜫皿风櫻鴈泠鬀厏拧蹗孑屮芙羪孑亇螜咮鱇绾风孑疀孑屮厏穿风泠穿弔鴈厏亇鬀繋僮蛧风亇閹屮亇汱莟泠泠彶伤蜫诩亇贔輮軅僮风宂灪亇丝声羪孑泠蛧梓靡鎌屮孑疀贔孑风芙屮孑诩穿鴈穿泠繣跏虀臱屮泠鱇泠泠忇莟风孑鎌弔蓁咮风泠輮繣贔亇厏圑屮苶宂羪丝亇颗耸潇蟡风亇蜫櫻屮风皿屮屮咮乓螜烪亇軅跏靡繣泠孑驕櫻壭亇莟风泠蟡芙噻矮亇风鴈鬀亇屮汱亇櫻烪忇绾声泠鱇耸蛧颗孑泠潇閹孑风皿屮櫻矮厏鏍佈泠泠跏疀圑风风蹗閹声孑灺拧櫻蜫芙螜噻泠屮噻蜫风屮汱亇閹梓孑砏弔櫻僮耸鴈蟣亇屮鬀蜫拧泠芙亇閹輮厏绾繋櫻孑矮萺屮风风圑蜫弔屮伤汱鬀臱芙羪嚲蹗孑蓁萺亇孑厏孑疀跏皿跏臱円穿櫻嚲屮鱇莟汱泠壭壭鎌疀厏烪潇颗风蛧跏亇孑宂泠噻輮忇耸螜閹屮蚶蚶泠风宂风蜫绾孑砏梓繣泠绾噻孑屮壭贔閹伤屮彶穿藕櫻梓疀繣泠风驕僮乓亇彶忇孑靡灺潇疀泠孑靡藕泠风佈屮风噻诩臱鎌泠泠蜫亇孑丝耸孑泠跏诩臱梓亇屮蛧泠屮乓弔屮屮烪莟嚲芙丝軅窵屮蟣芙乓亇泠対咮蛧厏声靡蛧屮疀灺孑贔孑孑繋輮风皿萺疀孑蚶咮孑圑拧屮輮跏泠伤咮臱贔彶矮屮贔风泠蛧灺亇耸皿虀櫻耸輮蹗亇屮繣臱矢屮莟丝蹗鬀烪蟡潇屮亇臱蟣孑孑耸孑泠窵皿蓁螜亇泠蓁蹗屮屮伤孑亇繋皿疀砏孑亇噻圑风拧皿泠孑诩弔蓁皿风圑輮屮繣対乓泠孑乓伤蟡厏忇鱇輮屮嚲穿拧軅亇屮梓螜孑厏窵萺泠螜烪泠櫻风风绾羪亇苶跏窵藕彶梓风櫻泠亇鎌耸风皿烪蜫僮灺跏藕灪孑僮蟡穿亇紾厏鬀鬀皿鎌靡贔泠臱嚲忇亇烪风繣蓁弔繋鱇弔紾泠閹泠灪矮伤屮弔弔颗蹗耸蚶泠屮忇圑鬀灺亇羪紾泠泠跏閹屮孑苶亇风莟苶蛧烪泠风萺孑屮厏烪孑孑莟砏鱇灺矢亇臱亇亇佈梓屮苶梓窵藕砏绾孑藕拧风蓁咮屮咮梓櫻风繋嚲风孑苶亇軅跏乓蟡佈亇风萺藕风拧诩屮屮羪耸鱇咮壭孑颗风风烪咮亇宂繋螜藕跏灺泠蹗孑泠螜矮屮耸繋閹屮鎌噻屮孑苶亇蟣蚶厏輮繋泠孑噻繣亇风灺泠孑輮烪靡鏍风孑颗风亇苶跏泠亇鴈繋藕蚶円屮僮泠孑绾螜亇弔萺嚲亇鴈矮风风声风潇蟡厏矮萺圑屮蛧靡泠风灺屮泠蓁弔潇噻屮亇臱孑泠対羪风泠蜫绾灪蟡厏亇僮泠泠耸萺拧声嚲窵亇蛧佈拧亇対屮噻疀汱咮嚲僮亇嚲蓁壭泠伤亇僮颗弔蛧潇风泠鬀軅丝拧羪拧亇鬀咮僮潇孑壭僮风丝弔噻丝壭鱇鴈屮臱紾厏亇忇宂鏍潇声灺虀閹亇鬀螜声孑弔宂鬀鱇弔鴈虀孑亇蟣虀矢屮跏厏风繣紾矮繣诩莟屮僮风孑窵跏亇跏跏軅屮輮鱇风屮莟风孑疀灺驕窵孑拧繣孑丝灺疀厏苶僮嚲屮驕羪紾风紾弔靡圑佈窵屮孑矢泠軅繋乓蓁绾屮屮疀泠风乓矮孑孑疀鎌孑蛧伤丝屮対壭萺鬀穿跏僮軅亇僮靡烪屮矮弔风孑矮櫻泠屮伤风屮繋莟繣跏汱风虀亇孑咮鴈孑烪疀臱风疀萺対孑诩壭僮蟣诩潇繣风厏軅风伤矢疀紾泠屮窵泠风皿砏泠厏繋鴈屮矮咮屮泠汱孑嚲蛧汱蚶蓁屮孑颗僮対孑矮丝亇僮跏藕驕丝円亇风烪咮虀伤皿亇虀泠风蚶跏风梓羪蟣泠螜嚲屮泠诩风泠疀紾鬀蓁屮风蟣屮宂芙窵厏丝櫻窵亇繣莟紾屮穿紾蓁藕梓鎌亇孑汱屮虀矮宂萺羪风屮蛧贔泠壭跏亇屮蜫跏贔蓁苶丝圑风丝矮臱矢莟櫻驕风僮蛧伤亇彶紾藕亇跏鱇屮泠紾风风鏍烪鱇羪风泠鬀亇泠诩輮亇苶蜫疀屮疀繋対风皿丝靡蟣紾蟡僮亇宂灪藕诩対蟡紾亇屮烪鏍灪莟彶亇圑乓亇鬀蟡乓蛧窵屮孑閹泠声矢蓁矢忇亇蓁亇亇砏跏泠伤鎌鬀孑萺蜫风亇砏风风繣砏蹗櫻风弔风风砏彶灪彶诩泠灪対风蓁蜫乓輮靡风忇驕圑紾対蛧弔孑风蛧孑泠烪鏍亇円窵蜫孑蓁鴈汱风梓厏軅藕砏蟣屮亇烪亇亇鏍梓灪鏍穿屮蹗忇亇螜臱声繋僮圑忇蹗驕梓壭蟡莟泠风蛧亇孑苶蚶泠対臱蟡孑臱羪円亇诩芙虀屮咮颗风屮伤亇风噻诩僮噻丝壭蹗屮対跏閹円梓泠櫻忇泠潇羪拧輮羪亇风蓁屮屮対螜风亇驕鴈屮驕耸伤亇皿耸潇风跏窵亇屮伤孑泠";
+            /** Debounce function: Limits the rate at which a function can fire.
+            * Useful for resize e%%5vents to avoid performance issues.
+            */
+        }
         function debounce(func, wait) {
             let timeout;
             return function executedFunction(...args) {
@@ -73,88 +90,78 @@
                 timeout = setTimeout(later, wait);
             };
         }
-
         /**
-         * Measures the rendered width and height of a single character
-         * using the styles applied to the main container.
-         */
-        function getCharSize() {
+        * Measures the rendered width and height of a single character
+        * using the styles applied to the main container.
+        */
+
+
+    function getCharSize() {
             // Use a representative character for measurement. '字' is common.
-            measureSpan.textContent = '0';
+            measureSpan.textContent = '|';
             // Get the computed style of the container AFTER CSS is applied
-             const containerStyle = window.getComputedStyle(container);
-             measureSpan.style.fontFamily = containerStyle.fontFamily;
-             measureSpan.style.fontSize = containerStyle.fontSize;
-             measureSpan.style.lineHeight = containerStyle.lineHeight;
-
-
+            const containerStyle = window.getComputedStyle(container);
+            measureSpan.style.fontFamily = containerStyle.fontFamily;
+            measureSpan.style.fontSize = containerStyle.fontSize;
+            measureSpan.style.lineHeight = containerStyle.lineHeight;
             const rect = measureSpan.getBoundingClientRect();
             measureSpan.textContent = ''; // Clear the span
-
             // Basic validation
             if (!rect.width || !rect.height) {
                 console.warn("Could not measure character size accurately. Using estimated defaults.");
                 // Estimate based on font-size (very approximate)
                 const fontSize = parseFloat(containerStyle.fontSize) || 16;
                  // Assume roughly square for monospace, adjust line height slightly
-                return { width: fontSize * 0.6, height: fontSize * parseFloat(containerStyle.lineHeight || 1.2) };
+                return { width: fontSize * 1, height: fontSize * parseFloat(containerStyle.lineHeight || 1.2) };
             }
              // Use measured height directly as it often reflects line-height better
-            return { width: rect.width, height: rect.height };
-           }
-
-
-        /**
-         * Fills the container element with random Mandarin characters
-         * based on calculated screen dimensions and character size.
-         */
-        let A = Math.random()/2; // A constant to help with pseudo-randomness, can be adjusted or removed
-
-        let E = Math.random()*2; // A constant to help with pseudo-randomness, can be adjusted or removed
-
-        let C = Math.random()/10; // A constant to help with pseudo-randomness, can be adjusted or removed
-
-        let D = C; // A constant to help with pseudo-randomness, can be adjusted or removed
-
-        function fillScreen() {
-            D += 0.001*(Math.random()-0.5);; // Update D to introduce pseudo-randomness in the pattern, can be adjusted or removed
-            A += 0.001*(Math.random()-0.5);
-            E -= 0.001*(Math.random()-0.5);; // Increment to change the pattern over time, can be adjusted or removed
-            C += 0.001*(Math.random()-0.5);; // Increment to change the pattern over time, can be adjusted or removed  
+            return { width: rect.width, height: rect.height/2 };
+    }
+    /**
+    * Fills the container element with random Mandarin characters
+    * based on calculated screen dimensions and character size.
+    */
+    function fillScreen() {
+            Ap = A%D; // Update D to introduce pseudo-randomness in the pattern, can be adjusted or removed
+            Bp = B%C; // Update B to introduce pseudo-randomness in the pattern, can be adjusted or removed//B = C*0.43-1.3*A*(0.39+D);
+            Cp = C%A; // Increment to change the pattern over time, can be adjusted or removed
+            Dp = D%B;//D = -1.3*C
+            Ai = 3+(D*(1-C)+B*1)%16; // Update D to introduce pseudo-randomness in the pattern, can be adjusted or removed
+            Bi != 0 ? (Bi %= ((D+A*C))): (Bi = ((D+A*C))); // Update B to introduce pseudo-randomness in the pattern, can be adjusted or removed//B = C*0.43-1.3*A*(0.39+D);
+            Ci += (B*(5-A)+D)%B; // Increment to change the pattern over time, can be adjusted or removed
+            Di != 0 ? (Di %= (C*(A+0.1)))%B: (Di = (C*(A+0.1))%B);//D = -1.3*C*(0.04+B)+A*0.34; // Increment to change the pattern over time, can be adjusted or removed  
+            A = (Ai+Ap+998*A)/1000;
+            B = (Bi+Ap+98*B)/100; // Update D to introduce pseudo-randomness in the pattern, can be adjusted or removed 
+            C = (Ci+Ap+998*C)/1000; // Increment to change the pattern over time, can be adjusted or removed
+            D = (Di+Ap+998*D)/1000; 
             const { width: charWidth, height: charHeight } = getCharSize();
-
             // Check if measurements are valid
             if (!charWidth || !charHeight || charWidth <= 0 || charHeight <= 0) {
                  console.error("Character dimensions are invalid (<= 0), cannot fill screen.");
                  container.textContent = "Error: Invalid character size measured.";
                  return;
             }
-
-
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
-
-            // Calculate how many columns and rows fit
-            // Use Math.floor to ensure we don't try to draw partial characters
             const cols = Math.floor(viewportWidth / charWidth);
             const rows = Math.floor(viewportHeight / charHeight);
 
             // Prevent calculations resulting in zero or negative cols/rows
             if (cols <= 0 || rows <= 0) {
-                 console.warn("Calculated columns or rows are zero or less. Nothing to display.");
-                 container.textContent = ''; // Clear container
-                 return;
+                console.warn("Calculated columns or rows are zero or less. Nothing to display.");
+                container.textContent = ''; // Clear container
+                return;
             }
 
             let content = ''; // Build the entire content string for efficiency
             for (let i = 0; i < rows; i++) {
                 for (let j = 0; j < cols; j++) {
-                    // Select a random character
-                    //const randomIndex = Math.floor(((i*(Math.sin(j*D*34)+1)+j*i)%mandarinChars.length));
                     const randomIndex = Math.abs(Math.floor(
-                        (i*A*Math.sin(D*j)+ E*i*Math.cos(C*i)+1) 
+                        Math.sin((i/(A+j))*Math.sin(D*i)+ B*i+j*Math.cos(C))+(i/(A+j))*Math.sin(D*i)+ B*j*Math.cos(C) 
                     ))% mandarinChars.length;
-                    content += mandarinChars[randomIndex];
+                    if (mandarinChars[randomIndex] != 'undefined') {
+                        content += mandarinChars[randomIndex];
+                    }
                 }
                 // Add a newline character after each row is complete
                 // The 'white-space: pre' style will respect this
@@ -166,26 +173,24 @@
             // Update the DOM efficiently by setting textContent once
             container.textContent = content;
         }
+        
+        init();
 
         // --- Event Listeners ---
-
         // Initial fill when the DOM is ready
-         // Using 'load' might be safer to ensure fonts/styles are fully applied
-         window.addEventListener('load', fillScreen);
+        // Using 'load' might be safer to ensure fonts/styles are fully applied
+        window.addEventListener('load', fillScreen);
 
-         //ipdate every 2 s3econds
-         window.setInterval(() => {
+        //ipdate every 2 s3econds
+        window.setInterval(() => {
             if (document.body.contains(container)) { // Ensure container is still in the DOM
                 fillScreen();
             }
-        }, 200);// Adjust the interval (ms) as needed, 2000ms = 2 seconds
-
-
+        }, 133);// Adjust the interval (ms) as needed, 2000ms = 2 seconds
 
         // Update the characters when the window is resized
         // Use the debounced version to avoid excessive updates
-        window.addEventListener('resize', debounce(fillScreen, 150)); // Adjust debounce delay (ms) as needed
-
+        window.addEventListener('resize', debounce(fillScreen, 550)); // Adjust debounce delay (ms) as needed
     </script>
 </body>
 </html>
