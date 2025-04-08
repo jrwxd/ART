@@ -114,13 +114,12 @@
 
         let C = Math.random()/10; // A constant to help with pseudo-randomness, can be adjusted or removed
 
-        let D = C*Math.random(); // A constant to help with pseudo-randomness, can be adjusted or removed
+        let D = C; // A constant to help with pseudo-randomness, can be adjusted or removed
 
         function fillScreen() {
-
             D += 0.001*(Math.random()-0.5);; // Update D to introduce pseudo-randomness in the pattern, can be adjusted or removed
             A += 0.001*(Math.random()-0.5);
-            E -= Math.sin(0.001*(Math.random()-0.5));; // Increment to change the pattern over time, can be adjusted or removed
+            E -= 0.001*(Math.random()-0.5);; // Increment to change the pattern over time, can be adjusted or removed
             C += 0.001*(Math.random()-0.5);; // Increment to change the pattern over time, can be adjusted or removed  
             const { width: charWidth, height: charHeight } = getCharSize();
 
