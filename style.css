@@ -1,0 +1,95 @@
+/* Basic body styling */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  margin: 0;
+  background-color: #f0f0f0; /* Light grey background */
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Main container for cards */
+#tab {
+  position: relative; /* Establishes a positioning context for absolute children */
+  min-height: 100vh;
+  padding: 10px; /* Add some padding around the edges */
+  box-sizing: border-box;
+}
+
+/* Styling for individual hypercards */
+.hypercard {
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Subtle shadow */
+  padding: 20px;
+  margin-bottom: 10px; /* Ensures some space if cards somehow stack vertically */
+  min-width: 350px;   /* Minimum width */
+  max-width: 700px;   /* Maximum width */
+  position: absolute; /* *** CRITICAL: Allows positioning based on click/history *** */
+  overflow-wrap: break-word; /* Prevent long words from overflowing */
+  transition: box-shadow 0.2s ease-in-out; /* Smooth shadow transition on hover/focus */
+}
+
+.hypercard:hover {
+   box-shadow: 0 6px 12px rgba(0,0,0,0.15); /* Slightly larger shadow on hover */
+}
+
+/* Card title styling */
+.hypercard h1 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.6em;
+  color: #1a1a1a;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  font-weight: 600;
+}
+
+/* Card content container */
+.hypercard .content {
+  font-size: 1em;
+}
+
+/* Styling for paragraphs within content */
+.hypercard .content p {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+/* Styling for internal links within cards */
+.hypercard a.internal-link {
+  color: #0056b3; /* Standard blue link color */
+  text-decoration: none;
+  background-color: rgba(0, 86, 179, 0.05); /* Very subtle background */
+  padding: 0 2px;
+  border-radius: 3px;
+  cursor: pointer; /* Ensure pointer cursor */
+}
+
+.hypercard a.internal-link:hover,
+.hypercard a.internal-link:focus {
+  text-decoration: underline;
+  background-color: rgba(0, 86, 179, 0.1); /* Slightly darker background on hover */
+}
+
+/* Styling for broken links (if implemented) */
+.hypercard .broken-link {
+  color: #dc3545; /* Red color for broken links */
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+/* Optional: Styling for external links */
+.hypercard a:not(.internal-link) {
+  color: #0069d9;
+  text-decoration: underline;
+}
+
+/* Optional: Footer styling */
+.hypercard .footer {
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+  font-size: 0.85em;
+  color: #6c757d; /* Grey color for footer text */
+}

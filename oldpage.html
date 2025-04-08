@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JR Wood - Portfolio</title>
+    <link rel="stylesheet" href="index.css"> 
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>JR Wood Solutions</h1>
+            <p>Bug Fixes & Code Optimization</p>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Make Software Work</h1>
+            <p>I build, debug, and optimize. From architecture to deployment, I focus on delivering clean, lasting solutions. I also make digital art.</p>
+            <a href="/orbits.HTML" class="cta-button">Get Help Now</a>
+        </div>
+    </section>
+
+    <section class="container">
+        <h2>Why Choose Us?</h2>
+        <div class="features">
+            <div class="feature-card">
+                <h3>Bug Detection</h3>
+                <p>Fast identification and resolution of issues.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Rapid Fixes</h3>
+                <p>Quick solutions to minimize downtime.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Quality Results</h3>
+                <p>We tackle both the symptoms and root causes.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <h3>1. Report the Bug</h3>
+                    <p>Tell us what's wrong, and we'll get started.</p>
+                </div>
+                <div class="step">
+                    <h3>2. Analysis</h3>
+                    <p>We find the cause and craft the solution.</p>
+                </div>
+                <div class="step">
+                    <h3>3. Resolution</h3>
+                    <p>Receive the fix and explanation.</p>
+                </div>
+            </div>
+        </div>
+
+    <section class="testimonials container">
+        <h2>What Clients Say</h2>
+        <div class="testimonial-cards">
+            <div class="testimonial-card">
+                <p>"John fixed my website."</p>
+                <p>— Shelby Stockholder, Person</p>
+            </div>
+            <div class="testimonial-card">
+                <p>"He made cool visuals for my project."</p>
+                <p>— Eric, Project Manager</p>
+            </div>
+            <div class="testimonial-card">
+                <p>"So cool. So cool."</p>
+                <p>— Greg Christopherson, Developer Critic</p>
+            </div>
+        </div>
+    </section>
+
+    
+    </section><section class="testimonials container">
+        <h2>Links to art</h2>
+        <div class="testimonial-cards">
+            <div class="testimonial-card">
+                <p><a href="/orbitals.html">"orbitals"</a></p>
+                <p></p>
+            </div>
+            <div class="testimonial-card">
+                <p><a href="/endofday.html">"orbitals"</a></p>
+                <p><a href="/complex2.html">"orbitals"</a></p>
+            </div>
+            <div class="testimonial-card">
+                <p><a href="/polarornament.html">"polarornament"</a></p>
+                <p><a href="/texture.html">"texture"</a></p>
+            </div>
+        </div>
+    </section>
+
+
+    <footer>
+        <div class="container">
+            <h3>JR Wood Solutions</h3>
+            <p>&copy; 2025 JR Wood Solutions. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+
+
+    <script>
+        // Animate code background
+        const codeBg = document.querySelector('.code-bg');
+        let codeSnippets = [
+            'function debugCode(file) { /* analysis logic */ }',
+            'try { runApp(); } catch(e) { resolveIssue(e); }',
+            'if (code.works) { maintainIt(); }',
+            'const solution = await experts.analyze(problem);',
+            'bugs.forEach(bug => fix(bug));',
+            '// This works well but could be optimized',
+            '// Need to investigate performance here',
+            'console.log("Troubleshooting in progress...");',
+            'git commit -m "Fixed critical performance issue"',
+            'setTimeout(() => { /* Temporary workaround */ }, 100);'
+        ];
+        
+        function populateCodeBg() {
+            let content = '';
+            for (let i = 0; i < 50; i++) {
+                content += codeSnippets[Math.floor(Math.random() * codeSnippets.length)] + '\n';
+            }
+            codeBg.textContent = content;
+        }
+        
+        populateCodeBg();
+        setInterval(populateCodeBg, 10000);
+        
+        // Add checkmark on click
+        document.addEventListener('click', function(e) {
+            const splat = document.createElement('div');
+            splat.textContent = '✓';
+            splat.className = 'bug-splat';
+            splat.style.position = 'absolute';
+            splat.style.left = e.pageX + 'px';
+            splat.style.top = e.pageY + 'px';
+            splat.style.fontSize = '32px';
+            splat.style.color = '#4a6bde';
+            splat.style.zIndex = '9999';
+            document.body.appendChild(splat);
+            
+            setTimeout(() => {
+                document.body.removeChild(splat);
+            }, 800);
+        });
+    </script>
+</body>
+</html>
