@@ -54,7 +54,7 @@ scene.add(floor);
 
 // Toroidal link class
 class ToroidalLink {
-    constructor(position, R = 0.9, r = 0.03, mass = 2) {
+    constructor(position, R = 8.9, r = 0.03, mass = 2) {
         this.R = R; // Major radius
         this.r = r; // Minor radius
         this.mass = mass;
