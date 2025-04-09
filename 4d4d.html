@@ -121,7 +121,7 @@
                     this.velocity = initial4DVelocity || new THREE.Vector4();
                     this.acceleration = new THREE.Vector4();
 
-                    const radius = Math.pow(this.mass, 1/7) * 0.7;
+                    const radius = Math.pow(this.mass, 1/2) * 0.7;
                     const geometry = new THREE.SphereGeometry(radius, 16, 12);
                     const material = new THREE.MeshPhysicalMaterial({
                         transparent: true,
@@ -138,9 +138,7 @@
                     const initialHyperspherical = cartesian4DToHyperspherical(this.position);
                     const initialHue = 0.6;
                     material.color.setHSL(initialHue, 1.0, 0.5);
-
-                    this.mesh = new THREE.Mesh(geometry, material);
-                    this.mesh.position.set(this.position.x, this.position.y, this.position.z);
+                    this.mesh = new THREE.Mesh(geometry, material);                    this.mesh.position.set(this.position.x, this.position.y, this.position.z);
                 }
             }
 
