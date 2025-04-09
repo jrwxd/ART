@@ -18,7 +18,7 @@
 
             // --- Constants and Configuration ---
             const NUM_SPHERES = 407;
-            const G = 15;                  // Gravitational constant (NEEDS TUNING for 1/r^3 law)
+            const G = 1.2;                  // Gravitational constant (NEEDS TUNING for 1/r^3 law)
             const MIN_MASS = 5.0;
             const A = Math.random(); //
             const B = Math.random(); //
@@ -28,7 +28,7 @@
             const TIME_STEP = 0.16;
             
             const loader = new THREE.TextureLoader();
-            const lion = loader.load( 'https://jrwood.dev/images/gallerycover.png' );
+            const lion = loader.load( 'https://jrwood.dev/images/johnface.jpg' );
             const TWO_PI = 2 * Math.PI;
 
             // --- Global Variables ---
@@ -125,7 +125,7 @@
                     const geometry = new THREE.SphereGeometry(radius, 16, 12);
                     const material = new THREE.MeshPhysicalMaterial({
                         transparent: true,
-                        opacity: 0.011,
+                        opacity: 1,
                         map: lion,
                         depthWrite: true,
                         depthTest: true,
