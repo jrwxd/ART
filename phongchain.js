@@ -1,18 +1,18 @@
 
 
 // --- Configuration Constants ---
-const NUM_LINKS = 10; // Increased number of links for a better chain effect
-const LINK_SPACING = 15; // Adjusted spacing for closer links
-const LINK_MAJOR_RADIUS = 8;
-const LINK_MINOR_RADIUS = 2; // Made links thicker
+const NUM_LINKS = 100; // Increased number of links for a better chain effect
+const LINK_SPACING = 10; // Adjusted spacing for closer links
+const LINK_MAJOR_RADIUS = 17;
+const LINK_MINOR_RADIUS = 0.2; // Made links thicker
 const LINK_MASS_BASE = 5;
-const LINK_COLOR_START = 0x00ffff; // Cyan start
-const LINK_COLOR_END = 0xff00ff; // Magenta end
+const LINK_COLOR_START = 0x000fff; // Cyan start
+const LINK_COLOR_END = 0x0f000f; // Magenta end
 
-const FLOOR_Y = -50; // Lowered the floor
-const GRAVITY = new THREE.Vector3(0, -9.81 * 20, 0); // Stronger gravity
-const SPRING_CONSTANT = 500; // Adjusted spring constant
-const DAMPING_FACTOR = 0.98; // Added damping to reduce oscillations
+const FLOOR_Y = -5000; // Lowered the floor
+const GRAVITY = new THREE.Vector3(0, -0.81 ,0); // Stronger gravity
+const SPRING_CONSTANT = 50; // Adjusted spring constant
+const DAMPING_FACTOR = 1.0; // Added damping to reduce oscillations
 const RESTITUTION = 0.5; // Bounciness factor for floor collision
 
 // --- Scene Setup ---
@@ -52,11 +52,11 @@ scene.add(directionalLight);
 const floorGeometry = new THREE.PlaneGeometry(200, 200); // Larger floor
 const floorMaterial = new THREE.MeshStandardMaterial({ // Use StandardMaterial for better lighting
     color: 0x888888,
-    roughness: 0.8,
-    metalness: 0.2,
+    roughness: 0.38,
+    metalness: 1.0,
     side: THREE.DoubleSide,
-    // transparent: true, // Make floor opaque unless needed
-    // opacity: 0.5,
+    transparent: true, // Make floor opaque unless needed
+    opacity: 0.0005,
 });
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 floor.rotation.x = -Math.PI / 2; // Correct rotation for plane facing up
@@ -75,9 +75,9 @@ class ToroidalLink {
         const geometry = new THREE.TorusGeometry(R, r, 16, 32);
         const material = new THREE.MeshPhongMaterial({
             color: color,
-            shininess: 50, // Add some shininess
-            // transparent: true, // Keep opaque unless needed
-            // opacity: 1,
+            shininess: 100, // Add some shininess
+            transparent: true, // Keep opaque unless needed
+            opacity: 0.7,
         });
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.copy(position);
@@ -87,18 +87,22 @@ class ToroidalLink {
         // Physics properties
         this.velocity = new THREE.Vector3();
         this.acceleration = new THREE.Vector3();
-        // Angular velocity simulation is complex; keeping it simple for now
-        // this.angularVelocity = new THREE.Vector3(Math.random(), 7 * Math.random(), 5);
+        //Angular velocity simulation is complex; keeping it simple for now
+        this.angularVelocity = new THREE.Vector3(position.y%3, position.x %5, 0);
     }
 
     applyForce(force) {
         // F = ma => a = F/m = F * invMass
         this.acceleration.addScaledVector(force, this.invMass);
+        this.velocity.addScaledVector(this.acceleration, 0.0016);
+        // angular
+        this.angularVelocity.addScaledVector(force, 0.0000016); // Simplified angular force effect
     }
 
     update(dt, tempVec) { // Pass temporary vector to avoid allocation
         // Apply gravity (constant acceleration)
         this.acceleration.add(GRAVITY);
+
 
         // Update velocity: v = v0 + a * dt
         this.velocity.addScaledVector(this.acceleration, dt);
@@ -110,9 +114,9 @@ class ToroidalLink {
         this.mesh.position.addScaledVector(this.velocity, dt);
 
         // Simplified angular rotation (optional, can be removed if not needed)
-        // this.mesh.rotation.x += this.angularVelocity.x * dt;
-        // this.mesh.rotation.y += this.angularVelocity.y * dt;
-        // this.mesh.rotation.z += this.angularVelocity.z * dt;
+        this.mesh.rotation.x += this.angularVelocity.x * dt;
+        this.mesh.rotation.y += this.angularVelocity.y * dt;
+        this.mesh.rotation.z += this.angularVelocity.z * dt;
 
         // Reset acceleration for the next frame
         this.acceleration.set(0, 0, 0);
@@ -131,8 +135,8 @@ class ToroidalLink {
             }
 
             // Optional: Apply friction by reducing x/z velocity
-            // this.velocity.x *= 0.9;
-            // this.velocity.z *= 0.9;
+            this.velocity.x *= 0.9;
+            this.velocity.z *= 0.9;
         }
     }
 }
@@ -144,8 +148,8 @@ const endColor = new THREE.Color(LINK_COLOR_END);
 
 for (let i = 0; i < NUM_LINKS; i++) {
     const t = i / (NUM_LINKS - 1 || 1); // Normalized position in chain (0 to 1)
-    const pos = new THREE.Vector3(0, 50 - i * LINK_SPACING * 0.5, 0); // Start vertically
-    const mass = LINK_MASS_BASE + i * 0.5; // Slightly increasing mass down the chain
+    const pos = new THREE.Vector3(i*LINK_MAJOR_RADIUS%23, 50 - i * LINK_SPACING * 0.5, 0); // Start vertically
+    const mass = LINK_MASS_BASE * 0.5; // Slightly increasing mass down the chain
     const color = startColor.clone().lerp(endColor, t); // Interpolate color
     links.push(new ToroidalLink(pos, LINK_MAJOR_RADIUS, LINK_MINOR_RADIUS, mass, color));
 }
@@ -153,7 +157,7 @@ for (let i = 0; i < NUM_LINKS; i++) {
 // --- Physics Calculation Variables (Pre-allocate to avoid GC) ---
 const delta = new THREE.Vector3();
 const force = new THREE.Vector3();
-const equilibriumDist = LINK_MAJOR_RADIUS * 1.8; // Adjusted equilibrium based on R
+const equilibriumDist = LINK_MAJOR_RADIUS * 1.1; // Adjusted equilibrium based on R
 
 
 // --- Animation Loop ---
