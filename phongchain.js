@@ -1,171 +1,205 @@
-// Scene setup
+
+
+// --- Configuration Constants ---
+const NUM_LINKS = 10; // Increased number of links for a better chain effect
+const LINK_SPACING = 15; // Adjusted spacing for closer links
+const LINK_MAJOR_RADIUS = 8;
+const LINK_MINOR_RADIUS = 2; // Made links thicker
+const LINK_MASS_BASE = 5;
+const LINK_COLOR_START = 0x00ffff; // Cyan start
+const LINK_COLOR_END = 0xff00ff; // Magenta end
+
+const FLOOR_Y = -50; // Lowered the floor
+const GRAVITY = new THREE.Vector3(0, -9.81 * 20, 0); // Stronger gravity
+const SPRING_CONSTANT = 500; // Adjusted spring constant
+const DAMPING_FACTOR = 0.98; // Added damping to reduce oscillations
+const RESTITUTION = 0.5; // Bounciness factor for floor collision
+
+// --- Scene Setup ---
+// THREE will be available globally from the <script> tag
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
 const renderer = new THREE.WebGLRenderer({
-  preserveDrawingBuffer: true,
-  alpha: true,
+    antialias: true, // Enable anti-aliasing for smoother edges
+    alpha: true,
 });
-renderer.autoClearColor = false;
+// renderer.preserveDrawingBuffer = true; // Usually not needed unless taking screenshots
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
+// renderer.autoClearColor = false; // Keep default unless specific layering needed
 document.body.appendChild(renderer.domElement);
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
 
-// Camera position
-camera.position.set(0, 5, 10);
-camera.lookAt(0, 0, 0);
+// --- Camera and Controls ---
+camera.position.set(NUM_LINKS * LINK_SPACING * 0.5, NUM_LINKS * LINK_SPACING * 0.3, NUM_LINKS * LINK_SPACING * 1.2); // Adjusted initial camera position
+camera.lookAt(0, 0, 0); // Look at the center
 
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.rotateSpeed = 9.0;
-
+const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+controls.dampingFactor = 0.1; // Smoother damping
+controls.rotateSpeed = 0.5;
+// controls.autoRotate = true; // Disable auto-rotate for manual control focus
+// controls.autoRotateSpeed = 0.5;
 
-controls.dampingFactor = 0.25;
-controls.autoRotate = true;
-controls.autoRotateSpeed = 90.0;
-controls.enableScreenPan = true;
-controls.enableZoom = true;
+// --- Lighting ---
+const ambientLight = new THREE.AmbientLight(0x606060); // Softer ambient light
+scene.add(ambientLight);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8); // Slightly less intense directional
+directionalLight.position.set(50, 100, 50);
+directionalLight.castShadow = true; // Enable shadows if needed (requires setup)
+scene.add(directionalLight);
 
-controls.enableKeys = true;
-controls.update();
-
-
-
-// Lighting
-const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(5, 5, 5);
-scene.add(light);
-scene.add(new THREE.AmbientLight(0x404040));
-
-// Floor (for collisions)
-const floorGeometry = new THREE.PlaneGeometry(20, 20);
-const floorMaterial = new THREE.MeshBasicMaterial({
-  transparent: true,
-  opacity: 0.011,
-  color: 0xaaaaaa,
-  side: THREE.DoubleSide,
+// --- Floor ---
+const floorGeometry = new THREE.PlaneGeometry(200, 200); // Larger floor
+const floorMaterial = new THREE.MeshStandardMaterial({ // Use StandardMaterial for better lighting
+    color: 0x888888,
+    roughness: 0.8,
+    metalness: 0.2,
+    side: THREE.DoubleSide,
+    // transparent: true, // Make floor opaque unless needed
+    // opacity: 0.5,
 });
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-floor.rotation.x = Math.PI / 2;
-floor.position.y = -2;
+floor.rotation.x = -Math.PI / 2; // Correct rotation for plane facing up
+floor.position.y = FLOOR_Y;
+floor.receiveShadow = true; // Allow floor to receive shadows
 scene.add(floor);
 
-// Toroidal link class
+// --- Toroidal Link Class ---
 class ToroidalLink {
-    constructor(position, R = 8.9, r = 0.03, mass = 2) {
+    constructor(position, R, r, mass, color) {
         this.R = R; // Major radius
         this.r = r; // Minor radius
         this.mass = mass;
-        
-        // Create torus geometry and mesh
+        this.invMass = 1 / this.mass; // Store inverse mass for efficiency
+
         const geometry = new THREE.TorusGeometry(R, r, 16, 32);
         const material = new THREE.MeshPhongMaterial({
-          transparent: true,
-          opacity: 0.11,
-          color: 0x00ff00,
+            color: color,
+            shininess: 50, // Add some shininess
+            // transparent: true, // Keep opaque unless needed
+            // opacity: 1,
         });
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.copy(position);
+        this.mesh.castShadow = true; // Allow links to cast shadows
         scene.add(this.mesh);
 
         // Physics properties
-        this.velocity = new THREE.Vector3(0, 0, 0);
-        this.angularVelocity = new THREE.Vector3(0, 2, 0); // Simplified as Euler rates for now
-        this.acceleration = new THREE.Vector3(0, 0, 0);
+        this.velocity = new THREE.Vector3();
+        this.acceleration = new THREE.Vector3();
+        // Angular velocity simulation is complex; keeping it simple for now
+        // this.angularVelocity = new THREE.Vector3(Math.random(), 7 * Math.random(), 5);
     }
 
     applyForce(force) {
-        this.acceleration.addScaledVector(force, 1 / this.mass);
+        // F = ma => a = F/m = F * invMass
+        this.acceleration.addScaledVector(force, this.invMass);
     }
 
-    update(dt) {
-        // Update velocity and position
+    update(dt, tempVec) { // Pass temporary vector to avoid allocation
+        // Apply gravity (constant acceleration)
+        this.acceleration.add(GRAVITY);
+
+        // Update velocity: v = v0 + a * dt
         this.velocity.addScaledVector(this.acceleration, dt);
+
+        // Apply damping: v = v * dampingFactor
+        this.velocity.multiplyScalar(DAMPING_FACTOR);
+
+        // Update position: p = p0 + v * dt
         this.mesh.position.addScaledVector(this.velocity, dt);
 
-        // Update rotation (simplified)
-        this.mesh.rotation.x += this.angularVelocity.x * dt;
-        this.mesh.rotation.y += this.angularVelocity.y * dt;
-        this.mesh.rotation.z += this.angularVelocity.z * dt;
+        // Simplified angular rotation (optional, can be removed if not needed)
+        // this.mesh.rotation.x += this.angularVelocity.x * dt;
+        // this.mesh.rotation.y += this.angularVelocity.y * dt;
+        // this.mesh.rotation.z += this.angularVelocity.z * dt;
 
-        // Reset acceleration
+        // Reset acceleration for the next frame
         this.acceleration.set(0, 0, 0);
     }
 
     checkCollisionWithFloor() {
-        const bottom = this.mesh.position.y - (this.R + this.r);
-        if (bottom < floor.position.y) {
-            // Elastic collision: reverse y-velocity
-            this.velocity.y = -this.velocity.y;
-            this.mesh.position.y = floor.position.y + (this.R + this.r); // Correct position
+        // Approximate bottom point of the torus
+        const bottomY = this.mesh.position.y - this.r; // Use minor radius for collision check
+        if (bottomY < FLOOR_Y) {
+            // Move the link back above the floor
+            this.mesh.position.y = FLOOR_Y + this.r;
+
+            // Reflect and dampen the y-velocity (bounce)
+            if (this.velocity.y < 0) { // Only bounce if moving downwards
+                this.velocity.y *= -RESTITUTION;
+            }
+
+            // Optional: Apply friction by reducing x/z velocity
+            // this.velocity.x *= 0.9;
+            // this.velocity.z *= 0.9;
         }
     }
 }
 
-// Chain setup
+// --- Chain Creation ---
 const links = [];
-const numLinks = 30;
-const spacing = 2.5; // Rough interlock distance
-for (let i = 0; i < numLinks; i++) {
-    const pos = new THREE.Vector3(0, 2 + i * spacing, 0);
-    links.push(new ToroidalLink(pos));
+const startColor = new THREE.Color(LINK_COLOR_START);
+const endColor = new THREE.Color(LINK_COLOR_END);
+
+for (let i = 0; i < NUM_LINKS; i++) {
+    const t = i / (NUM_LINKS - 1 || 1); // Normalized position in chain (0 to 1)
+    const pos = new THREE.Vector3(0, 50 - i * LINK_SPACING * 0.5, 0); // Start vertically
+    const mass = LINK_MASS_BASE + i * 0.5; // Slightly increasing mass down the chain
+    const color = startColor.clone().lerp(endColor, t); // Interpolate color
+    links.push(new ToroidalLink(pos, LINK_MAJOR_RADIUS, LINK_MINOR_RADIUS, mass, color));
 }
 
-// Physics parameters
-const gravity = new THREE.Vector3(0, -2.2, 0);
-const k = 90; // Spring constant for tension
-const equilibriumDist = spacing;
+// --- Physics Calculation Variables (Pre-allocate to avoid GC) ---
+const delta = new THREE.Vector3();
+const force = new THREE.Vector3();
+const equilibriumDist = LINK_MAJOR_RADIUS * 1.8; // Adjusted equilibrium based on R
 
-// Animation loop
-let lastTime = 0;
-function animate(time) {
-    requestAnimationFrame(animate);
-    const dt = (time - lastTime) / 1000; // Convert to seconds
-    lastTime = time;
+// --- Animation Loop ---
+const clock = new THREE.Clock();
 
-    // Apply forces and update each link
+function animate() {
+    const dt = clock.getDelta();
+
+    // --- Physics Update ---
     for (let i = 0; i < links.length; i++) {
         const link = links[i];
 
-        // Gravity
-        link.applyForce(gravity.clone().multiplyScalar(link.mass));
-
-        // Tension from neighbors
-        if (i > 0) { // Previous neighbor
+        // Apply spring forces between adjacent links
+        if (i > 0) { // Link above
             const prev = links[i - 1];
-            const delta = link.mesh.position.clone().sub(prev.mesh.position);
+            delta.subVectors(link.mesh.position, prev.mesh.position); // Reuse delta vector
             const dist = delta.length();
-            const stretch = dist - equilibriumDist;
-            const forceMag = k * stretch;
-            const force = delta.normalize().multiplyScalar(-forceMag);
-            link.applyForce(force);
-            prev.applyForce(force.negate()); // Equal and opposite
-        }
-        if (i < links.length - 1) { // Next neighbor
-            const next = links[i + 1];
-            const delta = link.mesh.position.clone().sub(next.mesh.position);
-            const dist = delta.length();
-            const stretch = dist - equilibriumDist;
-            const forceMag = k * stretch;
-            const force = delta.normalize().multiplyScalar(-forceMag*0.9);
-            link.applyForce(force);
-            next.applyForce(force.negate());
+            if (dist > 1e-6) { // Avoid division by zero if links overlap perfectly
+                const stretch = dist - equilibriumDist;
+                const forceMag = SPRING_CONSTANT * stretch;
+                force.copy(delta).normalize().multiplyScalar(-forceMag); // Reuse force vector
+                link.applyForce(force);
+                // Apply equal and opposite force to the previous link
+                prev.applyForce(force.negate()); // Negate in-place is efficient
+            }
         }
 
-        // Update physics
-        link.update(dt);
+        // Note: The original code applied tension force twice (once for prev, once for next).
+        // The above loop structure correctly applies one force interaction per pair per frame.
+    }
+
+    // --- Update and Collision Check ---
+    for (let i = 0; i < links.length; i++) {
+        const link = links[i];
+        link.update(dt); // Pass dt
         link.checkCollisionWithFloor();
     }
 
+    // --- Rendering ---
+    controls.update(); // Update controls if damping is enabled
     renderer.render(scene, camera);
 }
 
-// Start animation
-animate(0);
+// Use renderer's animation loop
+renderer.setAnimationLoop(animate);
 
-// Resize handler
+// --- Resize Handler ---
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();

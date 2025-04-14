@@ -22,9 +22,9 @@
             const CAMERA_FAR = 320000000;
             const INITIAL_CAMERA_POS = new THREE.Vector3(12000, 12000, 12000);
 
-            const RENDERER_CLEAR_COLOR = 0x000000; // Black background handled by CSS, but good practice
+            const RENDERER_CLEAR_COLOR = false; // Black background handled by CSS, but good practice
             const RENDERER_ALPHA = true; // For potential transparency effects
-            const RENDERER_PRESERVE_DRAWING_BUFFER = false; // Needed if you want to capture screenshots
+            const RENDERER_PRESERVE_DRAWING_BUFFER = true; // Needed if you want to capture screenshots
 
             const AMBIENT_LIGHT_COLOR = 0x628463;
             const AMBIENT_LIGHT_INTENSITY = 5;
@@ -40,7 +40,7 @@
             const BODY_MASS_MIN = 10;
             const BODY_MASS_MAX = 110;
             const BODY_RADIUS_FACTOR = 0.002; // Radius = sqrt(mass) * factor
-            const INITIAL_TRAIL_LENGTH = 1000;
+            const INITIAL_TRAIL_LENGTH = 10;
 
             // Simulation Parameters (Adjustable via keys)
             let thetaShiftRate = 0.1; // Formerly 'E'
@@ -87,7 +87,7 @@
                 controls.enableZoom = true;
                 controls.enablePan = true;
                 controls.autoRotate = true;
-                controls.autoRotateSpeed = 0.91;
+                controls.autoRotateSpeed = 700.91;
                 controls.update(); // Initial update
 
                 // Lighting

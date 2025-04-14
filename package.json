@@ -1,0 +1,22 @@
+{
+  "name": "art-1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jrwxd/ART.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jrwxd/ART/issues"
+  },
+  "homepage": "https://github.com/jrwxd/ART#readme",
+  "dependencies": {
+    "three": "^0.175.0"
+  }
+}

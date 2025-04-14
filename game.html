@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChromaCycle MVP</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #222; }
+        #game { border: 1px solid #fff; }
+        #status { color: white; font-family: Arial, sans-serif; position: absolute; top: 10px; left: 10px; }
+        #tutorial { position: absolute; background: rgba(0, 0, 0, 0.8); color: white; padding: 20px; border-radius: 10px; max-width: 400px; text-align: center; display: none; }
+        #tutorial button { margin: 10px; padding: 5px 10px; }
+        #demoCanvas { border: 1px solid #fff; margin: 10px auto; }
+    </style>
+</head>
+<body>
+    <div id="status">Click a tile to pick target color, then: 'W' to warp, 'B' to burst.</div>
+    <div id="tutorial">
+        <p id="tutorialText"></p>
+        <canvas id="demoCanvas" width="100" height="100"></canvas>
+        <button id="nextBtn">Next</button>
+        <button id="skipBtn">Skip</button>
+    </div>
+    <canvas id="game" width="600" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 6; // 6x6 grid
+        const tileRadius = 25;
+        const colors = ['#FF5555', '#5555FF', '#55FF55']; // Red, Blue, Green
+        const colorNames = ['Red', 'Blue', 'Green'];
+        let grid = [];
+        let selected = null;
+        let targetColor = null;
+        let gameStarted = false;
+        let pulseTime = 0;
+        // Tutorial
+        const tutorial = document.getElementById('tutorial');
+        const tutorialText = document.getElementById('tutorialText');
+        const demoCanvas = document.getElementById('demoCanvas');
+        const demoCtx = demoCanvas.getContext('2d');
+        const nextBtn = document.getElementById('nextBtn');
+        const skipBtn = document.getElementById('skipBtn');
+        let tutorialStep = 0;
+        let demoGrid = [[0, 1, 2], [1, 2, 0], [2, 0, 1]]; // 3x3 for demo
+        const tutorialSteps = [
+            { text: "Welcome to ChromaCycle! Click a tile to choose your target color.", demo: null },
+            { text: "Goal: Make all 36 tiles your color. Here's how to play.", demo: null },
+            { text: "Click a tile and press 'W'. Watch 7 tiles cycle: Red → Blue → Green.", demo: 'warp' },
+            { text: "Click a tile and press 'B'. See 7 tiles swap randomly with neighbors.", demo: 'burst' },
+            { text: "Now try it! Get all tiles to your color. Click to start.", demo: null }
+        ];
+
+        // Initialize grid
+        function initGrid() {
+            grid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
+        }
+
+        // Scramble grid
+        function scrambleGrid(target) {
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    grid[i][j] = target;
+                }
+            }
+            for (let i = 0; i < 12; i++) {
+                const ri = Math.floor(Math.random() * gridSize);
+                const rj = Math.floor(Math.random() * gridSize);
+                if (Math.random() < 0.5) {
+                    warpCluster(ri, rj);
+                } else {
+                    burstHex(ri, rj);
+                }
+            }
+        }
+
+        // Draw hex
+        function drawHex(ctx, x, y, color, radius) {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 3) * i;
+                const px = x + radius * Math.cos(angle);
+                const py = y + radius * Math.sin(angle);
+                ctx[i === 0 ? 'moveTo' : 'lineTo'](px, py);
+            }
+            ctx.closePath();
+            const scale = pulseTime > 0 ? 1 + 0.1 * Math.sin(pulseTime * 0.05) : 1;
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+        }
+
+        // Render game grid
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const x = 100 + j * tileRadius * 1.5 + (i % 2) * tileRadius * 0.75;
+                    const y = 100 + i * tileRadius * 1.732;
+                    drawHex(ctx, x, y, colors[grid[i][j]], tileRadius);
+                    if (selected && selected.i === i && selected.j === j) {
+                        ctx.strokeStyle = '#FFF';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        ctx.lineWidth = 1;
+                    }
+                }
+            }
+            updateStatus();
+            if (checkWin()) {
+                pulseTime++;
+                if (pulseTime < 60) {
+                    requestAnimationFrame(render);
+                } else {
+                    pulseTime = 0;
+                }
+            } else {
+                pulseTime = 0;
+            }
+        }
+
+        // Render demo grid
+        function renderDemo() {
+            demoCtx.clearRect(0, 0, demoCanvas.width, demoCanvas.height);
+            const smallRadius = 15;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const x = 25 + j * smallRadius * 1.5 + (i % 2) * smallRadius * 0.75;
+                    const y = 25 + i * smallRadius * 1.732;
+                    drawHex(demoCtx, x, y, colors[demoGrid[i][j]], smallRadius);
+                }
+            }
+        }
+
+        // Get neighbors
+        function getNeighbors(i, j) {
+            const neighbors = [];
+            const offsets = [
+                [0, 1], [0, -1], [1, 0], [-1, 0],
+                [1, i % 2 === 0 ? -1 : 1], [-1, i % 2 === 0 ? -1 : 1]
+            ];
+            for (let [di, dj] of offsets) {
+                const ni = (i + di + gridSize) % gridSize;
+                const nj = (j + dj + gridSize) % gridSize;
+                neighbors.push({ i: ni, j: nj });
+            }
+            return neighbors;
+        }
+
+        // Demo neighbors
+        function getDemoNeighbors(i, j) {
+            const neighbors = [];
+            const offsets = [
+                [0, 1], [0, -1], [1, 0], [-1, 0],
+                [1, i % 2 === 0 ? -1 : 1], [-1, i % 2 === 0 ? -1 : 1]
+            ];
+            for (let [di, dj] of offsets) {
+                const ni = i + di, nj = j + dj;
+                if (ni >= 0 && ni < 3 && nj >= 0 && nj < 3) {
+                    neighbors.push({ i: ni, j: nj });
+                }
+            }
+            return neighbors;
+        }
+
+        // Cluster Warp
+        function warpCluster(i, j) {
+            const tiles = [{ i, j }, ...getNeighbors(i, j)];
+            for (let { i: ti, j: tj } of tiles) {
+                grid[ti][tj] = (grid[ti][tj] + 1) % 3;
+            }
+        }
+
+        // Demo Warp
+        function demoWarp() {
+            const tiles = [{ i: 1, j: 1 }, ...getDemoNeighbors(1, 1)];
+            for (let { i, j } of tiles) {
+                demoGrid[i][j] = (demoGrid[i][j] + 1) % 3;
+            }
+        }
+
+        // Hex Burst
+        function burstHex(i, j) {
+            const tiles = [{ i, j }, ...getNeighbors(i, j)];
+            for (let { i: ti, j: tj } of tiles) {
+                const neighbors = getNeighbors(ti, tj);
+                const randNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+                const temp = grid[ti][tj];
+                grid[ti][tj] = grid[randNeighbor.i][randNeighbor.j];
+                grid[randNeighbor.i][randNeighbor.j] = temp;
+            }
+        }
+
+        // Demo Burst
+        function demoBurst() {
+            const tiles = [{ i: 1, j: 1 }, ...getDemoNeighbors(1, 1)];
+            for (let { i: ti, j: tj } of tiles) {
+                const neighbors = getDemoNeighbors(ti, tj);
+                if (neighbors.length > 0) {
+                    const randNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    const temp = demoGrid[ti][tj];
+                    demoGrid[ti][tj] = demoGrid[randNeighbor.i][randNeighbor.j];
+                    demoGrid[randNeighbor.i][randNeighbor.j] = temp;
+                }
+            }
+        }
+
+        // Update status
+        function updateStatus() {
+            if (targetColor === null) return;
+            let count = 0;
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    if (grid[i][j] === targetColor) count++;
+                }
+            }
+            document.getElementById('status').textContent = `Target: ${colorNames[targetColor]}. ${count} ${colorNames[targetColor]} tiles. 'W' to warp, 'B' to burst.`;
+        }
+
+        // Check win
+        function checkWin() {
+            if (!targetColor) return false;
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    if (grid[i][j] !== targetColor) {
+                        return false;
+                    }
+                }
+            }
+            document.getElementById('status').textContent = `You win! All tiles are ${colorNames[targetColor]}.`;
+            return true;
+        }
+
+        // Handle tutorial
+        function showTutorial() {
+            if (localStorage.getItem('tutorialDone')) {
+                tutorial.style.display = 'none';
+                return;
+            }
+            tutorial.style.display = 'block';
+            demoCanvas.style.display = tutorialStep === 2 || tutorialStep === 3 ? 'block' : 'none';
+            tutorialText.textContent = tutorialSteps[tutorialStep].text;
+            if (tutorialStep === 2) demoWarp();
+            if (tutorialStep === 3) demoBurst();
+            renderDemo();
+        }
+
+        nextBtn.addEventListener('click', () => {
+            tutorialStep++;
+            if (tutorialStep >= tutorialSteps.length) {
+                tutorial.style.display = 'none';
+                localStorage.setItem('tutorialDone', 'true');
+                tutorialStep = 0;
+            } else {
+                showTutorial();
+            }
+        });
+
+        skipBtn.addEventListener('click', () => {
+            tutorial.style.display = 'none';
+            localStorage.setItem('tutorialDone', 'true');
+            tutorialStep = 0;
+        });
+
+        // Handle clicks
+        canvas.addEventListener('click', e => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const px = 100 + j * tileRadius * 1.5 + (i % 2) * tileRadius * 0.75;
+                    const py = 100 + i * tileRadius * 1.732;
+                    if (Math.hypot(x - px, y - py) < tileRadius) {
+                        if (!gameStarted) {
+                            targetColor = grid[i][j];
+                            scrambleGrid(targetColor);
+                            gameStarted = true;
+                            updateStatus();
+                        } else {
+                            selected = { i, j };
+                        }
+                        render();
+                        return;
+                    }
+                }
+            }
+        });
+
+        // Handle keypress
+        document.addEventListener('keydown', e => {
+            if (selected && gameStarted) {
+                if (e.key === 'w') {
+                    warpCluster(selected.i, selected.j);
+                    selected = null;
+                    render();
+                } else if (e.key === 'b') {
+                    burstHex(selected.i, selected.j);
+                    selected = null;
+                    render();
+                }
+            }
+        });
+
+        // Start game
+        initGrid();
+        render();
+        showTutorial();
+    </script>
+</body>
+</html>

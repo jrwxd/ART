@@ -53,10 +53,10 @@
             const bodies = []; // Array to hold simulation bodies
             // Note: These shift vectors are updated dynamically in a somewhat arbitrary way
             const shiftVectors = [
-                new THREE.Vector3(-5, -3, 0),   // shift (index % 2 == 0)
-                new THREE.Vector3(5, -2.0, 2.009), // shift2 (index % 3 == 0)
-                new THREE.Vector3(-5, -0.007, 5.2),    // shift3 (index % 5 == 0)
-                new THREE.Vector3(0, -2.0, -0.9030)   // shift4 (index % 7 == 0)
+                new THREE.Vector3(-5, -30003, 0),   // shift (index % 2 == 0)
+                new THREE.Vector3(5000, 2.0, 2009), // shift2 (index % 3 == 0)
+                new THREE.Vector3(-999, -0.007, 500.2),    // shift3 (index % 5 == 0)
+                new THREE.Vector3(4, -5552.0, -0.9030)   // shift4 (index % 7 == 0)
             ];
 
             // --- Initialization ---
@@ -304,11 +304,11 @@
 
                 switch (key) {
                     case 'e': // Increase Theta Shift Rate
-                        thetaShiftRate = (thetaShiftRate + 0.1) % 500; // Original modulo logic kept
+                        thetaShiftRate = (thetaShiftRate + 0.1) % 530; // Original modulo logic kept
                         console.log("Theta Shift Rate (E):", thetaShiftRate.toFixed(2));
                         break;
                     case 'r': // Increase Phi Shift Rate
-                        phiShiftRate = (phiShiftRate + 0.1) % 500; // Original modulo logic kept
+                        phiShiftRate = (phiShiftRate + 0.1) % 50; // Original modulo logic kept
                         console.log("Phi Shift Rate (R):", phiShiftRate.toFixed(2));
                         break;
                     case 'j': // Increase Phi Shift Rate

@@ -1,0 +1,147 @@
+{
+  "welcome-visitors": {
+    "title": "Welcome Visitors",
+    "story": [
+      {
+        "type": "paragraph",
+        "text": "Welcome Visitors",
+        "wiki": "WelcomeVisitors",
+        "id": "14330dcd41f3e156w"
+      },
+      {
+        "type": "paragraph",
+        "text": "excerpted pages export to fedwiki",
+        "wiki": "WelcomeVisitors",
+        "id": "5ee92c12fc866668w"
+      },
+      {
+        "type": "paragraph",
+        "text": "BeepSpeek\nBiotaLanguage\nBowlingGameSpikes\nCoCreateInstance\nDramaticIdentity\nEgolessProgramming\nExtremeHumility\nExtremeProgramming\nMetaMagicalThemas\nMoneyObject\nNooSphere\nPatternsAsMemes\nPeterGervai\nSuDoku\nSystemsAsLivingThings\nTestPoint\nUnboundedConsciousness\nWelcomeVisitors\nWikiPrayer",
+        "wiki": "WelcomeVisitors",
+        "id": "8a24fa3399498ea3w"
+      },
+      {
+        "type": "paragraph",
+        "text": "See fedwiki's C2 for Me",
+        "wiki": "WelcomeVisitors",
+        "id": "d1094290a6f6feccw"
+      },
+      {
+        "type": "paragraph",
+        "text": "Welcome to the WikiWikiWeb, also known as \"Wiki\". A lot of people had their first wiki experience here. This community has been around since 1995 and consists of many people. We always accept newcomers with valuable contributions. If you haven't used a wiki before, be prepared for a bit of CultureShock. The usefulness of Wiki is in the freedom, simplicity, and power it offers.",
+        "wiki": "WelcomeVisitors",
+        "id": "5dadc67dac068642w"
+      },
+      {
+        "type": "paragraph",
+        "text": "This site's primary focus is PeopleProjectsAndPatterns in SoftwareDevelopment. However, it is more than just an InformalHistoryOfProgrammingIdeas. It started there, but the theme has created a culture and DramaticIdentity all its own. All Wiki content is WorkInProgress. Most of all, this is a forum where people share ideas! It changes as people come and go. Much of the information here is subjective. If you are looking for a dedicated reference site, try WikiPedia; WikiIsNotWikipedia!",
+        "wiki": "WelcomeVisitors",
+        "id": "f31c7d9022a32078w"
+      },
+      {
+        "type": "paragraph",
+        "text": "Browse via StartingPoints, or use the FindPage search facility to find your way.\nBookmark RecentChanges and watch how things change.\nPlease pay attention to the tone of articles. See WelcomeToWikiPleaseBePolite.\nIf you have beginner questions, you can see NewUserQuestions.\nWhen learning TextFormattingRules to edit pages, please use the WikiWikiSandbox for all your trial edits.\nIf you have any other questions, ask the WikiHelpDesk, and be patient.\nThe WikiEngines page provides a reference to WikiImplementations.\nYou can also select one of the RandomPages, so with some luck, you start on a good point.\nPeople should know a little WikiHistory.",
+        "wiki": "WelcomeVisitors",
+        "id": "39cfcec9e25fead8w"
+      },
+      {
+        "type": "paragraph",
+        "text": "Please read widely on this Wiki before adding new wiki pages or editing an old one. This helps to reduce unnecessary clutter.",
+        "wiki": "WelcomeVisitors",
+        "id": "17446e7f4befd176w"
+      },
+      {
+        "type": "paragraph",
+        "text": "WikiSquatting (using Wiki as personal Web space), WalledGardens (a series of self-contained pages within a larger wiki), ChatMode (ThreadMode without cleanup), and especially WikiSpam (commercial advertising) are all frowned upon. We have several related SisterSites - religious debates or similar material are better suited to TheAdjunct; purely artistic or whimsical stuff goes to GreenCheese (currently defunct).",
+        "wiki": "WelcomeVisitors",
+        "id": "7185c9fe43225079w"
+      },
+      {
+        "type": "paragraph",
+        "text": "If you like the wiki concept and want to use a wiki for your own purposes (such as discussing topics other than those mentioned above), please consider other PublicWikiForums, or look at the RunningYourOwnWikiFaq. There are many WikiWikiClones and WikiEngines available. You can get help on ChoosingaWiki if you are overwhelmed by the big list of options.",
+        "wiki": "WelcomeVisitors",
+        "id": "84f63bed351972cdw"
+      },
+      {
+        "type": "paragraph",
+        "text": "CategoryWikiHelp\nLast edit December 19, 2014",
+        "wiki": "WelcomeVisitors",
+        "id": "26fa9c7fbb6d6d64w"
+      }
+    ],
+    "journal": [
+      {
+        "type": "create",
+        "date": 1418968800000,
+        "item": [
+          {
+            "type": "paragraph",
+            "text": "Welcome Visitors",
+            "wiki": "WelcomeVisitors",
+            "id": "14330dcd41f3e156w"
+          },
+          {
+            "type": "paragraph",
+            "text": "excerpted pages export to fedwiki",
+            "wiki": "WelcomeVisitors",
+            "id": "5ee92c12fc866668w"
+          },
+          {
+            "type": "paragraph",
+            "text": "BeepSpeek\nBiotaLanguage\nBowlingGameSpikes\nCoCreateInstance\nDramaticIdentity\nEgolessProgramming\nExtremeHumility\nExtremeProgramming\nMetaMagicalThemas\nMoneyObject\nNooSphere\nPatternsAsMemes\nPeterGervai\nSuDoku\nSystemsAsLivingThings\nTestPoint\nUnboundedConsciousness\nWelcomeVisitors\nWikiPrayer",
+            "wiki": "WelcomeVisitors",
+            "id": "8a24fa3399498ea3w"
+          },
+          {
+            "type": "paragraph",
+            "text": "See fedwiki's C2 for Me",
+            "wiki": "WelcomeVisitors",
+            "id": "d1094290a6f6feccw"
+          },
+          {
+            "type": "paragraph",
+            "text": "Welcome to the WikiWikiWeb, also known as \"Wiki\". A lot of people had their first wiki experience here. This community has been around since 1995 and consists of many people. We always accept newcomers with valuable contributions. If you haven't used a wiki before, be prepared for a bit of CultureShock. The usefulness of Wiki is in the freedom, simplicity, and power it offers.",
+            "wiki": "WelcomeVisitors",
+            "id": "5dadc67dac068642w"
+          },
+          {
+            "type": "paragraph",
+            "text": "This site's primary focus is PeopleProjectsAndPatterns in SoftwareDevelopment. However, it is more than just an InformalHistoryOfProgrammingIdeas. It started there, but the theme has created a culture and DramaticIdentity all its own. All Wiki content is WorkInProgress. Most of all, this is a forum where people share ideas! It changes as people come and go. Much of the information here is subjective. If you are looking for a dedicated reference site, try WikiPedia; WikiIsNotWikipedia!",
+            "wiki": "WelcomeVisitors",
+            "id": "f31c7d9022a32078w"
+          },
+          {
+            "type": "paragraph",
+            "text": "Browse via StartingPoints, or use the FindPage search facility to find your way.\nBookmark RecentChanges and watch how things change.\nPlease pay attention to the tone of articles. See WelcomeToWikiPleaseBePolite.\nIf you have beginner questions, you can see NewUserQuestions.\nWhen learning TextFormattingRules to edit pages, please use the WikiWikiSandbox for all your trial edits.\nIf you have any other questions, ask the WikiHelpDesk, and be patient.\nThe WikiEngines page provides a reference to WikiImplementations.\nYou can also select one of the RandomPages, so with some luck, you start on a good point.\nPeople should know a little WikiHistory.",
+            "wiki": "WelcomeVisitors",
+            "id": "39cfcec9e25fead8w"
+          },
+          {
+            "type": "paragraph",
+            "text": "Please read widely on this Wiki before adding new wiki pages or editing an old one. This helps to reduce unnecessary clutter.",
+            "wiki": "WelcomeVisitors",
+            "id": "17446e7f4befd176w"
+          },
+          {
+            "type": "paragraph",
+            "text": "WikiSquatting (using Wiki as personal Web space), WalledGardens (a series of self-contained pages within a larger wiki), ChatMode (ThreadMode without cleanup), and especially WikiSpam (commercial advertising) are all frowned upon. We have several related SisterSites - religious debates or similar material are better suited to TheAdjunct; purely artistic or whimsical stuff goes to GreenCheese (currently defunct).",
+            "wiki": "WelcomeVisitors",
+            "id": "7185c9fe43225079w"
+          },
+          {
+            "type": "paragraph",
+            "text": "If you like the wiki concept and want to use a wiki for your own purposes (such as discussing topics other than those mentioned above), please consider other PublicWikiForums, or look at the RunningYourOwnWikiFaq. There are many WikiWikiClones and WikiEngines available. You can get help on ChoosingaWiki if you are overwhelmed by the big list of options.",
+            "wiki": "WelcomeVisitors",
+            "id": "84f63bed351972cdw"
+          },
+          {
+            "type": "paragraph",
+            "text": "CategoryWikiHelp\nLast edit December 19, 2014",
+            "wiki": "WelcomeVisitors",
+            "id": "26fa9c7fbb6d6d64w"
+          }
+        ]
+      }
+    ]
+  }
+}
