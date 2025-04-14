@@ -154,8 +154,7 @@ for (let i = 0; i < NUM_LINKS; i++) {
 const delta = new THREE.Vector3();
 const force = new THREE.Vector3();
 const equilibriumDist = LINK_MAJOR_RADIUS * 1.8; // Adjusted equilibrium based on R
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { Vector3 } from 'three';
+
 
 // --- Animation Loop ---
 const clock = new THREE.Clock();
