@@ -33,7 +33,7 @@ document.body.appendChild(renderer.domElement);
 camera.position.set(NUM_LINKS * LINK_SPACING * 0.5, NUM_LINKS * LINK_SPACING * 0.3, NUM_LINKS * LINK_SPACING * 1.2); // Adjusted initial camera position
 camera.lookAt(0, 0, 0); // Look at the center
 
-const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.1; // Smoother damping
 controls.rotateSpeed = 0.5;
@@ -154,6 +154,8 @@ for (let i = 0; i < NUM_LINKS; i++) {
 const delta = new THREE.Vector3();
 const force = new THREE.Vector3();
 const equilibriumDist = LINK_MAJOR_RADIUS * 1.8; // Adjusted equilibrium based on R
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { Vector3 } from 'three';
 
 // --- Animation Loop ---
 const clock = new THREE.Clock();
