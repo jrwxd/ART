@@ -32,7 +32,7 @@
             const DIR_LIGHT_INTENSITY = 6;
             const DIR_LIGHT_POSITION = new THREE.Vector3(-9, -3, 2);
 
-            const NUM_BODIES = 100;
+            const NUM_BODIES = 500;
             const BODY_POS_MIN_R = 0;
             const BODY_POS_MAX_R = 10000;
             const BODY_VEL_MIN = -0.1;
@@ -43,8 +43,8 @@
             const INITIAL_TRAIL_LENGTH = 1000;
 
             // Simulation Parameters (Adjustable via keys)
-            let thetaShiftRate = 0.001; // Formerly 'E'
-            let phiShiftRate = 0.0;   // Formerly 'R'
+            let thetaShiftRate = 0.041; // Formerly 'E'
+            let phiShiftRate = 0.0060;   // Formerly 'R'
             let j = 0;
             let currentTrailLength = INITIAL_TRAIL_LENGTH;
 
@@ -53,10 +53,10 @@
             const bodies = []; // Array to hold simulation bodies
             // Note: These shift vectors are updated dynamically in a somewhat arbitrary way
             const shiftVectors = [
-                new THREE.Vector3(-5, -30003, 0),   // shift (index % 2 == 0)
+                new THREE.Vector3(-5.78, -30003, 0.99),   // shift (index % 2 == 0)
                 new THREE.Vector3(5000, 2.0, 2009), // shift2 (index % 3 == 0)
                 new THREE.Vector3(-999, -0.007, 500.2),    // shift3 (index % 5 == 0)
-                new THREE.Vector3(4, -5552.0, -0.9030)   // shift4 (index % 7 == 0)
+                new THREE.Vector3(4, -5552.0, -70.9030)   // shift4 (index % 7 == 0)
             ];
 
             // --- Initialization ---
@@ -151,8 +151,8 @@
 
                     // Assign color based on index - ensures variety but predictable pattern
                     const hue = (i / NUM_BODIES);
-                    const saturation = getRandom(0.6, 0.9);
-                    const lightness = getRandom(0.4, 0.3);
+                    const saturation = getRandom(0.6, 0.7);
+                    const lightness = getRandom(0.0, 0.3);
                     const color = new THREE.Color().setHSL(hue, saturation, lightness);
 
                     bodies.push(createBody(pos, velocity, mass, radius, color, currentTrailLength));
