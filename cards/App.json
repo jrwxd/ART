@@ -1,0 +1,4 @@
+{
+  "title": "Hypercard App Script",
+  "text": "This is the main JavaScript file (app.js) that powers the hypercard system.<br><br>Key components:<br>- Card loading and rendering<br>- Navigation between cards<br>- Link detection and processing<br>- Browser history management<br><br>The script handles fetching card data from JSON files and converting [[CardName]] syntax into clickable links."
+}

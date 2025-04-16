@@ -1,0 +1,4 @@
+{
+  "title": "Orbitals with Trails",
+  "text": "A visualization of orbital bodies with motion trails in 3D space.<br><br>Features:<br>- Particle physics simulation<br>- Motion trail visualization<br>- Dynamic color shifting<br>- Interactive camera controls<br><br>Press various keys (e, r, a, s) to adjust simulation parameters.<br><br><a href='../complex.html' target='_blank'>Open Orbitals Visualization</a><br><br>Related: [[Complex2]] | [[PolarOrnament]] | [[Texture]]"
+}

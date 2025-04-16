@@ -1,4 +1,4 @@
 {
   "title": "Introduction",
-  "text": "This application is inspired by the classic HyperCard software. Cards can link to each other and appear in stacks. Try exploring the [[GettingStarted]] guide or learn about [[Navigation]]."
+  "text": "This application is inspired by the classic HyperCard software. Cards can link to each other and appear in stacks.<br><br>Key concepts:<br>- Cards stack visually on top of each other<br>- Click any [[bracketed link]] to open a new card<br>- Cards open where you click<br>- Browser history tracks your navigation<br><br>Try exploring the [[GettingStarted]] guide or learn about [[Navigation]]."
 }

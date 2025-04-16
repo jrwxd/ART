@@ -1,0 +1,4 @@
+{
+  "title": "Hypercard Styling",
+  "text": "The main CSS file (style.css) that controls the appearance of the hypercard system.<br><br>Key style elements:<br>- Card positioning and stacking<br>- Typography and colors<br>- Link styling<br>- Animation effects<br><br>The CSS creates the overlapping card interface that resembles the classic HyperCard application."
+}

@@ -1,0 +1,4 @@
+{
+  "title": "G-code Laser Engraver Visualizer",
+  "text": "A tool for visualizing G-code used in laser engraving and cutting.<br><br>Features:<br>- Paste G-code to visualize paths<br>- Color-coded power levels<br>- Travel vs. cut path distinction<br>- SVG output<br>- Dimensional statistics<br><br><a href='../lasvg.html' target='_blank'>Open G-code Visualizer</a><br><br>This tool is useful for previewing laser cutter operations before sending them to the machine."
+}

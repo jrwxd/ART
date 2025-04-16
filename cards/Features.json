@@ -1,4 +1,4 @@
 {
   "title": "Application Features",
-  "text": "Key features of this application:<br>- Hypercard-style navigation<br>- Card stacking interface<br>- Simple markdown-like syntax<br>- Browser history integration<br><br>See [[Examples]] for practical demonstrations."
+  "text": "Key features of this application:<br><br>- Hypercard-style navigation<br>- Card stacking interface<br>- Simple markdown-like syntax<br>- Browser history integration<br><br>This repository also contains many interactive visualizations and tools:<br><br><strong>Browse by category:</strong><br>- [[HTML_Files]] - Interactive visualizations<br>- [[JavaScript_Files]] - Supporting scripts<br>- [[CSS_Files]] - Style sheets<br>- [[Markdown_Files]] - Documentation<br><br><strong>Repository Index:</strong><br>- [[RepoIndex]] - Complete file listing<br><br>Try the <a href='../4d4d.html' target='_blank'>4D Simulation</a> for an example of the repository's capabilities."
 }

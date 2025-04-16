@@ -1,0 +1,4 @@
+{
+  "title": "Markdown Files",
+  "text": "Documentation and notes in Markdown format:<br><br><ul><li><a href=\"../whatever.md\" target=\"_blank\">whatever.md</a> - Development notes and documentation</li><li><a href=\"../paper cutters.md\" target=\"_blank\">paper cutters.md</a> - Project notes</li></ul><br>These files contain documentation and development notes for the project."
+}

@@ -1,0 +1,4 @@
+{
+  "title": "4D Cartesian N-Body Simulation",
+  "text": "An interactive simulation of gravitational bodies in 4D space using Cartesian coordinates.<br><br>This visualization shows how objects interact in 4-dimensional space, represented as projections into our 3D viewpoint. The fourth dimension creates unique orbital patterns not possible in standard 3D space.<br><br><a href='../4d4d.html' target='_blank'>Open 4D Cartesian Simulation</a><br><br>Related: [[4d4me]] | [[InfiniteSpace]] | [[Rasorb]]"
+}

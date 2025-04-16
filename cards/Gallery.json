@@ -1,0 +1,4 @@
+{
+  "title": "Image Gallery Script",
+  "text": "JavaScript controller for the image gallery system. Handles:<br><br>- Image loading and navigation<br>- Touch/swipe controls<br>- Keyboard navigation<br>- Image counter display<br><br>Used by the [[Arts]] gallery page.<br><br><a href='../arts.html' target='_blank'>View Image Gallery</a><br><br>Related: [[Arts]] | [[Styles]]"
+}
