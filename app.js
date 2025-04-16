@@ -158,17 +158,7 @@ function renderCardContent(cardId, cardData) {
     title = cardData.title || cardId; // Use title from JSON if available
     // Process the main text content for internal links.
     contentHtml = processTextForLinks(cardData.text || "");
-    // Add metadata if available (example)
-    // if (cardData.metadata && cardData.metadata.author) {
-    //   contentHtml += `<div class="footer">Author: ${cardData.metadata.author}</div>`;
-    // }
   }
-  // Add conditions here for '.md' or '.txt' if needed, using a Markdown parser or simple text formatting.
-  // else if (CARD_EXTENSION === '.md' && cardData) {
-  //   // Assumes a global 'marked' library is available
-  //   title = extractTitleFromMarkdown(cardData) || cardId;
-  //   contentHtml = marked.parse(processTextForLinks(cardData));
-  // }
 
   // Construct the final inner HTML.
   return `

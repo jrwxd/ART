@@ -1,0 +1,4 @@
+{
+  "title": "Frequently Asked Questions",
+  "text": "Common questions:<br><br>Q: Can I create my own cards?<br>A: Yes, just add new JSON files to the cards directory.<br><br>Q: How do I link between cards?<br>A: Use double brackets like this: [[CardName]]<br><br>Q: Can I style the text?<br>A: Yes, HTML formatting is supported in the text fields."
+}

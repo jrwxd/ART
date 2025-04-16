@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Hypercard App</title>
   <link rel="stylesheet" href="style.css">
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self';
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data:;
+  connect-src 'self';
+  base-uri 'none';
+  form-action 'self';
+  frame-ancestors 'none';
+">
 </head>
 <body>
   <noscript>
@@ -18,169 +28,6 @@
     <p style="padding: 20px; font-family: sans-serif; text-align: center;">Loading...</p>
   </div>
 
-  <script type="module">
-    // === Configuration ===
-    const REPO_BASE_URL = './cards/';
-    const CARD_INDEX_FILE = 'cardlist.txt';
-    const DEFAULT_CARD_ID = 'Welcome';
-    const CARD_EXTENSION = '.json';
-    const LINK_REGEX = /\[\[([^\]]+)\]\]/g;
-
-    // === Global State ===
-    let cardIds = [];
-    let cardCache = {};
-    const tabElement = document.getElementById('tab');
-
-    // === Initialization ===
-    async function initialize() {
-      tabElement.innerHTML = '<p style="padding: 20px; font-family: sans-serif; text-align: center;">Initializing Hypercard App...</p>';
-
-      try {
-        // Fetch the list of card IDs
-        const indexResponse = await fetch(CARD_INDEX_FILE);
-        if (!indexResponse.ok) {
-          throw new Error(`Failed to fetch card index '${CARD_INDEX_FILE}' (Status: ${indexResponse.status})`);
-        }
-
-        const indexText = await indexResponse.text();
-        cardIds = indexText.split(/\r?\n/).map(id => id.trim()).filter(id => id !== '');
-        if (cardIds.length === 0) {
-          throw new Error("No card IDs found in the index file.");
-        }
-
-        // Determine the initial card ID
-        const urlParams = new URLSearchParams(window.location.search);
-        let initialCardId = urlParams.get('card') || DEFAULT_CARD_ID;
-
-        if (!cardIds.includes(initialCardId)) {
-          console.warn(`Card ID "${initialCardId}" not found. Falling back to default: "${DEFAULT_CARD_ID}".`);
-          initialCardId = DEFAULT_CARD_ID;
-        }
-
-        if (!cardIds.includes(DEFAULT_CARD_ID)) {
-          throw new Error(`Default card "${DEFAULT_CARD_ID}" is not listed in the index file.`);
-        }
-
-        // Fetch and render the initial card
-        const initialCardData = await fetchCard(initialCardId);
-        const initialCardElement = createCardElement(initialCardId, initialCardData);
-        initialCardElement.style = 'left: 20px; top: 20px; position: absolute; z-index: 1;';
-        tabElement.innerHTML = '';
-        tabElement.appendChild(initialCardElement);
-
-        // Set up browser history
-        history.replaceState({ cardId: initialCardId, style: initialCardElement.style.cssText, zIndex: 1 }, '', `?card=${initialCardId}`);
-
-        // Add event listeners
-        tabElement.addEventListener('click', handleTabClick);
-        window.addEventListener('popstate', handlePopState);
-
-        console.log("Initialization complete.");
-      } catch (err) {
-        console.error('Initialization failed:', err);
-        tabElement.innerHTML = `<p style="color: red; padding: 20px; font-family: sans-serif;">Error initializing application: ${err.message}</p>`;
-      }
-    }
-
-    // === Data Fetching ===
-    async function fetchCard(cardId) {
-      if (cardCache[cardId]) {
-        return cardCache[cardId];
-      }
-
-      const cardUrl = `${REPO_BASE_URL}${cardId}${CARD_EXTENSION}`;
-      const response = await fetch(cardUrl);
-      if (!response.ok) {
-        throw new Error(`Card "${cardId}" not found (Status: ${response.status})`);
-      }
-
-      const cardData = await response.json();
-      cardCache[cardId] = cardData;
-      return cardData;
-    }
-
-    // === Rendering ===
-    function createCardElement(cardId, cardData) {
-      const cardDiv = document.createElement('div');
-      cardDiv.className = 'hypercard';
-      cardDiv.dataset.cardid = cardId;
-      cardDiv.innerHTML = renderCardContent(cardId, cardData);
-      return cardDiv;
-    }
-
-    function renderCardContent(cardId, cardData) {
-      const title = cardData?.title || cardId;
-      const contentHtml = processTextForLinks(cardData?.text || '<p><em>No content available.</em></p>');
-      return `
-        <h1>${title}</h1>
-        <div class="content">${contentHtml}</div>
-      `;
-    }
-
-    function processTextForLinks(text) {
-      return text.replace(LINK_REGEX, (match, targetCardId) => {
-        targetCardId = targetCardId.trim();
-        if (cardIds.includes(targetCardId)) {
-          return `<a href="?card=${encodeURIComponent(targetCardId)}" class="internal-link" data-target-cardid="${targetCardId}">${targetCardId}</a>`;
-        } else {
-          return `<span class="broken-link" title="Card not found: ${targetCardId}">[[${targetCardId}]]</span>`;
-        }
-      });
-    }
-
-    // === Event Handling ===
-    async function handleTabClick(event) {
-      const link = event.target.closest('a.internal-link');
-      if (link) {
-        event.preventDefault();
-        const targetCardId = link.dataset.targetCardid;
-        try {
-          const cardData = await fetchCard(targetCardId);
-          const newCardElement = createCardElement(targetCardId, cardData);
-          const clickX = event.pageX;
-          const clickY = event.pageY;
-
-          let maxZ = 0;
-          tabElement.querySelectorAll('.hypercard').forEach(card => {
-            maxZ = Math.max(maxZ, parseInt(card.style.zIndex || '0', 10));
-          });
-
-          newCardElement.style = `left: ${clickX}px; top: ${clickY}px; position: absolute; z-index: ${maxZ + 1};`;
-          tabElement.appendChild(newCardElement);
-
-          history.pushState({ cardId: targetCardId, style: newCardElement.style.cssText, zIndex: maxZ + 1 }, '', `?card=${targetCardId}`);
-        } catch (err) {
-          console.error(`Error loading card "${targetCardId}":`, err);
-        }
-      }
-    }
-
-    async function handlePopState(event) {
-      const state = event.state;
-      if (state?.cardId) {
-        const { cardId, style, zIndex } = state;
-        tabElement.querySelectorAll('.hypercard').forEach(card => {
-          if (parseInt(card.style.zIndex || '0', 10) > zIndex) {
-            card.remove();
-          }
-        });
-
-        let cardElement = tabElement.querySelector(`.hypercard[data-cardid="${cardId}"]`);
-        if (!cardElement) {
-          const cardData = await fetchCard(cardId);
-          cardElement = createCardElement(cardId, cardData);
-          cardElement.style = style;
-          tabElement.appendChild(cardElement);
-        }
-      }
-    }
-
-    // === Start Application ===
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initialize);
-    } else {
-      initialize();
-    }
-  </script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
