@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>John - Personal Website Concept</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Apply Inter font globally */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Background simulating the style guide's abstract blue wave */
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            background-attachment: fixed; /* Keep background fixed during scroll */
+        }
+
+        /* Custom class for the glassmorphism effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.05); /* Semi-transparent white background */
+            backdrop-filter: blur(10px); /* Blur effect */
+            -webkit-backdrop-filter: blur(10px); /* Safari support */
+            border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
+            border-radius: 0.75rem; /* Rounded corners (lg) */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow */
+        }
+
+        /* Custom gradient text */
+        .gradient-text {
+            background: linear-gradient(to right, #ec4899, #ef4444, #f59e0b); /* Pink -> Red -> Orange */
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+         /* Custom gradient border button */
+        .gradient-border-button {
+            background-clip: padding-box; /* Makes background transparent where border is */
+            border: solid 2px transparent;
+            position: relative;
+            background-image: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0)), linear-gradient(101deg, #ec4899, #ef4444, #f59e0b); /* Transparent bg + Gradient border */
+            background-origin: border-box;
+            background-clip: content-box, border-box;
+            box-shadow: 2px 1000px 1px #1e293b inset; /* Match dark bg, creates gradient border effect */
+            transition: all 0.3s ease;
+        }
+        .gradient-border-button:hover {
+             box-shadow: none; /* Reveals gradient on hover */
+             color: white;
+        }
+
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="text-gray-200 bg-slate-900">
+
+    <header class="fixed top-0 left-0 right-0 z-50 p-4 glass">
+        <nav class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold gradient-text">J</div>
+            <div class="space-x-4">
+                <a href="#home" class="px-4 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition-colors">Home</a>
+                <a href="#about" class="px-4 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition-colors">About</a>
+                <a href="#projects" class="px-4 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition-colors">Projects</a>
+                <a href="#contact" class="px-4 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition-colors">Contact</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto mt-24 p-4"> <section id="home" class="min-h-[60vh] flex flex-col items-center justify-center text-center mb-16">
+            <h1 class="text-5xl md:text-7xl font-bold mb-4">
+                <span class="gradient-text">John</span> Doe </h1>
+            <p class="text-xl md:text-2xl text-gray-400 mb-8">Creative Web Developer & Designer</p>
+            <a href="#projects" class="gradient-border-button text-gray-200 font-semibold py-2 px-6 rounded-lg transition duration-300 ease-in-out">
+                View My Work
+            </a>
+        </section>
+
+        <section id="about" class="mb-16 scroll-mt-20"> <h2 class="text-3xl font-bold text-center mb-8 gradient-text">About Me</h2>
+             <div class="glass p-8 md:flex md:items-center md:space-x-8">
+                 <div class="flex-shrink-0 mb-6 md:mb-0 text-center">
+                    <img src="https://placehold.co/150x150/ec4899/ffffff?text=J" alt="John Doe" class="rounded-full mx-auto border-4 border-pink-500/50">
+                 </div>
+                 <div class="text-gray-300">
+                    <p class="mb-4">
+                        Hello! I'm John, a passionate web developer based in Oklahoma City. I specialize in creating modern, responsive, and user-friendly web experiences. My approach blends clean design principles with cutting-edge technology.
+                    </p>
+                    <p>
+                        Inspired by functional aesthetics and interactive design, I strive to build websites that are not only visually appealing but also intuitive and performant. Let's build something amazing together!
+                    </p>
+                 </div>
+             </div>
+        </section>
+
+        <section id="projects" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-8 gradient-text">My Projects</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                <div class="glass p-6 flex flex-col">
+                    <img src="https://placehold.co/600x400/ef4444/ffffff?text=Project+1" alt="Project 1" class="rounded-lg mb-4 w-full h-48 object-cover">
+                    <h3 class="text-xl font-semibold mb-2 text-white">Interactive Data Viz</h3>
+                    <p class="text-gray-400 text-sm flex-grow mb-4">An engaging visualization tool built with D3.js, showcasing complex data in an intuitive format.</p>
+                    <a href="#" class="gradient-border-button text-center text-gray-200 font-medium py-2 px-4 rounded-lg text-sm mt-auto">
+                        View Details
+                    </a>
+                </div>
+
+                <div class="glass p-6 flex flex-col">
+                    <img src="https://placehold.co/600x400/f59e0b/ffffff?text=Project+2" alt="Project 2" class="rounded-lg mb-4 w-full h-48 object-cover">
+                    <h3 class="text-xl font-semibold mb-2 text-white">E-commerce Platform</h3>
+                    <p class="text-gray-400 text-sm flex-grow mb-4">A full-stack e-commerce site with a custom CMS, focusing on performance and user experience.</p>
+                     <a href="#" class="gradient-border-button text-center text-gray-200 font-medium py-2 px-4 rounded-lg text-sm mt-auto">
+                        View Details
+                    </a>
+                </div>
+
+                <div class="glass p-6 flex flex-col">
+                    <img src="https://placehold.co/600x400/3b82f6/ffffff?text=Project+3" alt="Project 3" class="rounded-lg mb-4 w-full h-48 object-cover"> <h3 class="text-xl font-semibold mb-2 text-white">Personal Blog</h3>
+                    <p class="text-gray-400 text-sm flex-grow mb-4">A sleek, minimalist blog platform designed for readability and content discovery.</p>
+                     <a href="#" class="gradient-border-button text-center text-gray-200 font-medium py-2 px-4 rounded-lg text-sm mt-auto">
+                        View Details
+                    </a>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="contact" class="scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-8 gradient-text">Contact</h2>
+            <div class="glass p-8 max-w-lg mx-auto">
+                <p class="text-center text-gray-300 mb-6">Interested in collaborating? Send me a message!</p>
+                <form action="#" method="POST">
+                    <div class="mb-4">
+                        <label for="name" class="block text-sm font-medium text-gray-300 mb-1">Name</label>
+                        <input type="text" id="name" name="name" required
+                               class="w-full px-3 py-2 rounded-md bg-slate-800/60 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-500 text-white placeholder-gray-500">
+                    </div>
+                    <div class="mb-4">
+                        <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Your Email</label>
+                        <input type="email" id="email" name="email" required
+                               class="w-full px-3 py-2 rounded-md bg-slate-800/60 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-500 text-white placeholder-gray-500"
+                               placeholder="Your email"> </div>
+                    <div class="mb-6">
+                        <label for="message" class="block text-sm font-medium text-gray-300 mb-1">Message</label>
+                        <textarea id="message" name="message" rows="4" required
+                                  class="w-full px-3 py-2 rounded-md bg-slate-800/60 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-500 text-white placeholder-gray-500"></textarea>
+                    </div>
+                    <div class="text-center">
+                         <button type="submit" class="gradient-border-button text-gray-200 font-semibold py-2 px-8 rounded-lg transition duration-300 ease-in-out">
+                            Send Message
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center p-6 mt-16 text-gray-500 text-sm">
+        © 2025 John Doe. All rights reserved. Designed with a late neobauhaus vibe.
+    </footer>
+
+</body>
+</html>
