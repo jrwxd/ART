@@ -1,4 +1,3 @@
-
 // --- Configuration ---
 let PARTICLE_COUNT = 25;     // Total number of particles
 let GRAPH_DENSITY = 0.3;     // Probability of edge creation (0-1)
@@ -11,6 +10,8 @@ let TIME_STEP = 0.016;       // Simulation time step
 let PINNED_PARTICLES = [0, 5]; // Indices of pinned particles
 let STEPS_PER_FRAME = 1;     // Physics steps per frame
 let TRAIL_FADE = 0.05;       // How much the previous frames fade (0-1)
+let UPDATE_FREQUENCY = 30;   // Update cell states every N frames
+let frameCounter = 0;        // To track when to update cell states
 
 // --- Global Variables ---
 let scene, camera, renderer, controls;
@@ -121,9 +122,16 @@ function createGraphBasedSystem() {
     
     // Create particles in a scattered pattern
     const particleGeo = new THREE.SphereGeometry(0.15, 16, 8);
-    const particleMat = new THREE.MeshPhongMaterial({ 
-        color: 0x340011, 
-        emissive: 0x00f000, 
+    const whiteMat = new THREE.MeshPhongMaterial({ 
+        color: 0xffffff, 
+        emissive: 0x555555, 
+        transparent: true, 
+        opacity: 0.8 
+    });
+    
+    const blackMat = new THREE.MeshPhongMaterial({ 
+        color: 0x000000, 
+        emissive: 0x000000, 
         transparent: true, 
         opacity: 0.8 
     });
@@ -136,9 +144,12 @@ function createGraphBasedSystem() {
         const posX = radius * Math.cos(angle);
         const posY = radius * Math.sin(angle);
         const posZ = Math.sin(i * 0.2) * 3;
-
-        // Create visual mesh
-        const mesh = new THREE.Mesh(particleGeo, particleMat.clone());
+        
+        // Randomly assign initial state (black or white)
+        const isBlack = Math.random() < 0.5;
+        
+        // Create visual mesh with appropriate material
+        const mesh = new THREE.Mesh(particleGeo, isBlack ? blackMat.clone() : whiteMat.clone());
         mesh.position.set(posX, posY, posZ);
         scene.add(mesh);
         particleMeshes.push(mesh);
@@ -152,17 +163,22 @@ function createGraphBasedSystem() {
             mass: PARTICLE_MASS * (0.8 + Math.random() * 0.4),
             invMass: 1.0 / (PARTICLE_MASS * (0.8 + Math.random() * 0.4)),
             mesh: mesh,
-            pinned: PINNED_PARTICLES.includes(i)
+            pinned: PINNED_PARTICLES.includes(i),
+            isBlack: isBlack, // Store state
+            neighborIndices: [] // Will store neighbor indices
         };
         
         if (particle.pinned) {
-            particle.mesh.material.color.set(0xff0000);
+            particle.mesh.material = new THREE.MeshPhongMaterial({ 
+                color: 0xff0000, 
+                emissive: 0x550000
+            });
         }
         
         particles.push(particle);
     }
 
-    // Create constraints from adjacency matrix
+    // Create constraints from adjacency matrix and collect neighbors
     const linePositions = [];
     
     for (let i = 1; i < adjacencyMatrix.length; i++) {
@@ -175,6 +191,10 @@ function createGraphBasedSystem() {
                     restLength: adjacencyMatrix[i][j].restLength,
                     k: adjacencyMatrix[i][j].k
                 });
+                
+                // Store neighbors for cellular automaton logic
+                particles[i].neighborIndices.push(j);
+                particles[j].neighborIndices.push(i);
                 
                 // Add line segments for visualization
                 linePositions.push(
@@ -191,9 +211,9 @@ function createGraphBasedSystem() {
 
     // Create line geometry for visualizing springs
     const lineMat = new THREE.LineBasicMaterial({ 
-        color: 0xfCCfff, 
+        color: 0x666666, 
         transparent: true, 
-        opacity: 0.6,
+        opacity: 0.4,
         linewidth: 1 
     });
     
@@ -201,6 +221,71 @@ function createGraphBasedSystem() {
     lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
     lineSegments = new THREE.LineSegments(lineGeo, lineMat);
     scene.add(lineSegments);
+}
+
+// --- Update Cell States Based on Neighbors ---
+function updateCellStates() {
+    // Create array to hold new states (don't update immediately to avoid cascade effects)
+    const newStates = [];
+    
+    // Check each particle's neighbors and determine new state
+    for (let i = 0; i < particles.length; i++) {
+        const particle = particles[i];
+        
+        // Skip pinned particles
+        if (particle.pinned) {
+            newStates.push(particle.isBlack);
+            continue;
+        }
+        
+        // Count black neighbors
+        let blackNeighborCount = 0;
+        let totalNeighbors = particle.neighborIndices.length;
+        
+        for (let j = 0; j < particle.neighborIndices.length; j++) {
+            const neighborIndex = particle.neighborIndices[j];
+            if (particles[neighborIndex].isBlack) {
+                blackNeighborCount++;
+            }
+        }
+        
+        // Apply rules:
+        // 1. If a black particle has mostly black neighbors, it becomes white
+        // 2. If a white particle has 2+ black neighbors, it becomes black
+        let newState = particle.isBlack;
+        
+        if (particle.isBlack) {
+            // Black cell with majority black neighbors becomes white
+            if (blackNeighborCount > totalNeighbors / 2) {
+                newState = false;
+            }
+        } else {
+            // White cell with 2+ black neighbors becomes black
+            if (blackNeighborCount >= 2) {
+                newState = true;
+            }
+        }
+        
+        newStates.push(newState);
+    }
+    
+    // Apply new states
+    for (let i = 0; i < particles.length; i++) {
+        particles[i].isBlack = newStates[i];
+        
+        // Update visual appearance
+        if (particles[i].pinned) continue;
+        
+        if (newStates[i]) {
+            // Black
+            particles[i].mesh.material.color.set(0x000000);
+            particles[i].mesh.material.emissive.set(0x000000);
+        } else {
+            // White
+            particles[i].mesh.material.color.set(0xffffff);
+            particles[i].mesh.material.emissive.set(0x555555);
+        }
+    }
 }
 
 // --- Physics Simulation Step ---
@@ -301,6 +386,13 @@ function animate() {
     // Run physics simulation
     for (let i = 0; i < STEPS_PER_FRAME; i++) {
         simulate(TIME_STEP / STEPS_PER_FRAME);
+    }
+
+    // Update cellular automaton every UPDATE_FREQUENCY frames
+    frameCounter++;
+    if (frameCounter >= UPDATE_FREQUENCY) {
+        updateCellStates();
+        frameCounter = 0;
     }
 
     // Update mesh positions
