@@ -1,24 +1,24 @@
 
 
 // --- Configuration Constants ---
-const NUM_LINKS = 100; // Increased number of links for a better chain effect
-const LINK_SPACING = 10; // Adjusted spacing for closer links
-const LINK_MAJOR_RADIUS = 17;
-const LINK_MINOR_RADIUS = 0.2; // Made links thicker
-const LINK_MASS_BASE = 5;
-const LINK_COLOR_START = 0x000fff; // Cyan start
-const LINK_COLOR_END = 0x0f000f; // Magenta end
+const NUM_LINKS = 290; // Increased number of links for a better chain effect
+const LINK_SPACING = 780; // Adjusted spacing for closer links
+const LINK_MAJOR_RADIUS = 170;
+const LINK_MINOR_RADIUS = 120; // Made links thicker
+const LINK_MASS_BASE = 10;
+const LINK_COLOR_START = 0xCCCfff; // Cyan start
+const LINK_COLOR_END = 0xffffCC; // Magenta end
 
 const FLOOR_Y = -5000; // Lowered the floor
-const GRAVITY = new THREE.Vector3(0, -0.81 ,0); // Stronger gravity
+const GRAVITY = new THREE.Vector3(0, 0 ,0); // Stronger gravity
 const SPRING_CONSTANT = 50; // Adjusted spring constant
 const DAMPING_FACTOR = 1.0; // Added damping to reduce oscillations
-const RESTITUTION = 0.5; // Bounciness factor for floor collision
+const RESTITUTION = 0.0; // Bounciness factor for floor collision
 
 // --- Scene Setup ---
 // THREE will be available globally from the <script> tag
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
 const renderer = new THREE.WebGLRenderer({
     antialias: true, // Enable anti-aliasing for smoother edges
     alpha: true,
@@ -77,7 +77,7 @@ class ToroidalLink {
             color: color,
             shininess: 100, // Add some shininess
             transparent: true, // Keep opaque unless needed
-            opacity: 0.7,
+            opacity: 0.9,
         });
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.copy(position);
@@ -88,15 +88,15 @@ class ToroidalLink {
         this.velocity = new THREE.Vector3();
         this.acceleration = new THREE.Vector3();
         //Angular velocity simulation is complex; keeping it simple for now
-        this.angularVelocity = new THREE.Vector3(position.y%3, position.x %5, 0);
-    }
+        this.angularVelocity = new THREE.Vector3(0, 3*Math.sin(position.y), 0);
+ }
 
     applyForce(force) {
         // F = ma => a = F/m = F * invMass
         this.acceleration.addScaledVector(force, this.invMass);
         this.velocity.addScaledVector(this.acceleration, 0.0016);
         // angular
-        this.angularVelocity.addScaledVector(force, 0.0000016); // Simplified angular force effect
+        this.angularVelocity.addScaledVector(force, 0.00016); // Simplified angular force effect
     }
 
     update(dt, tempVec) { // Pass temporary vector to avoid allocation
@@ -135,8 +135,8 @@ class ToroidalLink {
             }
 
             // Optional: Apply friction by reducing x/z velocity
-            this.velocity.x *= 0.9;
-            this.velocity.z *= 0.9;
+            this.velocity.x *= 0.99;
+            this.velocity.z *= 0.99;
         }
     }
 }
@@ -148,7 +148,7 @@ const endColor = new THREE.Color(LINK_COLOR_END);
 
 for (let i = 0; i < NUM_LINKS; i++) {
     const t = i / (NUM_LINKS - 1 || 1); // Normalized position in chain (0 to 1)
-    const pos = new THREE.Vector3(i*LINK_MAJOR_RADIUS%23, 50 - i * LINK_SPACING * 0.5, 0); // Start vertically
+    const pos = new THREE.Vector3(0, 50 - i * LINK_SPACING * 0.5, 0); // Start vertically
     const mass = LINK_MASS_BASE * 0.5; // Slightly increasing mass down the chain
     const color = startColor.clone().lerp(endColor, t); // Interpolate color
     links.push(new ToroidalLink(pos, LINK_MAJOR_RADIUS, LINK_MINOR_RADIUS, mass, color));
@@ -157,7 +157,7 @@ for (let i = 0; i < NUM_LINKS; i++) {
 // --- Physics Calculation Variables (Pre-allocate to avoid GC) ---
 const delta = new THREE.Vector3();
 const force = new THREE.Vector3();
-const equilibriumDist = LINK_MAJOR_RADIUS * 1.1; // Adjusted equilibrium based on R
+const equilibriumDist = LINK_MAJOR_RADIUS * 0.91; // Adjusted equilibrium based on R
 
 
 // --- Animation Loop ---

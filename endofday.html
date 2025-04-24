@@ -24,6 +24,7 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         //renderer.setClearColor(0x000000);
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.update();
         document.body.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
