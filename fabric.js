@@ -1,3 +1,7 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
+
 // --- Configuration ---
 let PARTICLE_COUNT = 25;     // Total number of particles
 let GRAPH_DENSITY = 0.3;     // Probability of edge creation (0-1)
