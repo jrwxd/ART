@@ -1,5 +1,3 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // --- Configuration ---
 let PARTICLE_COUNT = 25;     // Total number of particles
