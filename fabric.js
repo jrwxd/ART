@@ -342,11 +342,11 @@ function simulate(deltaTime) {
     // Normalize direction vector
     direction.normalize();
     if (p1.isBlack && p2.isBlack) {
-      c.k = c.k + 0.1;
+      c.restLength = c.restLength + 0.1;
     }
     
     if (!p1.isBlack && !p2.isBlack) {
-      c.k = c.k - 0.1;
+      c.restLength = c.restLength - 0.1;
     }
 
 
