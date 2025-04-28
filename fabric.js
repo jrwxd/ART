@@ -5,7 +5,7 @@ import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 // --- Configuration ---
 let PARTICLE_COUNT = 25; // Total number of particles
 let GRAPH_DENSITY = 0.3; // Probability of edge creation (0-1)
-let GRID_SPACING = 3; // Initial distance between particles
+let GRID_SPACING = 30; // Initial distance between particles
 let PARTICLE_MASS = 100.0; // Mass of each particle
 let SPRING_K_BASE = 60; // Base spring constant (stiffness)
 let DAMPING = 1.0; // Reduces oscillations
