@@ -275,7 +275,7 @@ function updateCellStates() {
         newState = false;
       }
     } else {
-      // White cell with 2+ black neighbors becomes black
+      // White cell with 3+ black neighbors becomes black
       if (blackNeighborCount >= 3) {
         newState = true;
       }
@@ -341,6 +341,10 @@ function simulate(deltaTime) {
 
     // Normalize direction vector
     direction.normalize();
+    if (p1.isBlack && p2.isBlack) {
+      c.k = c.k + 1.0;
+    }
+
 
     // Apply forces to particles
     if (!p1.pinned) {
