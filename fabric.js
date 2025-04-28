@@ -148,11 +148,14 @@ function createGraphBasedSystem() {
   // Create particles in an interesting pattern (spiral or random)
   for (let i = 0; i < PARTICLE_COUNT; i++) {
     // Position particles in a spiral
-    const angle = i * 0.5;
-    const radius = i * 0.4;
-    const posX = radius * Math.cos(angle);
-    const posY = radius * Math.sin(angle);
-    const posZ = Math.sin(i * 0.2) * 3;
+    //const angle = i * 0.5;
+      ////  const radius = i * 0.4;
+      //const posX = radius * Math.cos(angle);
+      //const posY = radius * Math.sin(angle);
+      //const posZ = Math.sin(i * 0.2) * 3;
+    const posX = Math.random()*10;
+    const posY = Math.random() * 10;
+    const posZ = Math.random() * 10;
 
     // Randomly assign initial state (black or white)
     const isBlack = Math.random() < 0.5;
