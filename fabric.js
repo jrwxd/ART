@@ -344,6 +344,10 @@ function simulate(deltaTime) {
     if (p1.isBlack && p2.isBlack) {
       c.k = c.k + 1.0;
     }
+    
+    if (!p1.isBlack && !p2.isBlack) {
+      c.k = c.k - 1.0;
+    }
 
 
     // Apply forces to particles
