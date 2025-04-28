@@ -266,7 +266,7 @@ function updateCellStates() {
 
     // Apply rules:
     // 1. If a black particle has mostly black neighbors, it becomes white
-    // 2. If a white particle has 2+ black neighbors, it becomes black
+    // 2. If a white particle has 2+ black neighbors, it becomes black  
     let newState = particle.isBlack;
 
     if (particle.isBlack) {
@@ -276,7 +276,7 @@ function updateCellStates() {
       }
     } else {
       // White cell with 2+ black neighbors becomes black
-      if (blackNeighborCount >= 2) {
+      if (blackNeighborCount >= 3) {
         newState = true;
       }
     }
