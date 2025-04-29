@@ -1,3 +1,7 @@
+if (typeof THREE === "undefined") {
+  console.error("Three.js is not loaded. Please include the Three.js library.");
+}
+
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
@@ -33,7 +37,7 @@ let adjacencyMatrix = []; // Triangular adjacency matrix for graph structure
 function init() {
   // Scene setup
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x111111);
+  scene.background = new THREE.Color(0x00a00a);
 
   // Camera
   camera = new THREE.PerspectiveCamera(
@@ -63,15 +67,34 @@ function init() {
   setupFadePass();
 
   // Lights
-  const ambientLight = new THREE.AmbientLight(0xcccccc, 0.5);
+  const ambientLight = new THREE.AmbientLight(0xcc99cc, 0.5);
   scene.add(ambientLight);
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  const directionalLight = new THREE.DirectionalLight(0xeeeeee, 0.8);
   directionalLight.position.set(1, 1, 0.5).normalize();
   scene.add(directionalLight);
 
   // Controls
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
+  controls.update();
+  controls.keys = {
+    LEFT: 'ArrowLeft',
+    UP: 'ArrowUp',
+    RIGHT: 'ArrowRight',
+    BOTTOM: 'ArrowDown',
+  };
+  controls.enablePan = true;
+  controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+  controls.dampingFactor = 0.25;
+  controls.screenSpacePanning = false;
+  controls.maxPolarAngle = Math.PI / 2; // Limit vertical rotation
+  controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+  controls.enableZoom = true;
+  controls.zoomSpeed = 1.0;
+  controls.panSpeed = 5.0;
+  controls.minDistance = 1.0; // Minimum zoom distance
+  controls.enableRotate = true;
+  controls.target.set(0, 0, 0);
   controls.update();
 
   // Create particles and graph structure
@@ -106,14 +129,23 @@ function createAdjacencyMatrix(nodeCount, density) {
     matrix[i] = Array(i + 1).fill(null);
   }
 
-  // Populate with random connections based on density
+  // Track the number of edges for each node
+  const edgeCounts = Array(nodeCount).fill(0);
+
+  // Populate with random connections based on density and edge limit
   for (let i = 1; i < nodeCount; i++) {
     for (let j = 0; j < i; j++) {
-      // Random probability check for creating an edge
-      if (Math.random() < density) {
+      // Check if both nodes have fewer than 7 edges
+      if (edgeCounts[i] < 7 && edgeCounts[j] < 7 && Math.random() < density) {
         const restLength = GRID_SPACING * (0.8 + Math.random() * 0.4); // Some variation
         const k = SPRING_K_BASE * (0.9 + Math.random() * 0.2); // Some variation
         matrix[i][j] = { restLength, k };
+
+        // Increment edge counts for both nodes
+        edgeCounts[i]++;
+        edgeCounts[j]++;
+      } else {
+        matrix[i][j] = null; // No edge
       }
     }
   }
@@ -135,14 +167,14 @@ function createGraphBasedSystem() {
     color: 0xffffff,
     emissive: 0x555555,
     transparent: true,
-    opacity: 0.8,
+    opacity: 0.08,
   });
 
   const blackMat = new THREE.MeshPhongMaterial({
-    color: 0x000000,
-    emissive: 0x000000,
+    color: 0xaa0000,
+    emissive: 0x005500,
     transparent: true,
-    opacity: 0.8,
+    opacity: 0.08,
   });
 
   // Create particles in an interesting pattern (spiral or random)
@@ -158,12 +190,12 @@ function createGraphBasedSystem() {
     const posZ = Math.random() * 10;
 
     // Randomly assign initial state (black or white)
-    const isBlack = Math.random() < 0.5;
+    const state = Math.random() < 0.3 ? (Math.random() < 0.5 ? 2 : 0) : 1;
 
     // Create visual mesh with appropriate material
     const mesh = new THREE.Mesh(
       particleGeo,
-      isBlack ? blackMat.clone() : whiteMat.clone()
+      state ? blackMat.clone() : whiteMat.clone()
     );
     mesh.position.set(posX, posY, posZ);
     scene.add(mesh);
@@ -179,7 +211,7 @@ function createGraphBasedSystem() {
       invMass: 1.0 / (PARTICLE_MASS * (0.8 + Math.random() * 0.4)),
       mesh: mesh,
       pinned: PINNED_PARTICLES.includes(i),
-      isBlack: isBlack, // Store state
+      state: state, // Store state
       neighborIndices: [], // Will store neighbor indices
     };
 
@@ -228,7 +260,7 @@ function createGraphBasedSystem() {
   const lineMat = new THREE.LineBasicMaterial({
     color: 0x666666,
     transparent: true,
-    opacity: 0.4,
+    opacity: 0.1,
     linewidth: 1,
   });
 
@@ -239,6 +271,40 @@ function createGraphBasedSystem() {
   );
   lineSegments = new THREE.LineSegments(lineGeo, lineMat);
   scene.add(lineSegments);
+}
+
+// --- Totalistic Cellular Automaton System ---
+
+// Define state values
+const STATES = {
+  WHITE: 0,
+  GRAY: 1,
+  BLACK: 2
+};
+
+// Totalistic rule function - determines new state based on sum of neighbor states
+function getNextState(currentState, neighbors) {
+  // Calculate the total sum of all neighbor states
+  const neighborSum = neighbors.reduce((sum, index) => sum + particles[index].state, 0);
+  
+  switch(currentState) {
+    case STATES.WHITE:
+      if (neighborSum <= 2) return STATES.WHITE;      // Few active neighbors, stay white
+      else if (neighborSum <= 5) return STATES.GRAY;  // Medium activity, become gray
+      else return STATES.BLACK;                       // High activity, become black
+      
+    case STATES.GRAY:
+      if (neighborSum <= 1) return STATES.WHITE;      // Very little activity, become white
+      else if (neighborSum <= 8) return STATES.GRAY;  // Medium activity, stay gray
+      else return STATES.BLACK;                       // High activity, become black
+      
+    case STATES.BLACK:
+      if (neighborSum <= 3) return STATES.BLACK;      // Low activity, stay black
+      else if (neighborSum <= 7) return STATES.GRAY;  // Medium activity, become gray
+      else return STATES.WHITE;                       // High activity, become white
+  }
+  
+  return currentState; // Default fallback
 }
 
 // --- Update Cell States Based on Neighbors ---
@@ -252,57 +318,53 @@ function updateCellStates() {
 
     // Skip pinned particles
     if (particle.pinned) {
-      newStates.push(particle.isBlack);
+      newStates.push(particle.state);
       continue;
     }
-
-    // Count black neighbors
-    let blackNeighborCount = 0;
-    let totalNeighbors = particle.neighborIndices.length;
-
-    for (let j = 0; j < particle.neighborIndices.length; j++) {
-      const neighborIndex = particle.neighborIndices[j];
-      if (particles[neighborIndex].isBlack) {
-        blackNeighborCount++;
-      }
-    }
-
-    // Apply rules:
-    // 1. If a black particle has mostly black neighbors, it becomes white
-    // 2. If a white particle has 2+ black neighbors, it becomes black  
-    let newState = particle.isBlack;
-
-    if (particle.isBlack) {
-      // Black cell with majority black neighbors becomes white
-      if (blackNeighborCount > totalNeighbors / 2) {
-        newState = false;
-      }
-    } else {
-      // White cell with 3+ black neighbors becomes black
-      if (blackNeighborCount >= 2) {
-        newState = true;
-      }
-    }
-
-    newStates.push(newState);
+    
+    // Get next state using totalistic rule
+    const nextState = getNextState(particle.state, particle.neighborIndices);
+    newStates.push(nextState);
   }
 
-  // Apply new states
+  // Apply new states and update visual appearance
   for (let i = 0; i < particles.length; i++) {
-    particles[i].isBlack = newStates[i];
-
-    // Update visual appearance
     if (particles[i].pinned) continue;
+    
+    particles[i].state = newStates[i];
 
-    if (newStates[i]) {
-      // Black
-      particles[i].mesh.material.color.set(0x000000);
-      particles[i].mesh.material.emissive.set(0x000000);
-    } else {
-      // White
-      particles[i].mesh.material.color.set(0xffffff);
-      particles[i].mesh.material.emissive.set(0x555555);
+    // Update visual appearance based on state
+    switch(newStates[i]) {
+      case STATES.BLACK:
+        particles[i].mesh.material.color.set(0x00cc00);
+        particles[i].mesh.material.emissive.set(0x0cc000);
+        break;
+      case STATES.GRAY:
+        particles[i].mesh.material.color.set(0x888888);
+        particles[i].mesh.material.emissive.set(0x222222);
+        break;
+      case STATES.WHITE:
+        particles[i].mesh.material.color.set(0xffffff);
+        particles[i].mesh.material.emissive.set(0x5cc5555);
+        break;
     }
+  }
+}
+
+function updateParticleColor(particle) {
+  switch (particle.state) {
+    case STATES.BLACK:
+      particle.mesh.material.color.set(0x00cc00);
+      particle.mesh.material.emissive.set(0x0cc000);
+      break;
+    case STATES.GRAY:
+      particle.mesh.material.color.set(0x888888);
+      particle.mesh.material.emissive.set(0x222222);
+      break;
+    case STATES.WHITE:
+      particle.mesh.material.color.set(0xffffff);
+      particle.mesh.material.emissive.set(0x5cc5555);
+      break;
   }
 }
 
@@ -331,33 +393,44 @@ function simulate(deltaTime) {
   constraints.forEach((c) => {
     const p1 = particles[c.p1_idx];
     const p2 = particles[c.p2_idx];
-
+    
     // Calculate direction vector
     const direction = p2.position.clone().sub(p1.position);
     const currentLength = direction.length();
-
+    
     if (currentLength === 0) return;
-
+    
     // Calculate spring force
     const displacement = currentLength - c.restLength;
     const force = c.k * displacement;
-
+    
     // Normalize direction vector
     direction.normalize();
-    if (p1.isBlack && p2.isBlack) {
-      c.restLength = c.restLength + 0.1;
+    
+    // Adjust rest length based on both particles' states
+    const stateSum = p1.state + p2.state;
+    
+    // Black-black connections expand
+    if (p1.state === STATES.BLACK && p2.state === STATES.BLACK) {
+      c.restLength = c.restLength + 0.2;
+    } 
+    // White-white connections contract
+    else if (p1.state === STATES.WHITE && p2.state === STATES.WHITE) {
+      c.restLength = c.restLength - 0.2;
+    }
+    // Mixed connections maintain length with slight variation
+    else {
+      c.restLength = c.restLength + (Math.random() * 0.1 - 0.05);
     }
     
-    if (!p1.isBlack && !p2.isBlack) {
-      c.restLength = c.restLength - 0.1;
-    }
-
-
+    // Ensure minimum spring length
+    c.restLength = Math.max(0.1, c.restLength);
+    
     // Apply forces to particles
     if (!p1.pinned) {
       p1.acceleration.addScaledVector(direction, force * p1.invMass);
     }
-
+    
     if (!p2.pinned) {
       p2.acceleration.addScaledVector(direction, -force * p2.invMass);
     }
@@ -743,3 +816,26 @@ function setupFadePass() {
 
 // --- Start ---
 init();
+
+function validateParameters() {
+  PARTICLE_COUNT = Math.max(5, Math.min(100, PARTICLE_COUNT));
+  GRAPH_DENSITY = Math.max(0.1, Math.min(1.0, GRAPH_DENSITY));
+  GRID_SPACING = Math.max(0.1, Math.min(10, GRID_SPACING));
+  SPRING_K_BASE = Math.max(1, Math.min(1000, SPRING_K_BASE));
+  DAMPING = Math.max(0, Math.min(8, DAMPING));
+}
+
+function initializeStates(pattern = "random") {
+  particles.forEach((particle, index) => {
+    switch (pattern) {
+      case "checkerboard":
+        particle.state = (index % 2 === 0) ? STATES.BLACK : STATES.WHITE;
+        break;
+      case "random":
+      default:
+        particle.state = Math.random() < 0.3 ? STATES.BLACK : STATES.WHITE;
+        break;
+    }
+    updateParticleColor(particle);
+  });
+}
