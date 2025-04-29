@@ -1,18 +1,18 @@
-
-
 // --- Configuration Constants ---
-const NUM_LINKS = 290; // Increased number of links for a better chain effect
-const LINK_SPACING = 780; // Adjusted spacing for closer links
-const LINK_MAJOR_RADIUS = 170;
-const LINK_MINOR_RADIUS = 120; // Made links thicker
+const NUM_LINKS = 400; // Increased number of links for a better chain effect
+const LINK_SPACING = 1 // Adjusted spacing for closer links
+const LINK_MAJOR_RADIUS = 4;
+const LINK_MINOR_RADIUS = 1; // Made links thicker
 const LINK_MASS_BASE = 10;
 const LINK_COLOR_START = 0xCCCfff; // Cyan start
-const LINK_COLOR_END = 0xffffCC; // Magenta end
+const LINK_COLOR_END = 0x00FfCC; // Magenta end
+const TIME_STEP = 0.0016; // Fixed time step for physics simulation
+
 
 const FLOOR_Y = -5000; // Lowered the floor
 const GRAVITY = new THREE.Vector3(0, 0 ,0); // Stronger gravity
-const SPRING_CONSTANT = 50; // Adjusted spring constant
-const DAMPING_FACTOR = 1.0; // Added damping to reduce oscillations
+const SPRING_CONSTANT = 40; // Adjusted spring constant
+const DAMPING_FACTOR = 0.7; // Added damping to reduce oscillations
 const RESTITUTION = 0.0; // Bounciness factor for floor collision
 
 // --- Scene Setup ---
@@ -35,8 +35,10 @@ camera.lookAt(0, 0, 0); // Look at the center
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+controls.enableZoom = true; // Allow zoomin
 controls.dampingFactor = 0.1; // Smoother damping
 controls.rotateSpeed = 0.5;
+controls.panSpeed = 0.5; // Adjusted pan speed
 // controls.autoRotate = true; // Disable auto-rotate for manual control focus
 // controls.autoRotateSpeed = 0.5;
 
@@ -77,7 +79,7 @@ class ToroidalLink {
             color: color,
             shininess: 100, // Add some shininess
             transparent: true, // Keep opaque unless needed
-            opacity: 0.9,
+            opacity: 0.1,
         });
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.copy(position);
@@ -88,21 +90,25 @@ class ToroidalLink {
         this.velocity = new THREE.Vector3();
         this.acceleration = new THREE.Vector3();
         //Angular velocity simulation is complex; keeping it simple for now
-        this.angularVelocity = new THREE.Vector3(0, 3*Math.sin(position.y), 0);
- }
-
-    applyForce(force) {
-        // F = ma => a = F/m = F * invMass
-        this.acceleration.addScaledVector(force, this.invMass);
-        this.velocity.addScaledVector(this.acceleration, 0.0016);
-        // angular
-        this.angularVelocity.addScaledVector(force, 0.00016); // Simplified angular force effect
+        this.angularVelocity = new THREE.Vector3(0, 4, 0);
+        this.angularAcceleration = new THREE.Vector3(); // Added angular acceleration
     }
 
-    update(dt, tempVec) { // Pass temporary vector to avoid allocation
+    applyForce(force, point = this.mesh.position) {
+        // F = ma => a = F/m = F * invMass
+        this.acceleration.addScaledVector(force, this.invMass);
+
+        // Calculate torque: τ = r × F (cross product of lever arm and force)
+        const leverArm = new THREE.Vector3().subVectors(point, this.mesh.position); // r = point - center
+        const torque = new THREE.Vector3().crossVectors(leverArm, force);
+
+        // Update angular acceleration: α = τ / I (simplified as τ * invMass for uniform density)
+        this.angularAcceleration.addScaledVector(torque, this.invMass);
+    }
+
+    update(dt) {
         // Apply gravity (constant acceleration)
         this.acceleration.add(GRAVITY);
-
 
         // Update velocity: v = v0 + a * dt
         this.velocity.addScaledVector(this.acceleration, dt);
@@ -113,13 +119,20 @@ class ToroidalLink {
         // Update position: p = p0 + v * dt
         this.mesh.position.addScaledVector(this.velocity, dt);
 
-        // Simplified angular rotation (optional, can be removed if not needed)
+        // Update angular velocity: ω = ω0 + α * dt
+        this.angularVelocity.addScaledVector(this.angularAcceleration, dt);
+
+        // Apply damping to angular velocity
+        this.angularVelocity.multiplyScalar(DAMPING_FACTOR);
+
+        // Update rotation: θ = θ0 + ω * dt
         this.mesh.rotation.x += this.angularVelocity.x * dt;
         this.mesh.rotation.y += this.angularVelocity.y * dt;
         this.mesh.rotation.z += this.angularVelocity.z * dt;
 
-        // Reset acceleration for the next frame
+        // Reset acceleration and angular acceleration for the next frame
         this.acceleration.set(0, 0, 0);
+        this.angularAcceleration.set(0, 0, 0);
     }
 
     checkCollisionWithFloor() {
@@ -149,7 +162,7 @@ const endColor = new THREE.Color(LINK_COLOR_END);
 for (let i = 0; i < NUM_LINKS; i++) {
     const t = i / (NUM_LINKS - 1 || 1); // Normalized position in chain (0 to 1)
     const pos = new THREE.Vector3(0, 50 - i * LINK_SPACING * 0.5, 0); // Start vertically
-    const mass = LINK_MASS_BASE * 0.5; // Slightly increasing mass down the chain
+    const mass = LINK_MASS_BASE; // Slightly increasing mass down the chain
     const color = startColor.clone().lerp(endColor, t); // Interpolate color
     links.push(new ToroidalLink(pos, LINK_MAJOR_RADIUS, LINK_MINOR_RADIUS, mass, color));
 }
@@ -162,9 +175,16 @@ const equilibriumDist = LINK_MAJOR_RADIUS * 0.91; // Adjusted equilibrium based 
 
 // --- Animation Loop ---
 const clock = new THREE.Clock();
+clock.start();
+let lastTime = 0; // Store last time for fixed time step
 
 function animate() {
-    const dt = clock.getDelta();
+    // --- Fixed Time Step ---
+    const currentTime = clock.getElapsedTime();
+    let dt = currentTime - lastTime; // Calculate delta time
+    if (dt < TIME_STEP) return; // Skip frame if too fast
+    dt = Math.min(dt, TIME_STEP); // Clamp dt to fixed time step
+    lastTime = currentTime; // Update lastTime for the next frame
 
     // --- Physics Update ---
     for (let i = 0; i < links.length; i++) {
@@ -184,9 +204,6 @@ function animate() {
                 prev.applyForce(force.negate()); // Negate in-place is efficient
             }
         }
-
-        // Note: The original code applied tension force twice (once for prev, once for next).
-        // The above loop structure correctly applies one force interaction per pair per frame.
     }
 
     // --- Update and Collision Check ---

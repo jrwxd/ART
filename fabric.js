@@ -14,7 +14,7 @@ let PARTICLE_MASS = 100.0; // Mass of each particle
 let SPRING_K_BASE = 60; // Base spring constant (stiffness)
 let DAMPING = 1.0; // Reduces oscillations
 let GRAVITY = new THREE.Vector3(0, 0, 0); // Acceleration due to gravity
-let TIME_STEP = 0.00016; // Simulation time step
+let TIME_STEP = 0.16; // Simulation time step
 let PINNED_PARTICLES = [0, 5]; // Indices of pinned particles
 let STEPS_PER_FRAME = 1; // Physics steps per frame
 let TRAIL_FADE = 0.05; // How much the previous frames fade (0-1)
@@ -100,9 +100,6 @@ function init() {
   // Create particles and graph structure
   createGraphBasedSystem();
 
-  // Create UI
-  createUI();
-
   // Handle window resize
   window.addEventListener("resize", onWindowResize, false);
 
@@ -110,10 +107,37 @@ function init() {
   window.addEventListener("keydown", (e) => {
     if (e.key === "h" || e.key === "H") {
       toggleUI();
+    } else if (e.key === "r" || e.key === "R") {
+      // Reset simulation with R key
+      resetSimulation();
+    } else if (e.key === "f" || e.key === "F") {
+      // Toggle fade effect with F key
+      TRAIL_FADE = TRAIL_FADE === 0 ? 0.05 : 0;
+      fadePass.material.opacity = TRAIL_FADE;
+    } else if (e.key === "g" || e.key === "G") {  
+      // Regenerate graph with G key
+      createGraphBasedSystem();
+    } else if (e.key === "u" || e.key === "U") {  
+      // Toggle UI visibility with U key
+      uiVisible = !uiVisible;
+      uiContainer.style.opacity = uiVisible ? "1" : "0";
+      uiContainer.style.pointerEvents = uiVisible ? "all" : "none";
+    } else if (e.key === "s" || e.key === "S") {  
+      // Save current state with S key
+      const state = particles.map(p => p.state);
+      console.log("Current state saved:", state);
+    } else if (e.key === "l" || e.key === "L") {
+      // Load saved state with L key
+      const savedState = [/* ... */]; // Replace with actual saved state
+      particles.forEach((p, index) => {
+        p.state = savedState[index] || STATES.WHITE; // Default to white if not defined
+        updateParticleColor(p);
+      });
     } else if (e.key === "c" || e.key === "C") {
-      // Clear trails with C key
-      renderer.clear();
+      // set length of all constraints to 1 with C key
+      setAllConstraintsToTargetLength(1);
     }
+
   });
 
   // Start animation loop
@@ -367,7 +391,12 @@ function updateParticleColor(particle) {
       break;
   }
 }
-
+// --- Function to make all constraints the same target length --
+function setAllConstraintsToTargetLength(targetLength) {
+  constraints.forEach((constraint) => {
+    constraint.restLength = targetLength;
+  });
+}
 // --- Physics Simulation Step ---
 function simulate(deltaTime) {
   // 1. Apply global forces and reset acceleration
@@ -547,55 +576,44 @@ function resetSimulation() {
   animate();
 }
 
-// --- Create UI ---
+// --- Create Mobile-Friendly UI ---
 function createUI() {
   // Remove existing UI if any
   if (uiContainer) {
     document.body.removeChild(uiContainer);
   }
 
-  // Create UI container
+  // Create UI container (drawer)
   uiContainer = document.createElement("div");
-  uiContainer.style.position = "absolute";
-  uiContainer.style.top = "10px";
-  uiContainer.style.left = "10px";
-  uiContainer.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+  uiContainer.style.position = "fixed";
+  uiContainer.style.top = "0";
+  uiContainer.style.right = "-300px"; // Hidden by default
+  uiContainer.style.width = "300px";
+  uiContainer.style.height = "100%";
+  uiContainer.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
   uiContainer.style.padding = "15px";
-  uiContainer.style.borderRadius = "5px";
-  uiContainer.style.color = "white";
-  uiContainer.style.fontFamily = "Arial, sans-serif";
-  uiContainer.style.transition = "opacity 0.3s ease";
+  uiContainer.style.boxShadow = "0 0 10px rgba(0, 0, 0, 0.5)";
+  uiContainer.style.transition = "right 0.3s ease";
   uiContainer.style.zIndex = "100";
 
   // Create title
   const title = document.createElement("h3");
-  title.textContent = "Cloth Simulation Controls";
-  title.style.margin = "0 0 10px 0";
+  title.textContent = "Simulation Controls";
+  title.style.color = "white";
+  title.style.margin = "0 0 15px 0";
   uiContainer.appendChild(title);
-
-  // Create hide/show tip
-  const hideTip = document.createElement("div");
-  hideTip.textContent = "Press H to hide/show controls";
-  hideTip.style.fontSize = "10px";
-  hideTip.style.marginBottom = "15px";
-  hideTip.style.opacity = "0.7";
-  uiContainer.appendChild(hideTip);
 
   // Helper function to create sliders
   function createSlider(label, min, max, value, step, onChange) {
     const container = document.createElement("div");
-    container.style.marginBottom = "10px";
+    container.style.marginBottom = "15px";
 
     const labelElement = document.createElement("label");
     labelElement.textContent = `${label}: ${value}`;
+    labelElement.style.color = "white";
     labelElement.style.display = "block";
     labelElement.style.marginBottom = "5px";
     container.appendChild(labelElement);
-
-    const sliderContainer = document.createElement("div");
-    sliderContainer.style.display = "flex";
-    sliderContainer.style.alignItems = "center";
-    container.appendChild(sliderContainer);
 
     const slider = document.createElement("input");
     slider.type = "range";
@@ -603,45 +621,16 @@ function createUI() {
     slider.max = max;
     slider.value = value;
     slider.step = step;
-    slider.style.flexGrow = "1";
-    slider.style.marginRight = "10px";
-    sliderContainer.appendChild(slider);
-
-    const valueDisplay = document.createElement("span");
-    valueDisplay.textContent = value;
-    valueDisplay.style.width = "40px";
-    valueDisplay.style.textAlign = "right";
-    sliderContainer.appendChild(valueDisplay);
+    slider.style.width = "100%";
+    slider.style.marginBottom = "5px";
+    slider.style.height = "30px"; // Larger slider for mobile
+    slider.style.cursor = "pointer";
+    container.appendChild(slider);
 
     slider.addEventListener("input", () => {
       const newValue = parseFloat(slider.value);
-      valueDisplay.textContent = newValue;
       labelElement.textContent = `${label}: ${newValue}`;
       onChange(newValue);
-    });
-
-    return container;
-  }
-
-  // Create checkbox helper
-  function createCheckbox(label, checked, onChange) {
-    const container = document.createElement("div");
-    container.style.marginBottom = "10px";
-    container.style.display = "flex";
-    container.style.alignItems = "center";
-
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = checked;
-    checkbox.style.marginRight = "10px";
-    container.appendChild(checkbox);
-
-    const labelElement = document.createElement("label");
-    labelElement.textContent = label;
-    container.appendChild(labelElement);
-
-    checkbox.addEventListener("change", () => {
-      onChange(checkbox.checked);
     });
 
     return container;
@@ -669,10 +658,6 @@ function createUI() {
   uiContainer.appendChild(
     createSlider("Spring Stiffness", 1, 1000, SPRING_K_BASE, 1, (value) => {
       SPRING_K_BASE = value;
-      // Update all constraints to use the new spring constant
-      constraints.forEach(
-        (c) => (c.k = value * (c.k === SPRING_K_BASE * 0.7 ? 0.7 : 1))
-      );
     })
   );
 
@@ -688,98 +673,33 @@ function createUI() {
     })
   );
 
-  uiContainer.appendChild(
-    createSlider("Mass", 1, 500, PARTICLE_MASS, 1, (value) => {
-      PARTICLE_MASS = value;
-      // Update all particles to use the new mass
-      particles.forEach((p) => {
-        p.mass = value;
-        p.invMass = 1.0 / value;
-      });
-    })
-  );
-
-  uiContainer.appendChild(
-    createSlider("Physics Steps", 1, 20, STEPS_PER_FRAME, 1, (value) => {
-      STEPS_PER_FRAME = value;
-    })
-  );
-
-  // Add checkbox for pinned corners
-  uiContainer.appendChild(
-    createCheckbox("Pin Corners", PINNED_PARTICLES.length > 0, (value) => {
-      PINNED_PARTICLES = value ? [0, 5] : [];
-      // Reset simulation when this changes
-      resetSimulation();
-    })
-  );
-
-  // Create button helper
-  function createButton(label, onClick) {
-    const button = document.createElement("button");
-    button.textContent = label;
-    button.style.padding = "8px 16px";
-    button.style.margin = "5px";
-    button.style.backgroundColor = "#4CAF50";
-    button.style.border = "none";
-    button.style.borderRadius = "4px";
-    button.style.color = "white";
-    button.style.cursor = "pointer";
-    button.addEventListener("click", onClick);
-
-    // Hover effect
-    button.addEventListener("mouseover", () => {
-      button.style.backgroundColor = "#45a049";
-    });
-    button.addEventListener("mouseout", () => {
-      button.style.backgroundColor = "#4CAF50";
-    });
-
-    return button;
-  }
-
-  // Add reset and redraw buttons
-  const buttonContainer = document.createElement("div");
-  buttonContainer.style.display = "flex";
-  buttonContainer.style.justifyContent = "space-between";
-  buttonContainer.style.marginTop = "15px";
-
-  buttonContainer.appendChild(
-    createButton("Reset", () => {
-      // Reset particle positions but keep current parameters
-      particles.forEach((p) => {
-        const idx = particles.indexOf(p);
-        const x = idx % GRID_WIDTH;
-        const y = Math.floor(idx / GRID_WIDTH);
-
-        p.position.set(
-          x * GRID_SPACING,
-          y * GRID_SPACING,
-          Math.sin(x * 0.5) * Math.cos(y * 0.5) * 0.5
-        );
-        p.velocity.set(0, 0, 0);
-        p.acceleration.set(0, 0, 0);
-      });
-    })
-  );
-
-  buttonContainer.appendChild(
-    createButton("Redraw", () => {
-      resetSimulation();
-    })
-  );
-
-  // Add a button to regenerate the graph
-  buttonContainer.appendChild(
-    createButton("Regenerate Graph", () => {
-      createGraphBasedSystem();
-    })
-  );
-
-  uiContainer.appendChild(buttonContainer);
-
   // Add UI to the page
   document.body.appendChild(uiContainer);
+
+  // Create a floating button to toggle the drawer
+  const toggleButton = document.createElement("button");
+  toggleButton.textContent = "☰";
+  toggleButton.style.position = "fixed";
+  toggleButton.style.top = "10px";
+  toggleButton.style.right = "10px";
+  toggleButton.style.width = "50px";
+  toggleButton.style.height = "50px";
+  toggleButton.style.border = "none";
+  toggleButton.style.borderRadius = "50%";
+  toggleButton.style.backgroundColor = "#4CAF50";
+  toggleButton.style.color = "white";
+  toggleButton.style.fontSize = "24px";
+  toggleButton.style.cursor = "pointer";
+  toggleButton.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.3)";
+  toggleButton.style.zIndex = "101";
+
+  toggleButton.addEventListener("click", () => {
+    const isOpen = uiContainer.style.right === "0px";
+    uiContainer.style.right = isOpen ? "-300px" : "0px";
+  });
+
+  // Add the toggle button to the page
+  document.body.appendChild(toggleButton);
 }
 
 // --- Toggle UI Visibility ---
@@ -815,7 +735,10 @@ function setupFadePass() {
 }
 
 // --- Start ---
+
+// Initialize the simulation and UI
 init();
+createUI();
 
 function validateParameters() {
   PARTICLE_COUNT = Math.max(5, Math.min(100, PARTICLE_COUNT));
