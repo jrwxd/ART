@@ -7,17 +7,17 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 
 // --- Configuration ---
-let PARTICLE_COUNT = 25; // Total number of particles
+let PARTICLE_COUNT = 55; // Total number of particles
 let GRAPH_DENSITY = 0.3; // Probability of edge creation (0-1)
 let GRID_SPACING = 30; // Initial distance between particles
 let PARTICLE_MASS = 100.0; // Mass of each particle
 let SPRING_K_BASE = 60; // Base spring constant (stiffness)
 let DAMPING = 1.0; // Reduces oscillations
 let GRAVITY = new THREE.Vector3(0, 0, 0); // Acceleration due to gravity
-let TIME_STEP = 0.16; // Simulation time step
-let PINNED_PARTICLES = [0, 5]; // Indices of pinned particles
+let TIME_STEP = 0.10; // Simulation time step
+let PINNED_PARTICLES = [0, 10]; // Indices of pinned particles
 let STEPS_PER_FRAME = 1; // Physics steps per frame
-let TRAIL_FADE = 0.05; // How much the previous frames fade (0-1)
+let TRAIL_FADE = 0.5; // How much the previous frames fade (0-1)
 let UPDATE_FREQUENCY = 30; // Update cell states every N frames
 let frameCounter = 0; // To track when to update cell states
 
@@ -46,7 +46,7 @@ function init() {
     0.011,
     10000000
   );
-  camera.position.set(0, 0, 100);
+  camera.position.set(100, 100, 100);
   camera.lookAt(0, 0, 0);
   camera.updateProjectionMatrix();
 
@@ -55,6 +55,8 @@ function init() {
     antialias: true,
     preserveDrawingBuffer: true,
     alpha: true,
+
+    pixelRatio: window.devicePixelRatio,
   });
 
   renderer.autoClearColor = false;
@@ -134,7 +136,7 @@ function init() {
         updateParticleColor(p);
       });
     } else if (e.key === "c" || e.key === "C") {
-      // set length of all constraints to 1 with C key
+      // set length cf all constraints to 1 with C key
       setAllConstraintsToTargetLength(1);
     }
 
@@ -164,7 +166,7 @@ function createAdjacencyMatrix(nodeCount, density) {
         const restLength = GRID_SPACING * (0.8 + Math.random() * 0.4); // Some variation
         const k = SPRING_K_BASE * (0.9 + Math.random() * 0.2); // Some variation
         matrix[i][j] = { restLength, k };
-
+            
         // Increment edge counts for both nodes
         edgeCounts[i]++;
         edgeCounts[j]++;
@@ -282,7 +284,7 @@ function createGraphBasedSystem() {
 
   // Create line geometry for visualizing springs
   const lineMat = new THREE.LineBasicMaterial({
-    color: 0x666666,
+    color: 0x646567,
     transparent: true,
     opacity: 0.1,
     linewidth: 1,
@@ -313,19 +315,19 @@ function getNextState(currentState, neighbors) {
   
   switch(currentState) {
     case STATES.WHITE:
-      if (neighborSum <= 2) return STATES.WHITE;      // Few active neighbors, stay white
-      else if (neighborSum <= 5) return STATES.GRAY;  // Medium activity, become gray
+      if (neighborSum <= 5) return STATES.WHITE;      // Few active neighbors, stay white
+      else if (neighborSum <= 10) return STATES.BLACK;  // Medium activity, become gray
       else return STATES.BLACK;                       // High activity, become black
       
     case STATES.GRAY:
       if (neighborSum <= 1) return STATES.WHITE;      // Very little activity, become white
-      else if (neighborSum <= 8) return STATES.GRAY;  // Medium activity, stay gray
-      else return STATES.BLACK;                       // High activity, become black
+      else if (neighborSum <= 10) return STATES.GRAY;  // Medium activity, stay gray
+      else return STATES. GRAY;                       // High activity, become black
       
     case STATES.BLACK:
-      if (neighborSum <= 3) return STATES.BLACK;      // Low activity, stay black
-      else if (neighborSum <= 7) return STATES.GRAY;  // Medium activity, become gray
-      else return STATES.WHITE;                       // High activity, become white
+      if (neighborSum <= 7) return STATES.GRAY;
+      else if (neighborSum <= 10) return STATES.BLACK;  // Medium activity, become gray
+      else return STATES.GRAY;                       // High activity, become white
   }
   
   return currentState; // Default fallback
@@ -347,6 +349,9 @@ function updateCellStates() {
     }
     
     // Get next state using totalistic rule
+
+
+
     const nextState = getNextState(particle.state, particle.neighborIndices);
     newStates.push(nextState);
   }
@@ -378,8 +383,8 @@ function updateCellStates() {
 function updateParticleColor(particle) {
   switch (particle.state) {
     case STATES.BLACK:
-      particle.mesh.material.color.set(0x00cc00);
-      particle.mesh.material.emissive.set(0x0cc000);
+      particle.mesh.material.color.set(0x000000);
+      particle.mesh.material.emissive.set(0x000000);
       break;
     case STATES.GRAY:
       particle.mesh.material.color.set(0x888888);
@@ -422,44 +427,51 @@ function simulate(deltaTime) {
   constraints.forEach((c) => {
     const p1 = particles[c.p1_idx];
     const p2 = particles[c.p2_idx];
-    
+
     // Calculate direction vector
     const direction = p2.position.clone().sub(p1.position);
     const currentLength = direction.length();
-    
+
     if (currentLength === 0) return;
-    
+
     // Calculate spring force
     const displacement = currentLength - c.restLength;
     const force = c.k * displacement;
-    
+
     // Normalize direction vector
     direction.normalize();
-    
+
     // Adjust rest length based on both particles' states
     const stateSum = p1.state + p2.state;
-    
+
     // Black-black connections expand
-    if (p1.state === STATES.BLACK && p2.state === STATES.BLACK) {
-      c.restLength = c.restLength + 0.2;
-    } 
+    if (p1.state === STATES.BLACK && p2.state === STATES.GRAY) {
+      c.restLength = c.restLength + stateSum * 0.2;
+    }
     // White-white connections contract
-    else if (p1.state === STATES.WHITE && p2.state === STATES.WHITE) {
-      c.restLength = c.restLength - 0.2;
+    else if (p1.state === STATES.WHITE && p2.state === STATES.GRAY) {
+      c.restLength = c.restLength - stateSum * 0.2;
     }
     // Mixed connections maintain length with slight variation
     else {
-      c.restLength = c.restLength + (Math.random() * 0.1 - 0.05);
+      c.restLength = c.restLength;
     }
-    
+
     // Ensure minimum spring length
     c.restLength = Math.max(0.1, c.restLength);
-    
+    // Ensure maximum spring length
+    c.restLength = Math.min(100.0, c.restLength);
+
+    if (c.restLength > 2.0) {
+      p1.pinned = trueInput
+      p2.pinned = trueInput;
+    }
+
     // Apply forces to particles
     if (!p1.pinned) {
       p1.acceleration.addScaledVector(direction, force * p1.invMass);
     }
-    
+
     if (!p2.pinned) {
       p2.acceleration.addScaledVector(direction, -force * p2.invMass);
     }
