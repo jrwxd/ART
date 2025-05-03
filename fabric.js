@@ -46,7 +46,7 @@ function init() {
     0.011,
     10000000
   );
-  camera.position.set(100, 100, 100);
+  camera.position.set(50, 50, 50);
   camera.lookAt(0, 0, 0);
   camera.updateProjectionMatrix();
 
