@@ -8,16 +8,16 @@ import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 
 // --- Configuration ---
 let PARTICLE_COUNT = 55; // Total number of particles
-let GRAPH_DENSITY = 0.01; // Probability of edge creation (0-1)
+let GRAPH_DENSITY = 0.1; // Probability of edge creation (0-1)
 let GRID_SPACING = 10; // Initial distance between particles
 let PARTICLE_MASS = 100.0; // Mass of each particle
 let SPRING_K_BASE = 60; // Base spring constant (stiffness)
 let DAMPING = 1.0; // Reduces oscillations
 let GRAVITY = new THREE.Vector3(0, 0, 0); // Acceleration due to gravity
-let TIME_STEP = 0.80; // Simulation time step
+let TIME_STEP = 0.080; // Simulation time step
 let PINNED_PARTICLES = [0, 10]; // Indices of pinned particles
 let STEPS_PER_FRAME = 1; // Physics steps per frame
-let TRAIL_FADE = 0.5; // How much the previous frames fade (0-1)
+let TRAIL_FADE = 0.1; // How much the previous frames fade (0-1)
 let UPDATE_FREQUENCY = 30; // Update cell states every N frames
 let frameCounter = 0; // To track when to update cell states
 
