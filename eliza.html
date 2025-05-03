@@ -143,8 +143,6 @@
             [/What (.*)/i, ["Why do you ask?", "What do you think?", "How would an answer to that help you?"]],
             [/How (.*)/i, ["How do you suppose?", "What is it you're really asking?", "Can you clarify?"]],
             [/Because (.*)/i, ["Is that the real reason?", "What other reasons come to mind?", "Does that reason seem valid to you?"]],
-            [/(.*) sorry (.*)/i, ["There are many times when no apology is needed.", "What feelings do you have when you apologize?"]],
-            [/(.*)/i, ["Please tell me more.", "Why do you say that?", "I see.", "Very interesting.", "So it goes."]],
             [/Goodbye/i, ["Goodbye. Take care!", "It was nice talking to you. Goodbye!", "Farewell. Until next time."]],
             [/Thank you/i, ["You're welcome.", "No problem at all.", "Glad I could help."]],
             [/Sorry/i, ["No need to apologize.", "It's okay. What else is on your mind?", "Don't worry about it."]],
@@ -156,7 +154,10 @@
             [/Could you (.*)/i, ["Why do you want me to $1?", "What makes you think I could $1?", "Perhaps I could $1 if you explain further."]],
             [/You think (.*)/i, ["Why do you think I think $1?", "Does it bother you that I think $1?", "What if I do think $1?"]],
             [/You feel (.*)/i, ["Why do you think I feel $1?", "Does it matter to you how I feel?", "What if I do feel $1?"]],
-            [/You want (.*)/i, ["Why do you think I want $1?", "What makes you believe I want $1?", "What if I do want $1?"]],]
+            [/You want (.*)/i, ["Why do you think I want $1?", "What makes you believe I want $1?", "What if I do want $1?"]],
+            [/I’m sorry (.*)/i, ["There are many times when no apology is needed.", "What feelings do you have when you apologize?"]],
+            [/(.*)/i, ["Please tell me more.", "Why do you say that?", "I see.", "Very interesting.", "So it goes."]],
+        ]
         const chatbox = document.getElementById('chatbox');
         const userInput = document.getElementById('userInput');
         const sendButton = document.getElementById('sendButton');

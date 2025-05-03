@@ -463,8 +463,8 @@ function simulate(deltaTime) {
     c.restLength = Math.min(100.0, c.restLength);
 
     if (c.restLength > 2.0) {
-      p1.pinned = trueInput
-      p2.pinned = trueInput;
+      p1.pinned = true;
+      p2.pinned = true;
     }
 
     // Apply forces to particles
