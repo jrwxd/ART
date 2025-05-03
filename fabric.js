@@ -8,9 +8,9 @@ import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 
 // --- Configuration ---
 let PARTICLE_COUNT = 55; // Total number of particles
-let GRAPH_DENSITY = 0.6; // Probability of edge creation (0-1)
+let GRAPH_DENSITY = 0.01; // Probability of edge creation (0-1)
 let GRID_SPACING = 10; // Initial distance between particles
-let PARTICLE_MASS = 10.0; // Mass of each particle
+let PARTICLE_MASS = 100.0; // Mass of each particle
 let SPRING_K_BASE = 60; // Base spring constant (stiffness)
 let DAMPING = 1.0; // Reduces oscillations
 let GRAVITY = new THREE.Vector3(0, 0, 0); // Acceleration due to gravity
