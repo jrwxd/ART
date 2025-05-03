@@ -462,10 +462,10 @@ function simulate(deltaTime) {
     // Ensure maximum spring length
     c.restLength = Math.min(100.0, c.restLength);
 
-    if (currentLength > 20.0) {
-      p1.pinned = true;
-      p2.pinned = true;
-    }
+    //if (currentLength > 20.0) {
+    //p1.pinned = true;
+    // p2.pinned = true;
+    //}
 
     // Apply forces to particles
     if (!p1.pinned) {
