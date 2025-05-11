@@ -71,6 +71,11 @@
         let scene, camera, renderer;
         let playerGlider;
         let gameOfLifeGrid, gofVisuals;
+        let controls;
+
+
+
+
         const resonances = [];
         const geese = []; // Placeholder for other geese
 
@@ -113,6 +118,13 @@
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableZoom = false; // Disable zooming
+            controls.enablePan = true; // Disable panning
+            controls.enableRotate = false; // Disable rotation
+            controls.target.set(0, 0, 0); // Center the controls on the grid
+            controls.update();
 
             // Lighting
             const ambientLight = new THREE.AmbientLight(0x606080); // Soft ambient light
