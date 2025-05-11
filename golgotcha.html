@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glider in the Dataspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; color: #fff; font-family: 'Inter', sans-serif; }
+        canvas { display: block; }
+        #lore-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.7);
+            color: #0f0; /* Green, computer-terminal like text */
+            padding: 15px 25px;
+            border-radius: 8px;
+            border: 1px solid #0f0;
+            font-family: 'Monospace', monospace;
+            font-size: 16px;
+            max-width: 80%;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+        #lore-container.visible {
+            opacity: 1;
+        }
+        /* Custom scrollbar for lore (if text gets too long) */
+        #lore-text {
+            max-height: 100px; /* Adjust as needed */
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #0f0 #0a0a0a;
+        }
+        #lore-text::-webkit-scrollbar {
+            width: 8px;
+        }
+        #lore-text::-webkit-scrollbar-track {
+            background: #0a0a0a;
+            border-radius: 4px;
+        }
+        #lore-text::-webkit-scrollbar-thumb {
+            background-color: #0f0;
+            border-radius: 4px;
+            border: 2px solid #0a0a0a;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Monospace&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="lore-container">
+        <div id="lore-text">Resonance detected...</div>
+    </div>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+
+        // --- Core Three.js Setup ---
+        let scene, camera, renderer;
+        let playerGlider;
+        let gameOfLifeGrid, gofVisuals;
+        const resonances = [];
+        const geese = []; // Placeholder for other geese
+
+        const GRID_SIZE = 50; // Number of cells in each dimension
+        const CELL_SIZE = 1;  // Visual size of each cell
+        const WORLD_BOUNDS = GRID_SIZE * CELL_SIZE / 2;
+
+        const GOL_TICK_INTERVAL = 500; // Milliseconds between GoL updates
+        let lastGoLTickTime = 0;
+
+        const loreContainer = document.getElementById('lore-container');
+        const loreTextElement = document.getElementById('lore-text');
+        let loreTimeout;
+
+        // --- Player Controls ---
+        const keysPressed = {};
+        const PLAYER_SPEED = 0.15;
+
+        // --- Initialization ---
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x050508); // Very dark blue/black
+
+            // Camera (Orthographic for top-down 2D view)
+            const aspect = window.innerWidth / window.innerHeight;
+            const frustumSize = 30; // Determines how much of the grid is visible
+            camera = new THREE.OrthographicCamera(
+                frustumSize * aspect / -2, frustumSize * aspect / 2,
+                frustumSize / 2, frustumSize / -2,
+                1, 1000
+            );
+            camera.position.set(0, 0, 10); // Positioned above the grid, looking down
+            camera.lookAt(scene.position);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x606080); // Soft ambient light
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(5, 5, 10);
+            scene.add(directionalLight);
+
+            // Create Player Glider
+            createPlayerGlider();
+
+            // Create Game of Life Grid
+            createGameOfLifeGrid();
+            initializeGoLPattern(); // Add some initial live cells
+
+            // Create Resonances
+            createResonances();
+
+            // Create Geese (placeholders)
+            createGeesePlaceholders();
+
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('keydown', (event) => keysPressed[event.key.toLowerCase()] = true);
+            document.addEventListener('keyup', (event) => keysPressed[event.key.toLowerCase()] = false);
+
+            // Start animation loop
+            animate();
+        }
+
+        // --- Player Glider ---
+        function createPlayerGlider() {
+            // Using a Tetrahedron for a simple, pointy glider shape
+            const gliderGeometry = new THREE.TetrahedronGeometry(CELL_SIZE * 0.6, 0);
+            // Rotate it to point "forward" (e.g., along positive Y in its local space if camera looks down Z)
+            gliderGeometry.rotateX(Math.PI / 2.5); 
+            gliderGeometry.rotateZ(Math.PI / 4);
+
+
+            const gliderMaterial = new THREE.MeshStandardMaterial({
+                color: 0x00ffff, // Cyan color
+                emissive: 0x00ffff, // Makes it glow
+                emissiveIntensity: 0.8,
+                flatShading: true,
+                metalness: 0.3,
+                roughness: 0.6,
+            });
+            playerGlider = new THREE.Mesh(gliderGeometry, gliderMaterial);
+            playerGlider.position.z = CELL_SIZE * 0.5; // Slightly above the GoL grid
+            scene.add(playerGlider);
+        }
+
+        function updatePlayerGlider() {
+            let dx = 0;
+            let dy = 0;
+
+            if (keysPressed['w'] || keysPressed['arrowup']) dy += PLAYER_SPEED;
+            if (keysPressed['s'] || keysPressed['arrowdown']) dy -= PLAYER_SPEED;
+            if (keysPressed['a'] || keysPressed['arrowleft']) dx -= PLAYER_SPEED;
+            if (keysPressed['d'] || keysPressed['arrowright']) dx += PLAYER_SPEED;
+
+            playerGlider.position.x += dx;
+            playerGlider.position.y += dy;
+
+            // Toroidal world wrapping for player
+            if (playerGlider.position.x > WORLD_BOUNDS) playerGlider.position.x = -WORLD_BOUNDS;
+            if (playerGlider.position.x < -WORLD_BOUNDS) playerGlider.position.x = WORLD_BOUNDS;
+            if (playerGlider.position.y > WORLD_BOUNDS) playerGlider.position.y = -WORLD_BOUNDS;
+            if (playerGlider.position.y < -WORLD_BOUNDS) playerGlider.position.y = WORLD_BOUNDS;
+            
+            // Make player glider "point" in direction of movement
+            if (dx !== 0 || dy !== 0) {
+                playerGlider.rotation.z = Math.atan2(dy, dx) - Math.PI / 2;
+            }
+        }
+
+
+        // --- Game of Life ---
+        function createGameOfLifeGrid() {
+            gameOfLifeGrid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(0));
+
+            const cellGeometry = new THREE.PlaneGeometry(CELL_SIZE * 0.9, CELL_SIZE * 0.9); // Slightly smaller for gaps
+            const deadMaterial = new THREE.MeshBasicMaterial({ color: 0x101020, transparent: true, opacity: 0.3 }); // Dark, almost invisible
+            
+            // InstancedMesh for performance
+            // We'll set instance colors later based on alive/dead state
+            gofVisuals = new THREE.InstancedMesh(cellGeometry, deadMaterial, GRID_SIZE * GRID_SIZE);
+            
+            let instanceIdx = 0;
+            const dummy = new THREE.Object3D(); // Used to set instance transforms
+
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    dummy.position.set(
+                        (x - GRID_SIZE / 2) * CELL_SIZE + CELL_SIZE / 2,
+                        (y - GRID_SIZE / 2) * CELL_SIZE + CELL_SIZE / 2,
+                        0
+                    );
+                    dummy.updateMatrix();
+                    gofVisuals.setMatrixAt(instanceIdx++, dummy.matrix);
+                }
+            }
+            gofVisuals.instanceMatrix.needsUpdate = true;
+            scene.add(gofVisuals);
+            updateGoLVisuals(); // Initial visual update
+        }
+        
+        function initializeGoLPattern() {
+            // Add a simple glider pattern
+            const gliderPattern = [
+                [0, 1, 0],
+                [0, 0, 1],
+                [1, 1, 1]
+            ];
+            placePattern(gliderPattern, 5, 5);
+
+            // Add a blinker
+            const blinkerPattern = [[1,1,1]];
+            placePattern(blinkerPattern, 15, 10);
+
+            // Add some random cells
+            for (let i = 0; i < GRID_SIZE * GRID_SIZE * 0.1; i++) { // 10% density
+                const x = Math.floor(Math.random() * GRID_SIZE);
+                const y = Math.floor(Math.random() * GRID_SIZE);
+                gameOfLifeGrid[y][x] = 1;
+            }
+        }
+
+        function placePattern(pattern, startX, startY) {
+            for (let y = 0; y < pattern.length; y++) {
+                for (let x = 0; x < pattern[y].length; x++) {
+                    if (pattern[y][x] === 1) {
+                        const gridX = (startX + x) % GRID_SIZE;
+                        const gridY = (startY + y) % GRID_SIZE;
+                        gameOfLifeGrid[gridY][gridX] = 1;
+                    }
+                }
+            }
+        }
+
+
+        function evolveGoL() {
+            const newGrid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(0));
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    let liveNeighbors = 0;
+                    for (let i = -1; i <= 1; i++) {
+                        for (let j = -1; j <= 1; j++) {
+                            if (i === 0 && j === 0) continue;
+                            const nx = (x + j + GRID_SIZE) % GRID_SIZE; // Toroidal wrapping
+                            const ny = (y + i + GRID_SIZE) % GRID_SIZE; // Toroidal wrapping
+                            liveNeighbors += gameOfLifeGrid[ny][nx];
+                        }
+                    }
+
+                    if (gameOfLifeGrid[y][x] === 1) { // If cell is alive
+                        if (liveNeighbors === 2 || liveNeighbors === 3) {
+                            newGrid[y][x] = 1; // Survives
+                        } else {
+                            newGrid[y][x] = 0; // Dies
+                        }
+                    } else { // If cell is dead
+                        if (liveNeighbors === 3) {
+                            newGrid[y][x] = 1; // Becomes alive
+                        } else {
+                            newGrid[y][x] = 0; // Stays dead
+                        }
+                    }
+                }
+            }
+            gameOfLifeGrid = newGrid;
+            updateGoLVisuals();
+        }
+
+        function updateGoLVisuals() {
+            const aliveColor = new THREE.Color(0x30ff70); // Bright green for alive cells
+            const deadColor = new THREE.Color(0x101020);  // Dark color for dead cells
+            
+            let instanceIdx = 0;
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    gofVisuals.setColorAt(instanceIdx++, gameOfLifeGrid[y][x] ? aliveColor : deadColor);
+                }
+            }
+            gofVisuals.instanceColor.needsUpdate = true;
+        }
+
+        // --- Resonances ---
+        function createResonances() {
+            const resonanceData = [
+                { x: 10, y: 10, lore: "A faint echo... a pattern memory.", id: "res1", found: false, awakenGooseId: "goose1" },
+                { x: -15, y: -5, lore: "The structure hums with latent energy.", id: "res2", found: false },
+                { x: 0, y: 20, lore: "Data streams converge here. A point of significance.", id: "res3", found: false, awakenGooseId: "goose2" }
+            ];
+
+            const resonanceGeometry = new THREE.SphereGeometry(CELL_SIZE * 0.7, 16, 8);
+            
+            resonanceData.forEach(data => {
+                const resonanceMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xff8800, // Orange
+                    emissive: 0xff8800,
+                    emissiveIntensity: 0.6,
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const resonanceMesh = new THREE.Mesh(resonanceGeometry, resonanceMaterial);
+                resonanceMesh.position.set(
+                    (data.x - GRID_SIZE / 2) * CELL_SIZE + CELL_SIZE / 2,
+                    (data.y - GRID_SIZE / 2) * CELL_SIZE + CELL_SIZE / 2,
+                    CELL_SIZE * 0.3
+                );
+                scene.add(resonanceMesh);
+                resonances.push({ ...data, mesh: resonanceMesh, baseScale: 1 });
+            });
+        }
+
+        function updateResonances(time) {
+            resonances.forEach(res => {
+                if (res.found) {
+                     // Fade out or change appearance if found
+                    res.mesh.material.opacity -= 0.01;
+                    if(res.mesh.material.opacity < 0) res.mesh.visible = false;
+                    return;
+                }
+
+                // Pulsing effect
+                const pulse = Math.sin(time * 0.002 + res.id.length) * 0.1 + 0.9; // Unique pulse per resonance
+                res.mesh.scale.set(pulse, pulse, pulse);
+
+                // Check for player proximity
+                const distanceToPlayer = playerGlider.position.distanceTo(res.mesh.position);
+                if (distanceToPlayer < CELL_SIZE * 1.5) { // Proximity threshold
+                    if (!res.found) {
+                        displayLore(res.lore);
+                        res.found = true;
+                        res.mesh.material.color.set(0x00ff00); // Change color when found
+                        res.mesh.material.emissive.set(0x00ff00);
+
+                        // Awaken a goose if specified
+                        if (res.awakenGooseId) {
+                            const gooseToAwaken = geese.find(g => g.id === res.awakenGooseId);
+                            if (gooseToAwaken && !gooseToAwaken.isAwakened) {
+                                gooseToAwaken.isAwakened = true;
+                                gooseToAwaken.mesh.material.color.set(0xff00ff); // Awakened color (e.g., magenta)
+                                gooseToAwaken.mesh.material.emissive.set(0xff00ff);
+                                displayLore(`A presence stirs... [${gooseToAwaken.id} awakened]`);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // --- Other Geese (Placeholders) ---
+        function createGeesePlaceholders() {
+            const geeseData = [
+                { id: "goose1", x: -10, y: 15, isAwakened: false },
+                { id: "goose2", x: 20, y: -10, isAwakened: false },
+            ];
+
+            const gooseGeometry = new THREE.OctahedronGeometry(CELL_SIZE * 0.5, 0);
+            
+            geeseData.forEach(data => {
+                const gooseMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x555555, // Dormant color (e.g., grey)
+                    emissive: 0x222222,
+                    flatShading: true,
+                });
+                const gooseMesh = new THREE.Mesh(gooseGeometry, gooseMaterial);
+                gooseMesh.position.set(
+                    (data.x - GRID_SIZE / 2) * CELL_SIZE + CELL_SIZE / 2,
+                    (data.y - GRID_SIZE / 2) * CELL_SIZE + CELL_SIZE / 2,
+                    CELL_SIZE * 0.4
+                );
+                scene.add(gooseMesh);
+                geese.push({ ...data, mesh: gooseMesh });
+            });
+        }
+        
+        function updateGeese(time) {
+            geese.forEach(goose => {
+                if (goose.isAwakened) {
+                    // Simple awakened behavior: gentle bobbing
+                    goose.mesh.position.z = CELL_SIZE * 0.4 + Math.sin(time * 0.001 + goose.id.length) * 0.1;
+                }
+            });
+        }
+
+
+        // --- Lore Display ---
+        function displayLore(text) {
+            loreTextElement.textContent = text;
+            loreContainer.classList.add('visible');
+
+            clearTimeout(loreTimeout); // Clear existing timeout if any
+            loreTimeout = setTimeout(() => {
+                loreContainer.classList.remove('visible');
+            }, 5000); // Hide after 5 seconds
+        }
+
+        // --- Window Resize ---
+        function onWindowResize() {
+            const aspect = window.innerWidth / window.innerHeight;
+            camera.left = camera.bottom * aspect;
+            camera.right = camera.top * aspect;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Animation Loop ---
+        function animate(time) {
+            requestAnimationFrame(animate);
+
+            // Update player
+            updatePlayerGlider();
+
+            // Update Game of Life at its own tick rate
+            const currentTime = performance.now();
+            if (currentTime - lastGoLTickTime > GOL_TICK_INTERVAL) {
+                evolveGoL();
+                lastGoLTickTime = currentTime;
+            }
+
+            // Update Resonances (pulsing, proximity checks)
+            updateResonances(time);
+            
+            // Update Geese
+            updateGeese(time);
+
+
+            // Render scene
+            renderer.render(scene, camera);
+        }
+
+        // --- Start the experience ---
+        init();
+
+    </script>
+</body>
+</html>
