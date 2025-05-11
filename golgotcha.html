@@ -94,6 +94,17 @@
         const keysPressed = {};
         const PLAYER_SPEED = 0.15;
 
+        // --- Lore Display ---
+        function displayLore(text) {
+            loreTextElement.textContent = text; // Set the text content
+            loreContainer.classList.add('visible'); // Add the 'visible' class to make it appear
+
+            clearTimeout(loreTimeout); // Clear any existing timeout
+            loreTimeout = setTimeout(() => {
+                loreContainer.classList.remove('visible'); // Remove the 'visible' class after 5 seconds
+            }, 5000); // Timeout duration
+        }
+
         // --- Initialization ---
         function init() {
             // Display initial instructions
@@ -407,17 +418,6 @@
             });
         }
 
-
-        // --- Lore Display ---
-        function displayLore(text) {
-            loreTextElement.textContent = text;
-            loreContainer.classList.add('visible');
-
-            clearTimeout(loreTimeout); // Clear existing timeout if any
-            loreTimeout = setTimeout(() => {
-                loreContainer.classList.remove('visible');
-            }, 5000); // Hide after 5 seconds
-        }
 
         // --- Window Resize ---
         function onWindowResize() {
