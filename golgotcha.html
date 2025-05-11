@@ -116,7 +116,7 @@
 
             // Camera (Orthographic for top-down 2D view)
             const aspect = window.innerWidth / window.innerHeight;
-            const frustumSize = 30; // Determines how much of the grid is visible
+            const frustumSize = GRID_SIZE; // Match the grid size to fit the board
             camera = new THREE.OrthographicCamera(
                 frustumSize * aspect / -2, frustumSize * aspect / 2,
                 frustumSize / 2, frustumSize / -2,
@@ -149,7 +149,6 @@
 
             // Create Geese (placeholders)
             createGeesePlaceholders();
-
 
             // Event Listeners
             window.addEventListener('resize', onWindowResize, false);
@@ -422,8 +421,11 @@
         // --- Window Resize ---
         function onWindowResize() {
             const aspect = window.innerWidth / window.innerHeight;
-            camera.left = camera.bottom * aspect;
-            camera.right = camera.top * aspect;
+            const frustumSize = GRID_SIZE; // Match the grid size to fit the board
+            camera.left = frustumSize * aspect / -2;
+            camera.right = frustumSize * aspect / 2;
+            camera.top = frustumSize / 2;
+            camera.bottom = frustumSize / -2;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
