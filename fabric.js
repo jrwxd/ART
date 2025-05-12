@@ -7,18 +7,18 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 
 // --- Configuration ---
-let PARTICLE_COUNT = 55; // Total number of particles
-let GRAPH_DENSITY = 0.1; // Probability of edge creation (0-1)
-let GRID_SPACING = 10; // Initial distance between particles
-let PARTICLE_MASS = 100.0; // Mass of each particle
-let SPRING_K_BASE = 60; // Base spring constant (stiffness)
+let PARTICLE_COUNT = 50; // Total number of particles
+let GRAPH_DENSITY = 0.2; // Probability of edge creation (0-1)
+let GRID_SPACING = 50; // Initial distance between particles
+let PARTICLE_MASS = 10.0; // Mass of each particle
+let SPRING_K_BASE = 190; // Base spring constant (stiffness)
 let DAMPING = 3.0; // Reduces oscillations
 let GRAVITY = new THREE.Vector3(0, 0, 0); // Acceleration due to gravity
-let TIME_STEP = 0.80; // Simulation time step
+let TIME_STEP = 0.0010; // Simulation time step
 let PINNED_PARTICLES = [0, 10]; // Indices of pinned particles
-let STEPS_PER_FRAME = 1; // Physics steps per frame
-let TRAIL_FADE = 0.1; // How much the previous frames fade (0-1)
-let UPDATE_FREQUENCY = 30; // Update cell states every N frames
+let STEPS_PER_FRAME = 10; // Physics steps per frame
+let TRAIL_FADE = 0.01; // How much the previous frames fade (0-1)
+let UPDATE_FREQUENCY = 3; // Update cell states every N frames
 let frameCounter = 0; // To track when to update cell states
 
 // --- Global Variables ---
@@ -55,7 +55,6 @@ function init() {
     antialias: true,
     preserveDrawingBuffer: true,
     alpha: true,
-
     pixelRatio: window.devicePixelRatio,
   });
 
@@ -77,25 +76,6 @@ function init() {
 
   // Controls
   controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.update();
-  controls.keys = {
-    LEFT: 'ArrowLeft',
-    UP: 'ArrowUp',
-    RIGHT: 'ArrowRight',
-    BOTTOM: 'ArrowDown',
-  };
-  controls.enablePan = true;
-  controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-  controls.dampingFactor = 0.25;
-  controls.screenSpacePanning = false;
-  controls.maxPolarAngle = Math.PI / 2; // Limit vertical rotation
-  controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-  controls.enableZoom = true;
-  controls.zoomSpeed = 1.0;
-  controls.panSpeed = 5.0;
-  controls.minDistance = 1.0; // Minimum zoom distance
-  controls.enableRotate = true;
   controls.target.set(0, 0, 0);
   controls.update();
 
@@ -114,7 +94,7 @@ function init() {
       resetSimulation();
     } else if (e.key === "f" || e.key === "F") {
       // Toggle fade effect with F key
-      TRAIL_FADE = TRAIL_FADE === 0 ? 0.05 : 0;
+      TRAIL_FADE = TRAIL_FADE === 0 ? 0.001 : 0;
       fadePass.material.opacity = TRAIL_FADE;
     } else if (e.key === "g" || e.key === "G") {  
       // Regenerate graph with G key
