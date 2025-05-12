@@ -7,170 +7,309 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'wood-base': '#d2b48c', // Tan/Wood base
+              'wood-dark': '#8b5e3c', // Medium brown
+              'engraved': '#5a463a', // Dark brown for text/accents
+              'highlight': '#f5e5c4', // Lighter wood highlight
+              'shadow-light': 'rgba(90, 70, 58, 0.2)', // Light shadow color
+              'shadow-dark': 'rgba(90, 70, 58, 0.5)', // Darker shadow color
+            },
+            fontFamily: {
+              'sans': ['Lato', 'sans-serif'], // Body font
+              'display': ['Oswald', 'sans-serif'], // Heading font
+            },
+            boxShadow: {
+              'inner-engraved': 'inset 2px 2px 5px rgba(0, 0, 0, 0.2)',
+              'card-hover': '0 10px 20px rgba(90, 70, 58, 0.3)',
+            },
+            // Example of a subtle geometric pattern using CSS gradients
+            backgroundImage: {
+              'geometric-pattern': "linear-gradient(45deg, rgba(139, 94, 60, 0.1) 25%, transparent 25%, transparent 75%, rgba(139, 94, 60, 0.1) 75%), linear-gradient(45deg, rgba(139, 94, 60, 0.1) 25%, transparent 25%, transparent 75%, rgba(139, 94, 60, 0.1) 75%)",
+            },
+            backgroundSize: {
+               'geometric-pattern': '30px 30px',
+            },
+            backgroundPosition: {
+               'geometric-pattern': '0 0, 15px 15px',
+            }
+          }
+        }
+      }
+    </script>
     <style>
+        /* Apply base font */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f5f5f5; /* Light neutral background */
+            font-family: 'Lato', sans-serif;
+            background-color: #f8f4f0; /* Off-white, slightly warm background */
+            color: #333;
         }
-        /* Simple Bison Placeholder - Replace with actual logo SVG/Image */
-        .bison-logo::before {
-            content: "🐃"; /* Unicode Bison - adjust styling as needed */
-            font-size: 1.5em;
-            margin-right: 0.5rem;
-            display: inline-block;
+        /* Apply display font to headings */
+        h1, h2, h3, h4, h5, h6, .font-display {
+            font-family: 'Oswald', sans-serif;
+            letter-spacing: 0.03em;
+            color: theme('colors.engraved');
         }
-        /* Style inspired by the card's text */
-        .brand-title {
-            font-weight: bold;
-            letter-spacing: 0.05em;
-            color: #5a463a; /* Dark brown */
+        /* Header/Footer background */
+        .header-footer-bg {
+            background: linear-gradient(to bottom, theme('colors.wood-base'), theme('colors.wood-dark'));
+            color: theme('colors.highlight');
         }
-        .card-bg {
-            background-color: #d2b48c; /* Tan/Wood color */
+        .header-footer-bg a {
+             color: theme('colors.highlight');
+             transition: color 0.3s ease;
         }
-        .engraved-text {
-            color: #5a463a; /* Dark brown to simulate engraving */
+         .header-footer-bg a:hover {
+             color: white;
         }
-        .geometric-border {
-             /* Basic simulation of the pattern - replace with SVG/image if possible */
-            border: 4px solid #8b5e3c; /* Medium brown border */
-            padding: 1px;
-            border-image: linear-gradient(45deg, #5a463a, #8b5e3c) 1; /* Gradient border attempt */
+
+        /* Button styling */
+        .btn {
+            @apply inline-block font-display tracking-wider uppercase font-medium py-3 px-6 rounded-md transition duration-300 ease-in-out;
         }
+        .btn-primary {
+            @apply btn bg-engraved text-highlight shadow-md;
+        }
+        .btn-primary:hover {
+            @apply bg-wood-dark text-white shadow-lg;
+        }
+        .btn-secondary {
+             @apply btn bg-wood-dark text-highlight shadow-md;
+        }
+         .btn-secondary:hover {
+             @apply bg-engraved text-white shadow-lg;
+        }
+
+        /* Portfolio card styling */
+        .portfolio-card {
+            @apply bg-white rounded-lg shadow-lg overflow-hidden border-2 border-wood-dark transition-shadow duration-300;
+        }
+        .portfolio-card:hover {
+             @apply shadow-card-hover;
+        }
+        .portfolio-card img {
+             @apply transition-transform duration-300;
+        }
+         .portfolio-card:hover img {
+             @apply scale-105;
+        }
+        .portfolio-card .card-content {
+            @apply p-5 bg-highlight; /* Light wood background for text */
+        }
+         .portfolio-card .card-content h3 {
+             @apply text-xl font-medium text-engraved;
+        }
+         .portfolio-card .card-content p {
+             @apply text-sm text-engraved opacity-90 mt-1;
+        }
+
+        /* Contact form input styling */
+        .form-input {
+            @apply mt-1 block w-full px-4 py-3 border border-wood-base rounded-md shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-engraved focus:border-engraved transition duration-200;
+        }
+        .form-input:focus {
+             box-shadow: 0 0 0 3px theme('colors.shadow-light');
+        }
+
+        /* Subtle background pattern for specific sections */
+        .section-pattern-bg {
+            background-color: theme('colors.wood-base');
+            background-image: theme('backgroundImage.geometric-pattern');
+            background-size: theme('backgroundSize.geometric-pattern');
+            background-position: theme('backgroundPosition.geometric-pattern');
+        }
+
+        /* Icon styling */
+        .icon {
+             @apply inline-block w-6 h-6 mr-3 text-engraved;
+        }
+
     </style>
 </head>
-<body class="text-gray-800">
+<body class="text-gray-800 antialiased">
 
-    <header class="card-bg shadow-md sticky top-0 z-50">
-        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <a href="#home" class="text-2xl brand-title engraved-text flex items-center">
-                BLACK MESA SKY
+    <header class="header-footer-bg shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex flex-wrap justify-between items-center">
+            <a href="#home" class="text-3xl font-display tracking-wide flex items-center mb-2 sm:mb-0">
+                <i class="fa-solid fa-feather-pointed mr-3 text-2xl"></i> BLACK MESA SKY
             </a>
-            <div class="space-x-4">
-                <a href="#home" class="engraved-text hover:text-gray-900">Home</a>
-                <a href="#about" class="engraved-text hover:text-gray-900">About</a>
-                <a href="#portfolio" class="engraved-text hover:text-gray-900">Portfolio</a>
-                <a href="#contact" class="engraved-text hover:text-gray-900">Contact</a>
+            <div class="space-x-4 md:space-x-6 text-lg font-medium">
+                <a href="#home" class="hover:text-white">Home</a>
+                <a href="#about" class="hover:text-white">About</a>
+                <a href="#portfolio" class="hover:text-white">Portfolio</a>
+                <a href="#contact" class="hover:text-white">Contact</a>
             </div>
         </nav>
     </header>
 
     <main>
-        <section id="home" class="relative h-[60vh] min-h-[400px] bg-gray-700 text-white flex items-center justify-center">
-            <img src="https://placehold.co/1920x1080/5a463a/f5f5f5?text=Black+Mesa+Landscape"
+        <section id="home" class="relative min-h-[70vh] bg-gray-800 text-white flex items-center justify-center overflow-hidden">
+            <img src="https://placehold.co/1920x1280/5a463a/f5f5f5?text=Black+Mesa+Vista"
                  alt="Scenic landscape placeholder"
-                 class="absolute inset-0 w-full h-full object-cover opacity-50"
-                 onerror="this.onerror=null; this.src='https://placehold.co/1920x1080/cccccc/333333?text=Image+Error';">
-            <div class="relative z-10 text-center p-6 bg-black bg-opacity-40 rounded-lg">
-                <h1 class="text-4xl md:text-6xl font-bold mb-2">BLACK MESA SKY</h1>
-                <p class="text-xl md:text-2xl brand-title text-amber-100">FROM ABOVE</p>
-                <p class="mt-4 text-lg md:text-xl">Capturing the Spirit of the West Through Photography</p>
-                <a href="#portfolio" class="mt-6 inline-block bg-amber-700 hover:bg-amber-800 text-white font-bold py-3 px-6 rounded-lg transition duration-300">View Our Work</a>
+                 class="absolute inset-0 w-full h-full object-cover opacity-40"
+                 onerror="this.onerror=null; this.src='https://placehold.co/1920x1280/cccccc/333333?text=Image+Error';">
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-50"></div>
+            <div class="relative z-10 text-center p-8 max-w-3xl">
+                <h1 class="text-5xl md:text-7xl font-display font-bold mb-3 text-shadow-lg uppercase tracking-wider">Black Mesa Sky</h1>
+                <p class="text-2xl md:text-3xl font-display font-medium text-highlight mb-6 uppercase tracking-wide">From Above</p>
+                <p class="mt-4 text-xl md:text-2xl mb-8 font-sans font-light">Capturing the timeless spirit and rugged beauty of the West.</p>
+                <a href="#portfolio" class="btn-primary shadow-xl">Explore Our Work</a>
             </div>
         </section>
 
-        <section id="about" class="py-16 px-6 bg-white">
-            <div class="container mx-auto max-w-4xl text-center">
-                <h2 class="text-3xl font-bold mb-4 brand-title">About Us</h2>
-                <div class="md:flex md:items-center md:space-x-8">
-                    <div class="md:w-1/3 mb-6 md:mb-0 flex justify-center">
-                         <img src="https://placehold.co/300x300/d2b48c/5a463a?text=Gregory+Jones"
+        <section id="about" class="py-20 px-6 bg-highlight">
+            <div class="container mx-auto max-w-5xl">
+                <h2 class="text-4xl font-display text-center font-bold mb-12 uppercase tracking-wide">Meet Gregory Jones</h2>
+                <div class="md:flex md:items-center md:space-x-12">
+                    <div class="md:w-1/3 mb-8 md:mb-0 flex justify-center">
+                         <img src="https://placehold.co/400x400/d2b48c/5a463a?text=Gregory+Jones"
                               alt="Gregory Jones placeholder"
-                              class="rounded-full w-48 h-48 object-cover shadow-lg border-4 border-amber-700"
-                              onerror="this.onerror=null; this.src='https://placehold.co/300x300/cccccc/333333?text=Image+Error';">
+                              class="rounded-lg w-64 h-64 md:w-full md:h-auto max-w-xs object-cover shadow-xl border-4 border-engraved"
+                              onerror="this.onerror=null; this.src='https://placehold.co/400x400/cccccc/333333?text=Image+Error';">
                     </div>
                     <div class="md:w-2/3 text-left">
-                        <h3 class="text-2xl font-semibold mb-3 engraved-text">Gregory Jones</h3>
-                        <p class="text-lg mb-4 text-gray-700">
-                            Driven by a passion for the rugged beauty of Oklahoma and the American West, Gregory Jones founded Black Mesa Sky to share unique perspectives captured from the ground and the air.
+                        <h3 class="text-3xl font-display font-medium mb-4 text-engraved">Inspired by Nature</h3>
+                        <p class="text-lg mb-5 text-engraved leading-relaxed">
+                            Driven by a lifelong passion for the stark, captivating beauty of Oklahoma and the American West, Gregory Jones established Black Mesa Sky. It's more than just photography; it's about sharing unique perspectives, often from the air, that reveal the soul of the landscape.
                         </p>
-                        <p class="text-lg text-gray-700">
-                            Inspired by the iconic Black Mesa landscape, our work aims to evoke the timeless spirit and natural wonder of this region. We specialize in [mention specific photography types like landscape, aerial, wildlife, etc. - **NEEDS INFO**].
+                        <p class="text-lg text-engraved leading-relaxed">
+                            Named after the iconic Black Mesa, our work strives to capture the timeless spirit, dramatic light, and natural wonder of this region. We specialize in high-quality landscape, aerial, and potentially wildlife photography [**NEEDS INFO**], offering both fine art prints and commissioned projects.
                         </p>
+                        <a href="#contact" class="mt-6 btn-secondary">Get in Touch</a>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="portfolio" class="py-16 px-6 card-bg">
+        <section id="portfolio" class="py-20 px-6 section-pattern-bg">
             <div class="container mx-auto">
-                <h2 class="text-3xl font-bold text-center mb-8 brand-title engraved-text">Portfolio</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="bg-white rounded-lg shadow-lg overflow-hidden geometric-border">
-                        <img src="https://placehold.co/600x400/8b5e3c/ffffff?text=Portfolio+Image+1"
-                             alt="Portfolio image placeholder 1"
-                             class="w-full h-48 object-cover"
-                             onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/333333?text=Image+Error';">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg engraved-text">Project Title 1</h3>
-                            <p class="text-sm text-gray-600 mt-1">Brief description of the photo or project.</p>
+                <h2 class="text-4xl font-display text-center font-bold mb-12 uppercase tracking-wide text-engraved">Portfolio Showcase</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="portfolio-card">
+                        <div class="overflow-hidden">
+                             <img src="https://placehold.co/600x400/8b5e3c/ffffff?text=Desert+Sunset"
+                                  alt="Portfolio image placeholder 1"
+                                  class="w-full h-56 object-cover"
+                                  onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/333333?text=Image+Error';">
+                        </div>
+                        <div class="card-content">
+                            <h3>Desert Sunset</h3>
+                            <p>Dramatic light over the western plains.</p>
                         </div>
                     </div>
-                    <div class="bg-white rounded-lg shadow-lg overflow-hidden geometric-border">
-                         <img src="https://placehold.co/600x400/5a463a/ffffff?text=Portfolio+Image+2"
-                              alt="Portfolio image placeholder 2"
-                              class="w-full h-48 object-cover"
-                              onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/333333?text=Image+Error';">
-                         <div class="p-4">
-                            <h3 class="font-semibold text-lg engraved-text">Project Title 2</h3>
-                            <p class="text-sm text-gray-600 mt-1">Brief description of the photo or project.</p>
+                    <div class="portfolio-card">
+                         <div class="overflow-hidden">
+                             <img src="https://placehold.co/600x400/5a463a/ffffff?text=Aerial+River+Bend"
+                                  alt="Portfolio image placeholder 2"
+                                  class="w-full h-56 object-cover"
+                                  onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/333333?text=Image+Error';">
+                         </div>
+                         <div class="card-content">
+                            <h3>Aerial River Bend</h3>
+                            <p>A unique perspective from above.</p>
                         </div>
                     </div>
-                    <div class="bg-white rounded-lg shadow-lg overflow-hidden geometric-border">
-                         <img src="https://placehold.co/600x400/a0522d/ffffff?text=Portfolio+Image+3"
-                              alt="Portfolio image placeholder 3"
-                              class="w-full h-48 object-cover"
-                              onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/333333?text=Image+Error';">
-                         <div class="p-4">
-                            <h3 class="font-semibold text-lg engraved-text">Project Title 3</h3>
-                            <p class="text-sm text-gray-600 mt-1">Brief description of the photo or project.</p>
+                    <div class="portfolio-card">
+                         <div class="overflow-hidden">
+                             <img src="https://placehold.co/600x400/a0522d/ffffff?text=Mountain+Silhouette"
+                                  alt="Portfolio image placeholder 3"
+                                  class="w-full h-56 object-cover"
+                                  onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/333333?text=Image+Error';">
+                         </div>
+                         <div class="card-content">
+                            <h3>Mountain Silhouette</h3>
+                            <p>Morning light catching the peaks.</p>
                         </div>
                     </div>
+                     <div class="portfolio-card">
+                         <div class="overflow-hidden">
+                             <img src="https://placehold.co/600x400/b8860b/ffffff?text=Rolling+Hills"
+                                  alt="Portfolio image placeholder 4"
+                                  class="w-full h-56 object-cover"
+                                  onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/333333?text=Image+Error';">
+                         </div>
+                         <div class="card-content">
+                            <h3>Rolling Hills</h3>
+                            <p>Pastoral scene under open skies.</p>
+                        </div>
                     </div>
+                     <div class="portfolio-card">
+                         <div class="overflow-hidden">
+                             <img src="https://placehold.co/600x400/cd853f/ffffff?text=Canyon+Shadows"
+                                  alt="Portfolio image placeholder 5"
+                                  class="w-full h-56 object-cover"
+                                  onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/333333?text=Image+Error';">
+                         </div>
+                         <div class="card-content">
+                            <h3>Canyon Shadows</h3>
+                            <p>Deep contrasts in the afternoon sun.</p>
+                        </div>
+                    </div>
+                     <div class="portfolio-card">
+                         <div class="overflow-hidden">
+                             <img src="https://placehold.co/600x400/deb887/ffffff?text=Starry+Night"
+                                  alt="Portfolio image placeholder 6"
+                                  class="w-full h-56 object-cover"
+                                  onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/333333?text=Image+Error';">
+                         </div>
+                         <div class="card-content">
+                            <h3>Starry Night</h3>
+                            <p>The Milky Way over Black Mesa.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <section id="contact" class="py-16 px-6 bg-white">
+        <section id="contact" class="py-20 px-6 bg-highlight">
             <div class="container mx-auto max-w-4xl">
-                <h2 class="text-3xl font-bold text-center mb-8 brand-title">Get In Touch</h2>
-                <div class="md:flex md:justify-between">
-                    <div class="mb-8 md:mb-0 md:w-1/2 space-y-4 text-lg engraved-text">
-                        <p class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                            <a href="tel:+14055130525" class="hover:text-amber-800">405-513 0525</a>
+                <h2 class="text-4xl font-display text-center font-bold mb-12 uppercase tracking-wide">Connect With Us</h2>
+                <div class="bg-white p-8 md:p-12 rounded-lg shadow-xl border border-wood-base md:flex md:space-x-10">
+                    <div class="md:w-1/2 mb-10 md:mb-0 space-y-6 text-lg">
+                         <h3 class="text-2xl font-display font-medium mb-5 text-engraved">Contact Details</h3>
+                        <p class="flex items-center text-engraved">
+                            <i class="fa-solid fa-phone icon"></i>
+                            <a href="tel:+14055130525" class="hover:text-wood-dark transition duration-200">405-513 0525</a>
                         </p>
-                        <p class="flex items-center">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                            <span>2636 NW 14TH, Oklahoma City, OK 73107</span>
+                        <p class="flex items-start text-engraved">
+                             <i class="fa-solid fa-location-dot icon mt-1"></i>
+                            <span>2636 NW 14TH<br>Oklahoma City, OK 73107</span>
                         </p>
-                        <p class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                            <a href="mailto:info@blackmesasky.com" class="hover:text-amber-800">info@blackmesasky.com</a> <span class="text-sm ml-2">(Example)</span>
+                        <p class="flex items-center text-engraved">
+                            <i class="fa-solid fa-envelope icon"></i>
+                            <a href="mailto:info@blackmesasky.com" class="hover:text-wood-dark transition duration-200">info@blackmesasky.com</a> <span class="text-sm ml-2 opacity-70">(Example)</span>
                         </p>
-                         <p class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
-                            <a href="#" class="hover:text-amber-800">Social Media / Website Link</a> <span class="text-sm ml-2">(Example)</span>
+                         <p class="flex items-center text-engraved">
+                             <i class="fa-solid fa-globe icon"></i>
+                            <a href="#" class="hover:text-wood-dark transition duration-200">Social Media / Website</a> <span class="text-sm ml-2 opacity-70">(Example)</span>
                         </p>
                     </div>
 
                     <div class="md:w-1/2">
-                        <form action="#" method="POST" class="space-y-4">
+                         <h3 class="text-2xl font-display font-medium mb-5 text-engraved">Send a Message</h3>
+                        <form action="#" method="POST" class="space-y-5">
                             <div>
-                                <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-                                <input type="text" name="name" id="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm">
+                                <label for="name" class="block text-sm font-medium text-engraved mb-1">Name</label>
+                                <input type="text" name="name" id="name" required class="form-input" placeholder="Your Name">
                             </div>
                             <div>
-                                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                                <input type="email" name="email" id="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm">
+                                <label for="email" class="block text-sm font-medium text-engraved mb-1">Email</label>
+                                <input type="email" name="email" id="email" required class="form-input" placeholder="your@email.com">
                             </div>
                              <div>
-                                <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
-                                <textarea name="message" id="message" rows="4" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"></textarea>
+                                <label for="message" class="block text-sm font-medium text-engraved mb-1">Message</label>
+                                <textarea name="message" id="message" rows="5" required class="form-input" placeholder="How can we help?"></textarea>
                             </div>
                             <div>
-                                <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-amber-700 hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
-                                    Send Message
+                                <button type="submit" class="w-full btn-secondary mt-2">
+                                    Submit Inquiry
                                 </button>
                             </div>
                         </form>
@@ -180,10 +319,15 @@
         </section>
     </main>
 
-    <footer class="card-bg py-6 px-6 mt-16">
-        <div class="container mx-auto text-center engraved-text">
-            <p>&copy; <span id="current-year"></span> Black Mesa Sky, From Above. All Rights Reserved.</p>
-            <p class="text-sm mt-1">Website by Gregory Jones & [Your Name/AI]</p>
+    <footer class="header-footer-bg py-8 px-6 mt-16 text-center">
+        <div class="container mx-auto">
+            <div class="mb-4 space-x-4">
+                <a href="#" aria-label="Facebook" class="text-xl hover:text-white"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" aria-label="Instagram" class="text-xl hover:text-white"><i class="fab fa-instagram"></i></a>
+                <a href="#" aria-label="Twitter" class="text-xl hover:text-white"><i class="fab fa-twitter"></i></a>
+            </div>
+            <p class="text-highlight">&copy; <span id="current-year"></span> Black Mesa Sky, From Above. All Rights Reserved.</p>
+            <p class="text-sm mt-1 text-highlight opacity-80">Website crafted with care.</p>
         </div>
     </footer>
 
@@ -198,7 +342,13 @@
                 const targetId = this.getAttribute('href');
                 const targetElement = document.querySelector(targetId);
                 if (targetElement) {
-                    targetElement.scrollIntoView({
+                    // Calculate offset dynamically if header is sticky
+                    const headerOffset = document.querySelector('header').offsetHeight || 70; // Adjust fallback height if needed
+                    const elementPosition = targetElement.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
                         behavior: 'smooth'
                     });
                 }
