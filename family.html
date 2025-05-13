@@ -239,7 +239,8 @@
                 }
                 // Limit the number of children if the tree gets too wide too quickly for performance
                 // This is a practical adjustment for deep trees.
-                const maxChildren = tier < 5 ? Math.floor(Math.random() * 2) + 1 : (tier < 10 ? (Math.random() < 0.7 ? 1 : 0) : (Math.random() < 0.3 ? 1 : 0) );
+                const maxChildren = 10;
+                //tier < 5 ? Math.floor(Math.random() * 2) + 1 : (tier < 10 ? (Math.random() < 0.7 ? 1 : 0) : (Math.random() < 0.3 ? 1 : 0) );
 
 
                 for (const parent of currentTierNodes) {
