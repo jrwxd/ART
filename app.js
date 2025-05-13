@@ -103,7 +103,13 @@ async function initialize() {
   } catch (err) {
     // Display error if initialization fails.
     console.error("Initialization failed:", err);
-    tabElement.innerHTML = `<p style="color: red; padding: 20px; font-family: sans-serif;">Error initializing application: ${err.message}</p>`;
+    const errorMessage = document.createElement("p");
+    errorMessage.style.color = "red";
+    errorMessage.style.padding = "20px";
+    errorMessage.style.fontFamily = "sans-serif";
+    errorMessage.textContent = `Error initializing application: ${err.message}`;
+    tabElement.innerHTML = "";
+    tabElement.appendChild(errorMessage);
   }
 }
 
