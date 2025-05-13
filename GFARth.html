@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Automaton 3D Simulation</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; /* Prevent scrollbars */
+            font-family: 'Inter', sans-serif;
+            background-color: #222; /* Dark background for better contrast */
+            color: #eee;
+        }
+        canvas { 
+            display: block; 
+        }
+        #infoPanel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            font-family: monospace;
+            font-size: 14px;
+            max-width: 300px;
+            border: 1px solid #444;
+        }
+        #infoPanel h3 {
+            margin-top: 0;
+            color: #64b5f6; /* Light blue for heading */
+        }
+        #infoPanel p {
+            margin: 5px 0;
+        }
+        #stepButton {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 25px;
+            font-size: 16px;
+            color: white;
+            background-color: #007bff; /* Bootstrap primary blue */
+            border: none;
+            border-radius: 25px; /* Pill shape */
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+        #stepButton:hover {
+            background-color: #0056b3;
+        }
+        #stepButton:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+        /* Inter font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+    </style>
+</head>
+<body>
+    <div id="infoPanel">
+        <h3>GFAR Simulation Controls</h3>
+        <p>Automaton State: <span id="automatonState">N/A</span></p>
+        <p>Current Node: <span id="currentNode">N/A</span></p>
+        <p>Step: <span id="stepCount">0</span></p>
+        <p>Last Rule: <span id="lastRule">None</span></p>
+        <hr>
+        <p>Click 'Next Step' to advance.</p>
+        <p>Drag to rotate, Scroll to zoom.</p>
+    </div>
+
+    <button id="stepButton">Next Step</button>
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module" src="gfar_simulation_three.js"></script>
+</body>
+</html>
