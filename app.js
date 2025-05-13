@@ -139,7 +139,7 @@ async function fetchCard(cardId) {
     cardCache[cardId] = cardData; // Cache the fetched data
     return cardData;
   } catch (error) {
-    console.error(`Error fetching card ${cardId}:`, error);
+    console.error("Error fetching card %s:", cardId, error);
     throw error; // Re-throw error to be handled by caller
   }
 }
