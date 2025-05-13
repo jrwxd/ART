@@ -157,7 +157,7 @@ function createCardElement(cardId, cardData) {
 // Generates the inner HTML content for a card.
 function renderCardContent(cardId, cardData) {
   // Adapt based on your card data format (JSON assumed).
-  let title = cardId; // Default title is the ID
+  let title = escapeHtml(cardId); // Default title is the ID, escaped to prevent XSS
   let contentHtml = "<p><em>Content not available.</em></p>"; // Default content
 
   if (CARD_EXTENSION === ".json" && cardData) {
@@ -173,6 +173,16 @@ function renderCardContent(cardId, cardData) {
       ${contentHtml}
     </div>
     `;
+}
+
+// Utility function to escape HTML special characters
+function escapeHtml(unsafe) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 // --- Link Processing ---
