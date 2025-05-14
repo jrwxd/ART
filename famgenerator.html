@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Family Tree Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overscroll-behavior: none; /* Prevent pull-to-refresh on mobile */
+        }
+        .control-panel {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 0.5rem; /* rounded-lg */
+            background-color: #f9fafb; /* gray-50 */
+            touch-action: pan-x pan-y; /* Enable touch panning */
+        }
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0,0,0,0.75);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            pointer-events: none; /* So it doesn't interfere with mouse events on canvas */
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4 selection:bg-indigo-500 selection:text-white">
+
+    <div class="w-full max-w-5xl p-6 space-y-6">
+        <header class="text-center">
+            <h1 class="text-3xl font-bold text-indigo-700">Interactive Family Tree Generator</h1>
+            <p class="text-gray-600 mt-2">Generate and visualize family trees. Be cautious with high tier counts!</p>
+        </header>
+
+        <div class="control-panel p-6 rounded-xl shadow-xl sticky top-4 z-50 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div>
+                <label for="tiersToGenerate" class="block text-sm font-medium text-gray-700">Tiers to Generate (max 20):</label>
+                <input type="number" id="tiersToGenerate" value="5" min="1" max="20" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+            </div>
+            <div>
+                <label for="tiersToDisplay" class="block text-sm font-medium text-gray-700">Tiers to Display:</label>
+                <input type="number" id="tiersToDisplay" value="4" min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+            </div>
+            <button id="generateButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm md:text-base">
+                Generate & Display Tree
+            </button>
+        </div>
+
+        <div id="statsArea" class="mt-4 p-4 bg-gray-50 rounded-lg shadow text-sm text-gray-700">
+            Statistics will appear here.
+        </div>
+
+        <div class="w-full aspect-[16/9] md:aspect-video overflow-auto rounded-lg shadow-lg bg-white">
+            <canvas id="familyTreeCanvas"></canvas>
+        </div>
+        <div id="tooltip" class="tooltip"></div>
+
+    </div>
+
+    <script>
+        // --- Global Variables & Configuration ---
+        const canvas = document.getElementById('familyTreeCanvas');
+        const ctx = canvas.getContext('2d');
+        const tiersToGenerateInput = document.getElementById('tiersToGenerate');
+        const tiersToDisplayInput = document.getElementById('tiersToDisplay');
+        const generateButton = document.getElementById('generateButton');
+        const statsArea = document.getElementById('statsArea');
+        const tooltip = document.getElementById('tooltip');
+
+        let familyTreeRoot = null;
+        let allNodes = []; // Flat list of all nodes for easier access if needed
+        let nodePositions = new Map(); // To store {nodeId: {x, y, tier, name}} for hit detection
+
+        const NODE_RADIUS = 5; // Smaller radius for potentially many nodes
+        const LEVEL_HEIGHT = 60; // Vertical spacing between tiers
+        const HORIZONTAL_SPACING_BASE = 20; // Base horizontal spacing, will be adjusted
+
+        // --- Canvas Interaction (Pan and Zoom) ---
+        let transform = { x: 0, y: 0, scale: 1 };
+        let isPanning = false;
+        let lastPanPosition = { x: 0, y: 0 };
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            // Initial centering or re-centering on resize could be added here
+            // For simplicity, we'll just redraw. A more robust solution would adjust transform.
+            if (familyTreeRoot) {
+                 requestAnimationFrame(() => drawTree(familyTreeRoot, parseInt(tiersToDisplayInput.value)));
+            }
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            isPanning = true;
+            lastPanPosition = { x: e.clientX, y: e.clientY };
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isPanning) {
+                const dx = e.clientX - lastPanPosition.x;
+                const dy = e.clientY - lastPanPosition.y;
+                transform.x += dx;
+                transform.y += dy;
+                lastPanPosition = { x: e.clientX, y: e.clientY };
+                requestAnimationFrame(() => drawTree(familyTreeRoot, parseInt(tiersToDisplayInput.value)));
+            }
+            
+            // Tooltip logic
+            const rect = canvas.getBoundingClientRect();
+            // Adjust mouse coordinates for canvas transform (pan and zoom)
+            const mouseX = (e.clientX - rect.left - transform.x) / transform.scale;
+            const mouseY = (e.clientY - rect.top - transform.y) / transform.scale;
+
+            let hoveredNode = null;
+            for (const [nodeId, pos] of nodePositions) {
+                const dist = Math.sqrt(Math.pow(mouseX - pos.x, 2) + Math.pow(mouseY - pos.y, 2));
+                if (dist < NODE_RADIUS) {
+                    hoveredNode = pos;
+                    break;
+                }
+            }
+
+            if (hoveredNode) {
+                tooltip.style.opacity = '1';
+                tooltip.style.left = `${e.clientX + 15}px`;
+                tooltip.style.top = `${e.clientY + 15}px`;
+                tooltip.textContent = `${hoveredNode.name} (Tier ${hoveredNode.tier})`;
+                canvas.style.cursor = 'pointer';
+            } else {
+                tooltip.style.opacity = '0';
+                canvas.style.cursor = isPanning ? 'grabbing' : 'grab';
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isPanning = false;
+            canvas.style.cursor = 'grab';
+        });
+        
+        canvas.addEventListener('mouseleave', () => { // Also stop panning if mouse leaves canvas
+            if (isPanning) { // only reset if it was panning
+                isPanning = false;
+                canvas.style.cursor = 'grab';
+            }
+            tooltip.style.opacity = '0'; // Hide tooltip when mouse leaves canvas
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault(); // Prevent page scrolling
+            const zoomIntensity = 0.1;
+            const scaleAmount = e.deltaY > 0 ? 1 - zoomIntensity : 1 + zoomIntensity;
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left; // Mouse position relative to canvas
+            const mouseY = e.clientY - rect.top;
+
+            // Adjust translation so that zoom is centered around the mouse pointer
+            transform.x = mouseX - (mouseX - transform.x) * scaleAmount;
+            transform.y = mouseY - (mouseY - transform.y) * scaleAmount;
+            transform.scale *= scaleAmount;
+
+            // Clamp zoom
+            transform.scale = Math.max(0.1, Math.min(transform.scale, 10)); 
+
+            requestAnimationFrame(() => drawTree(familyTreeRoot, parseInt(tiersToDisplayInput.value)));
+        });
+        
+        // Touch events for panning on mobile
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isPanning = true;
+                lastPanPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                canvas.style.cursor = 'grabbing';
+            }
+            // Basic pinch-zoom could be added here by tracking e.touches.length === 2
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (isPanning && e.touches.length === 1) {
+                e.preventDefault(); // Prevent page scrolling during pan
+                const dx = e.touches[0].clientX - lastPanPosition.x;
+                const dy = e.touches[0].clientY - lastPanPosition.y;
+                transform.x += dx;
+                transform.y += dy;
+                lastPanPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                requestAnimationFrame(() => drawTree(familyTreeRoot, parseInt(tiersToDisplayInput.value)));
+            }
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            if (e.touches.length === 0) { // Last touch released
+                isPanning = false;
+                canvas.style.cursor = 'grab';
+            }
+        });
+
+
+        // --- Family Tree Logic ---
+        class Person {
+            constructor(name, tier, id = null) {
+                this.id = id || `id_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`;
+                this.name = name;
+                this.tier = tier;
+                this.children = [];
+            }
+
+            addChild(child) {
+                this.children.push(child);
+            }
+        }
+
+        function generateTreeData(progenitorName = "Progenitor", maxTiers = 3) {
+            console.log(`Generating tree data for ${maxTiers} tiers...`);
+            const startTime = performance.now();
+
+            const root = new Person(progenitorName, 0);
+            allNodes = [root];
+            let currentTierNodes = [root];
+            
+            for (let tier = 1; tier <= maxTiers; tier++) {
+                const nextTierNodes = [];
+                if (currentTierNodes.length === 0) {
+                    console.warn(`Stopping at tier ${tier - 1}, no more parents.`);
+                    break;
+                }
+                // Limit the number of children if the tree gets too wide too quickly for performance
+                // This is a practical adjustment for deep trees.
+                const maxChildren = tier < 5 ? Math.floor(Math.random() * 2) + 1 : (tier < 10 ? (Math.random() < 0.7 ? 1 : 0) : (Math.random() < 0.3 ? 1 : 0) );
+
+
+                for (const parent of currentTierNodes) {
+                    const numChildren = maxChildren > 0 ? (Math.floor(Math.random() * maxChildren) + (tier < 3 ? 1 : 0) ) : 0; // Ensure at least 1 child for early tiers if maxChildren allows
+                    if (allNodes.length + numChildren > 50000 && tier > 5) { // Safety break for extremely large trees
+                         console.warn(`Node limit reached at tier ${tier}. Stopping generation to prevent browser issues.`);
+                         currentTierNodes = []; // effectively stop further generation
+                         break;
+                    }
+
+                    for (let i = 0; i < numChildren; i++) {
+                        const childName = `P-${tier}-${allNodes.length}`;
+                        const child = new Person(childName, tier);
+                        parent.addChild(child);
+                        allNodes.push(child);
+                        nextTierNodes.push(child);
+                    }
+                }
+                if (currentTierNodes.length === 0) break; // Break outer loop if safety break triggered
+                currentTierNodes = nextTierNodes;
+            }
+
+            const endTime = performance.now();
+            console.log(`Data generation took ${(endTime - startTime).toFixed(2)}ms. Total nodes: ${allNodes.length}`);
+            statsArea.innerHTML = `
+                <strong>Generation Complete:</strong><br>
+                - Tiers Generated: ${Math.min(maxTiers, root.children.length > 0 ? allNodes.reduce((max, n) => Math.max(max, n.tier), 0) : 0)}<br>
+                - Total Individuals: ${allNodes.length}<br>
+                - Generation Time: ${(endTime - startTime).toFixed(2)} ms
+            `;
+            return root;
+        }
+
+        // --- Drawing Logic ---
+        function drawTree(rootNode, displayTiers) {
+            if (!rootNode) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+            ctx.save(); // Save current state (default transform)
+            ctx.translate(transform.x, transform.y); // Apply pan
+            ctx.scale(transform.scale, transform.scale); // Apply zoom
+
+            nodePositions.clear(); // Clear previous positions for hit detection
+
+            // Calculate positions for nodes up to displayTiers
+            // This is a simple layout algorithm. It can be improved for better spacing.
+            const tierWidths = {}; // To store total width needed for each tier
+            
+            function calculatePositionsRecursive(node, currentTier, xOffset, parentX) {
+                if (currentTier > displayTiers) return 0; // Stop if beyond display depth
+
+                let childrenWidth = 0;
+                const nodeHorizontalSpacing = HORIZONTAL_SPACING_BASE * Math.pow(0.8, currentTier) * 2; // Decrease spacing for deeper tiers
+
+                // Calculate width required by children first (DFS post-order traversal style for width)
+                let currentChildX = xOffset;
+                for (const child of node.children) {
+                    if (currentTier + 1 <= displayTiers) {
+                         const childSubtreeWidth = calculatePositionsRecursive(child, currentTier + 1, currentChildX, 0); // ParentX is not used in this pass
+                         childrenWidth += childSubtreeWidth;
+                         currentChildX += childSubtreeWidth;
+                    }
+                }
+                
+                // If no children, node takes up base spacing. Otherwise, it's the sum of children's widths.
+                const selfWidth = Math.max(nodeHorizontalSpacing * 2, childrenWidth);
+
+                // Position this node: centered above its children, or at xOffset if no children
+                const y = (currentTier * LEVEL_HEIGHT) + LEVEL_HEIGHT / 2;
+                let x;
+                if (node.children.length > 0 && childrenWidth > 0) {
+                    // Find the x-positions of the first and last child to center the parent
+                    // This requires children positions to be somewhat determined or estimated
+                    // For simplicity, we'll position children relative to the parent's calculated x in a second pass.
+                    // Here, we just determine the parent's x based on the overall xOffset and its own subtree width.
+                    x = xOffset + selfWidth / 2;
+                } else {
+                    x = xOffset + selfWidth / 2; // Leaf node
+                }
+                
+                nodePositions.set(node.id, { x, y, name: node.name, tier: node.tier, width: selfWidth });
+
+                // Now, position children relative to this parent's calculated x
+                let childStartX = x - childrenWidth / 2;
+                for (const child of node.children) {
+                    if (currentTier + 1 <= displayTiers) {
+                        // The width for this child's subtree was already calculated (or is its base width)
+                        const childNodePos = nodePositions.get(child.id); // Should have been set in recursive call
+                        if(childNodePos){
+                            const childEffectiveWidth = childNodePos.width;
+                            // Reposition child based on parent's new x and its own width
+                            const childNewX = childStartX + childEffectiveWidth / 2;
+                            nodePositions.set(child.id, {...childNodePos, x: childNewX }); // Update child's X
+                            // Recursively update grandchildren if needed, or ensure layout is top-down for X.
+                            // For this simple layout, we'll assume this pass is sufficient.
+                            // A more robust layout manager would handle this.
+                            // We need to pass the childStartX for the next child.
+                            childStartX += childEffectiveWidth;
+                        }
+                    }
+                }
+                return selfWidth;
+            }
+
+            // Initial call to calculate positions starting from the root
+            // The root is initially placed trying to center the whole tree.
+            // This is tricky without knowing the full width first.
+            // Let's start root at canvas.width / 2 (in untransformed space, then adjust)
+            // For a truly centered tree, you'd do a first pass to calculate all widths, then a second to position.
+            
+            // Simplified first pass to estimate total width at widest tier
+            let maxEstimatedWidth = 0;
+            let nodesAtTier = {};
+            function getNodesAtTiers(node, tier) {
+                if (tier > displayTiers) return;
+                if (!nodesAtTier[tier]) nodesAtTier[tier] = 0;
+                nodesAtTier[tier]++;
+                node.children.forEach(c => getNodesAtTiers(c, tier + 1));
+            }
+            if (rootNode) getNodesAtTiers(rootNode, 0);
+            for (let i = 0; i <= displayTiers; i++) {
+                if (nodesAtTier[i]) {
+                    maxEstimatedWidth = Math.max(maxEstimatedWidth, nodesAtTier[i] * (HORIZONTAL_SPACING_BASE * 2));
+                }
+            }
+            
+            const initialXOffset = (canvas.width / transform.scale - maxEstimatedWidth) / 2; // Try to center based on estimated width
+            calculatePositionsRecursive(rootNode, 0, initialXOffset, 0);
+
+
+            // Drawing pass: Iterate through calculated positions
+            // Draw edges first, then nodes
+            ctx.strokeStyle = '#9ca3af'; // gray-400
+            ctx.lineWidth = 1 / transform.scale; // Keep line width consistent during zoom
+
+            const nodesToDraw = Array.from(nodePositions.values()).filter(pos => pos.tier <= displayTiers);
+
+            for (const pos of nodesToDraw) {
+                const parentNode = allNodes.find(n => n.children.some(c => c.id === getNodeById(pos.name, pos.tier)?.id)); // Find parent by child id
+                if (parentNode) {
+                    const parentPos = nodePositions.get(parentNode.id);
+                    if (parentPos && parentPos.tier < displayTiers) { // Only draw edge if parent is also within displayTiers
+                        ctx.beginPath();
+                        ctx.moveTo(parentPos.x, parentPos.y);
+                        ctx.lineTo(pos.x, pos.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            // Draw nodes
+            for (const pos of nodesToDraw) {
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, NODE_RADIUS / transform.scale, 0, 2 * Math.PI);
+                // Color nodes by tier
+                const hue = (pos.tier * 30) % 360; // Cycle through hues
+                ctx.fillStyle = `hsla(${hue}, 70%, 60%, 0.8)`;
+                ctx.fill();
+                ctx.strokeStyle = `hsla(${hue}, 80%, 40%, 1)`;
+                ctx.stroke();
+            }
+            ctx.restore(); // Restore transform to default for next frame
+        }
+        
+        // Helper to find node by name and tier (assuming names like P-tier-index are unique enough for this demo)
+        function getNodeById(name, tier) {
+            // In a real app, nodes would have truly unique IDs. Here, name + tier is proxy.
+            return allNodes.find(n => n.name === name && n.tier === tier);
+        }
+
+
+        // --- Event Listeners ---
+        generateButton.addEventListener('click', () => {
+            const tiersGen = parseInt(tiersToGenerateInput.value);
+            const tiersDisp = parseInt(tiersToDisplayInput.value);
+
+            if (tiersDisp > tiersGen) {
+                statsArea.innerHTML = `<strong class="text-red-600">Error:</strong> Tiers to display cannot exceed tiers to generate.`;
+                return;
+            }
+            if (tiersGen > 10 || tiersDisp > 7) {
+                 if (!confirm(`Warning: Generating ${tiersGen} tiers and displaying ${tiersDisp} tiers can be very resource-intensive and may slow down your browser. Proceed?`)) {
+                    return;
+                }
+            }
+            
+            // Reset transform for new tree
+            transform = { x: canvas.width / 10, y: LEVEL_HEIGHT / transform.scale, scale: 1 };
+
+
+            familyTreeRoot = generateTreeData("Progenitor", tiersGen);
+            if (familyTreeRoot) {
+                requestAnimationFrame(() => drawTree(familyTreeRoot, tiersDisp));
+            }
+        });
+
+        // Initial setup
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            // Set initial cursor style
+            canvas.style.cursor = 'grab';
+            // Auto-generate a small tree on load
+            tiersToGenerateInput.value = "5";
+            tiersToDisplayInput.value = "4";
+            generateButton.click();
+        });
+        window.addEventListener('resize', resizeCanvas);
+
+    </script>
+</body>
+</html>
