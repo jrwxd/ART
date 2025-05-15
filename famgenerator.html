@@ -241,7 +241,6 @@
                 // This is a practical adjustment for deep trees.
                 const maxChildren = tier < 5 ? Math.floor(Math.random() * 2) + 1 : (tier < 10 ? (Math.random() < 0.7 ? 1 : 0) : (Math.random() < 0.3 ? 1 : 0) );
 
-
                 for (const parent of currentTierNodes) {
                     const numChildren = maxChildren > 0 ? (Math.floor(Math.random() * maxChildren) + (tier < 3 ? 1 : 0) ) : 0; // Ensure at least 1 child for early tiers if maxChildren allows
                     if (allNodes.length + numChildren > 50000 && tier > 5) { // Safety break for extremely large trees
