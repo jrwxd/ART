@@ -42,7 +42,6 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/loaders/FontLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/geometries/TextGeometry.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/controls/OrbitControls.js"></script>
 </head>
 <body>
     <div id="info">Drag to rotate. Scroll to zoom.</div>
@@ -113,6 +112,7 @@
                     const loadingMessage = document.getElementById('loading-message');
                     loadingMessage.textContent = 'Error loading font. Please check console.';
                     loadingMessage.style.color = 'red';
+
                 }
             );
 
