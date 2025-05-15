@@ -184,8 +184,7 @@
 
                 for (let i = 0; i < word.length; i++) {
                     const char = word[i];
-                    
-                    const textGeo = new TextGeometry(char, {
+                    const textGeo = new THREE.TextGeometry(char, {
                         font: fontInstance,
                         size: textSize,
                         height: textHeight,
