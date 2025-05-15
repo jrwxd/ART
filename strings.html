@@ -203,7 +203,7 @@
 
                     // Calculate position on the path
                     // Adjust 't' to spread letters. (i + 0.5) centers each letter in its segment.
-                    const t = (word.length === 1) ? 0.5 : (i / (word.length - 1));
+                    const t = (word.length === 1) ? 0.5 : (i / (word.length - 3));
                     const position = path.getPointAt(t);
                     textMesh.position.copy(position);
 
