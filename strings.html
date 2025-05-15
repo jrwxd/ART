@@ -124,10 +124,11 @@
         function definePaths() {
             const paths = {};
 
+
             // Path 1: Straight Line (slightly elevated)
             paths.line = new THREE.LineCurve3(
-                new THREE.Vector3(-12, 8, 0), 
-                new THREE.Vector3(12, 8, 0)
+                new THREE.Vector3(-120, 8, 0), 
+                new THREE.Vector3(120, 8, 0)
             );
 
             // Path 2: Sine Wave
@@ -142,7 +143,7 @@
 
             // Path 3: Circle in XZ plane (lying flat)
             const circlePoints = [];
-            const radius = 10;
+            const radius = 17;
             const numSegments = 64;
             for (let i = 0; i <= numSegments; i++) {
                 const angle = (i / numSegments) * Math.PI * 2;
