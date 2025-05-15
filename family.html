@@ -83,13 +83,13 @@
         let allNodes = []; // Flat list of all nodes for easier access if needed
         let nodePositions = new Map(); // To store {nodeId: {x, y, tier, name}} for hit detection
 
-        const NODE_RADIUS = 5; // Smaller radius for potentially many nodes
-        const LEVEL_HEIGHT = 60; // Vertical spacing between tiers
-        const HORIZONTAL_SPACING_BASE = 20; // Base horizontal spacing, will be adjusted
+        const NODE_RADIUS = 3; // Smaller radius for potentially many nodes
+        const LEVEL_HEIGHT = 30; // Vertical spacing between tiers
+        const HORIZONTAL_SPACING_BASE = 10; // Base horizontal spacing, will be adjusted
 
         // --- Canvas Interaction (Pan and Zoom) ---
         let transform = { x: 0, y: 0, scale: 1 };
-        let isPanning = false;
+        let isPanning = true;
         let lastPanPosition = { x: 0, y: 0 };
 
         function resizeCanvas() {
