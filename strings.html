@@ -98,7 +98,7 @@
             controls.maxPolarAngle = Math.PI / 1.5; // Prevent camera from going too low
 
             // Load font
-            const fontLoader = new FontLoader();
+            const fontLoader = new THREE.FontLoader();
             const fontUrl = 'https://cdn.jsdelivr.net/npm/three@0.164.1/examples/fonts/helvetiker_regular.typeface.json';
             fontLoader.load(fontUrl, 
                 (loadedFont) => {
