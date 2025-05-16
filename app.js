@@ -51,7 +51,7 @@ async function initialize() {
     let initialCardId = urlParams.get("card") || DEFAULT_CARD_ID;
 
     // Validate the initial card ID.
-    if (!cardIds.includes(initialCardId)) {
+    if (!isValidCardId(initialCardId)) {
       console.warn(
         `Initial card ID "${initialCardId}" from URL not found in index. Using default "${DEFAULT_CARD_ID}".`
       );
@@ -185,6 +185,11 @@ function escapeHtml(unsafe) {
     .replace(/'/g, "&#039;");
 }
 
+// Utility: Validate cardId against cardIds list
+function isValidCardId(cardId) {
+  return cardIds.includes(cardId);
+}
+
 // --- Link Processing ---
 // Finds link syntax (e.g., [[Target Card]]) in text and converts it to HTML <a> tags.
 function processTextForLinks(text) {
@@ -218,6 +223,10 @@ async function handleTabClick(event) {
   if (link && link.dataset.targetCardid) {
     event.preventDefault(); // Stop browser from navigating normally.
     const targetCardId = link.dataset.targetCardid;
+    if (!isValidCardId(targetCardId)) {
+      alert("Invalid card ID.");
+      return;
+    }
     console.log(`Internal link clicked for card: ${targetCardId}`);
 
     try {
@@ -295,6 +304,10 @@ async function handlePopState(event) {
 
   if (event.state && event.state.cardId) {
     const { cardId, style, zIndex } = event.state;
+    if (!isValidCardId(cardId)) {
+      tabElement.innerHTML = `<p style="color: red; padding: 20px;">Invalid card ID in navigation state.</p>`;
+      return;
+    }
 
     // --- Restore View ---
     // 1. Remove any cards that are "newer" (higher z-index) than the state we are restoring.
