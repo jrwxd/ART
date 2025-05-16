@@ -108,7 +108,7 @@
 
             // Remaining parts are elements
             // Regex: Type(P1,D1,Exit), Optional Name ("Name"), Coords @(x,y)
-            const elementRegex = /^(P\d*|D\d*|Exit)(?:\("([^"]*)"\))?@\((\-?\d+\.?\d*),(\-?\d+\.?\d*)\)$/;
+            const elementRegex = /^(P\d*|D\d*|Exit)(?:\("([^"]*)"\))?@\((\-?\d+\.?\d*) (\-?\d+\.?\d*)\)$/;
             for (let i = 1; i < parts.length; i++) {
                 const elementMatch = parts[i].match(elementRegex);
                 if (elementMatch) {
