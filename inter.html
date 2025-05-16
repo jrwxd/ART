@@ -394,16 +394,17 @@
             if (!player || !gameActive) return;
 
             // Calculate tilt relative to zero orientation
+            const alpha = (window.lastDeviceOrientation.alpha || 0) - zeroOrientation.alpha; // Not used in this example
             const beta = (window.lastDeviceOrientation.beta || 0) - zeroOrientation.beta;   // front-back
             const gamma = (window.lastDeviceOrientation.gamma || 0) - zeroOrientation.gamma; // left-right
 
             // Calculate acceleration if tilt exceeds static friction
             let ax = 0, ay = 0;
             if (Math.abs(gamma) > staticFrictionThreshold) {
-                ax = accelScale * (gamma > 0 ? -0.1 : 0.1) * (Math.abs(gamma) - staticFrictionThreshold);
+                ax = accelScale * (gamma < 0 ? 0.01 : -0.01) * (Math.abs(gamma) - staticFrictionThreshold);
             }
             if (Math.abs(beta) > staticFrictionThreshold) {
-                ay = accelScale * (beta > 0 ? 0.1 : -0.1) * (Math.abs(beta) - staticFrictionThreshold);
+                ay = accelScale * (beta > 0 ? 0.01 : -0.01) * (Math.abs(beta) - staticFrictionThreshold);
             }
 
             // Apply acceleration
