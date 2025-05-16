@@ -55,8 +55,12 @@
 
         // Words to display and their corresponding paths
         const wordsConfig = [
-            { text: "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg", pathType: "sine" },
-            { text: "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg", pathType: "sine" }
+            //{ text: "This is a test.", pathType: "sine" },
+            //{ text: "The best is yet to come.", pathType: "line" },
+            //{ text: "Hello, world!", pathType: "circle" },
+            //{ text: "Welcome to the future.", pathType: "line" },
+            //{ text: "Enjoy the ride!", pathType: "sine" },
+            { text: "Do you think Greg will win?", pathType: "sine" }
         ];
         
         // Colors for the text materials
@@ -138,7 +142,6 @@
                 sinePoints.push(new THREE.Vector3(x, y, -2)); // Shifted in Z
             }
             paths.sine = new THREE.CatmullRomCurve3(sinePoints, false, 'catmullrom', 0.5);
-
 
             // Path 3: Circle in XZ plane (lying flat)
             const circlePoints = [];
