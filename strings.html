@@ -169,7 +169,7 @@
 
             const paths = definePaths();
             const textHeight = 0.3; // Extrusion depth
-            const textSize = 1.5;   // Size of the letters
+            const textSize = 5.0;   // Size of the letters
 
             wordsConfig.forEach((config, wordIndex) => {
                 const word = config.text;
@@ -181,7 +181,7 @@
 
                 const material = new THREE.MeshStandardMaterial({
                     color: textColors[wordIndex % textColors.length],
-                    metalness: 0.3,
+                    metalness: 0.8,
                     roughness: 0.6
                 });
 
@@ -193,10 +193,10 @@
                         height: textHeight,
                         curveSegments: 12, // Controls smoothness of letter curves
                         bevelEnabled: true,
-                        bevelThickness: 0.05,
+                        bevelThickness: 0.155,
                         bevelSize: 0.05,
                         bevelOffset: 0,
-                        bevelSegments: 3
+                        bevelSegments: 5
                     });
 
                     textGeo.computeBoundingBox(); // Important for centering
@@ -235,7 +235,7 @@
                     }
                     
                     // Add a slight random rotation for visual interest if desired
-                    textMesh.rotation.y += (Math.random() - 0.5) * 0.2;
+                    textMesh.rotation.y += (Math.random() - 0.5) * 0.1;
                     textMesh.rotation.z += (Math.random() - 0.5) * 0.1;
 
 
