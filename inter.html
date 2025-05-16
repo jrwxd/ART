@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Stage Engine Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #1f2937; /* bg-gray-800 */
+            color: #f3f4f6; /* text-gray-100 */
+        }
+        #gameContainer {
+            background-color: #374151; /* bg-gray-700 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        #gameCanvas {
+            display: block;
+            border-radius: 0.25rem;
+        }
+        #messageBox {
+            margin-top: 1rem;
+            padding: 0.75rem 1.25rem;
+            background-color: #4b5563; /* bg-gray-600 */
+            color: #e5e7eb; /* text-gray-200 */
+            border-radius: 0.5rem;
+            min-width: 300px;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+        h1 {
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: 600; /* font-semibold */
+            margin-bottom: 1rem;
+            color: #d1d5db; /* text-gray-300 */
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <h1>Stage Engine Demo</h1>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+    <div id="messageBox">Use arrow keys to move the player.</div>
+
+    <script>
+        // --- Game Configuration & Stage Definition ---
+        // This string would typically be loaded from a .txt file
+        const stageDefinitionString = 'Stg1: 16.0x12.0, P1("Alice")@(0.0,0.0), D1("Fruit")@(6.0,2.0), D2("Gem")@(-5.0,-3.0), Exit@(7.0,5.0)';
+        
+        let scene, camera, renderer;
+        let player, stageMesh;
+        let stageWidth, stageHeight;
+        const gameElements = []; // To store player, items, exit
+        const dynamicObjects = []; // To store items like "Fruit", "Gem"
+
+        const playerSpeed = 0.15;
+        const keysPressed = {};
+
+        // --- 1. Stage Parser ---
+        function parseStageDefinition(definitionString) {
+            const stageData = {
+                name: null,
+                width: 0,
+                height: 0,
+                elements: []
+            };
+
+            const stageNameRegex = /^([^:]+):\s*(.*)$/;
+            const stageMatch = definitionString.match(stageNameRegex);
+
+            if (!stageMatch) {
+                console.error("Invalid stage definition format: Missing stage name.");
+                updateMessage("Error: Invalid stage definition format.");
+                return null;
+            }
+            stageData.name = stageMatch[1];
+            const content = stageMatch[2];
+            
+            const parts = content.split(/\s*,\s*/);
+            if (parts.length === 0) {
+                console.error("Invalid stage definition format: No content after name.");
+                updateMessage("Error: No stage content found.");
+                return null;
+            }
+
+            // First part is dimensions
+            const dimensionsRegex = /^(\d+\.?\d*)x(\d+\.?\d*)$/;
+            const dimMatch = parts[0].match(dimensionsRegex);
+            if (!dimMatch) {
+                console.error("Invalid dimensions format:", parts[0]);
+                updateMessage("Error: Invalid stage dimensions.");
+                return null;
+            }
+            stageData.width = parseFloat(dimMatch[1]);
+            stageData.height = parseFloat(dimMatch[2]);
+
+            // Remaining parts are elements
+            // Regex: Type(P1,D1,Exit), Optional Name ("Name"), Coords @(x,y)
+            const elementRegex = /^(P\d*|D\d*|Exit)(?:\("([^"]*)"\))?@\((\-?\d+\.?\d*),(\-?\d+\.?\d*)\)$/;
+            for (let i = 1; i < parts.length; i++) {
+                const elementMatch = parts[i].match(elementRegex);
+                if (elementMatch) {
+                    stageData.elements.push({
+                        rawType: elementMatch[1], // P1, D1, Exit
+                        type: elementMatch[1].startsWith('P') ? 'Player' : (elementMatch[1].startsWith('D') ? 'Dynamic' : 'Exit'),
+                        name: elementMatch[2] || null, // Alice, Fruit, null for Exit
+                        x: parseFloat(elementMatch[3]),
+                        y: parseFloat(elementMatch[4])
+                    });
+                } else {
+                    console.warn(`Could not parse element: ${parts[i]}`);
+                }
+            }
+            return stageData;
+        }
+
+        // --- 2. Initialization ---
+        function init() {
+            // Parse the stage data
+            const parsedStage = parseStageDefinition(stageDefinitionString);
+            if (!parsedStage) {
+                updateMessage("Failed to load stage. Check console for errors.");
+                return;
+            }
+            stageWidth = parsedStage.width;
+            stageHeight = parsedStage.height;
+
+            updateMessage(`Stage "${parsedStage.name}" loaded. Dimensions: ${stageWidth}x${stageHeight}`);
+
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x4A5568); // Tailwind gray-600
+
+            // Camera setup (Orthographic for 2D top-down)
+            // The camera will view an area of stageWidth x stageHeight
+            const aspect = stageWidth / stageHeight;
+            const canvas = document.getElementById('gameCanvas');
+            
+            // Set initial canvas size maintaining aspect ratio
+            const container = document.getElementById('gameContainer');
+            let canvasWidth = Math.min(container.clientWidth - 32, 800); // Max width 800px or container width
+            let canvasHeight = canvasWidth / aspect;
+
+            const maxHeight = window.innerHeight * 0.7;
+            if (canvasHeight > maxHeight) {
+                canvasHeight = maxHeight;
+                canvasWidth = canvasHeight * aspect;
+            }
+            
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+
+            camera = new THREE.OrthographicCamera(
+                stageWidth / -2, stageWidth / 2, 
+                stageHeight / 2, stageHeight / -2, 
+                0.1, 1000 
+            );
+            camera.position.set(0, 0, 10); // Position camera above the scene
+            camera.lookAt(0, 0, 0); // Look at the center of the scene
+
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(canvasWidth, canvasHeight);
+            // document.getElementById('gameContainer').appendChild(renderer.domElement); // Canvas is already in DOM
+
+            // Create stage ground plane
+            const groundGeometry = new THREE.PlaneGeometry(stageWidth, stageHeight);
+            const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x2d3748, side: THREE.DoubleSide }); // Tailwind gray-700
+            stageMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+            stageMesh.rotation.x = 0; // Keep it flat on XY plane
+            stageMesh.position.z = -0.1; // Slightly below other elements
+            scene.add(stageMesh);
+
+            // Create game elements from parsed data
+            parsedStage.elements.forEach(el => {
+                let geometry, material, mesh;
+                const elementSize = Math.min(stageWidth, stageHeight) * 0.05; // Relative size
+                
+                geometry = new THREE.BoxGeometry(elementSize, elementSize, elementSize / 2);
+
+                if (el.type === 'Player') {
+                    material = new THREE.MeshStandardMaterial({ color: 0x3b82f6 }); // Blue
+                    player = new THREE.Mesh(geometry, material);
+                    player.position.set(el.x, el.y, 0.5); // Player slightly elevated
+                    player.name = el.name || "Player";
+                    scene.add(player);
+                    gameElements.push(player);
+                } else if (el.type === 'Dynamic') {
+                    material = new THREE.MeshStandardMaterial({ color: 0x10b981 }); // Green (Fruit)
+                    if (el.name && el.name.toLowerCase().includes("gem")) {
+                         material = new THREE.MeshStandardMaterial({ color: 0xa855f7 }); // Purple (Gem)
+                    }
+                    mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.set(el.x, el.y, 0.4);
+                    mesh.name = el.name || "Dynamic Object";
+                    scene.add(mesh);
+                    dynamicObjects.push(mesh);
+                    gameElements.push(mesh);
+                } else if (el.type === 'Exit') {
+                    material = new THREE.MeshStandardMaterial({ color: 0xef4444 }); // Red
+                    mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.set(el.x, el.y, 0.4);
+                    mesh.name = "Exit";
+                    scene.add(mesh);
+                    gameElements.push(mesh);
+                }
+            });
+            
+            if (!player) {
+                updateMessage("Error: Player not defined in stage data!");
+                console.error("Player not found in stage elements. Make sure a 'P' element is defined.");
+                // Create a default player if none is defined to prevent errors
+                const defaultPlayerGeom = new THREE.BoxGeometry(0.5, 0.5, 0.25);
+                const defaultPlayerMat = new THREE.MeshStandardMaterial({ color: 0x3b82f6 });
+                player = new THREE.Mesh(defaultPlayerGeom, defaultPlayerMat);
+                player.position.set(0,0,0.5);
+                scene.add(player);
+                updateMessage("Warning: Player not defined. Using default player at (0,0).");
+            }
+
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7.5);
+            scene.add(directionalLight);
+
+            // Event Listeners for keyboard input
+            window.addEventListener('keydown', (event) => { keysPressed[event.key.toLowerCase()] = true; });
+            window.addEventListener('keyup', (event) => { keysPressed[event.key.toLowerCase()] = false; });
+            
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+
+            // Start the game loop
+            animate();
+        }
+
+        // --- 3. Game Loop & Logic ---
+        function animate() {
+            requestAnimationFrame(animate);
+            updateGameLogic();
+            renderer.render(scene, camera);
+        }
+
+        function updateGameLogic() {
+            if (!player) return;
+
+            const moveDirection = { x: 0, y: 0 };
+
+            if (keysPressed['arrowup'] || keysPressed['w']) {
+                moveDirection.y += 1;
+            }
+            if (keysPressed['arrowdown'] || keysPressed['s']) {
+                moveDirection.y -= 1;
+            }
+            if (keysPressed['arrowleft'] || keysPressed['a']) {
+                moveDirection.x -= 1;
+            }
+            if (keysPressed['arrowright'] || keysPressed['d']) {
+                moveDirection.x += 1;
+            }
+
+            // Normalize diagonal movement (optional, but good practice)
+            if (moveDirection.x !== 0 && moveDirection.y !== 0) {
+                const length = Math.sqrt(moveDirection.x**2 + moveDirection.y**2);
+                moveDirection.x /= length;
+                moveDirection.y /= length;
+            }
+            
+            player.position.x += moveDirection.x * playerSpeed;
+            player.position.y += moveDirection.y * playerSpeed;
+
+            // Boundary checks
+            const halfWidth = stageWidth / 2;
+            const halfHeight = stageHeight / 2;
+            const playerSizeOffset = (player.geometry.parameters.width || 0.5) / 2; // approximation
+
+            player.position.x = Math.max(-halfWidth + playerSizeOffset, Math.min(player.position.x, halfWidth - playerSizeOffset));
+            player.position.y = Math.max(-halfHeight + playerSizeOffset, Math.min(player.position.y, halfHeight - playerSizeOffset));
+        
+            // Check for interactions (basic example: logging to message box)
+            dynamicObjects.forEach(obj => {
+                if (player.position.distanceTo(obj.position) < (playerSizeOffset + (obj.geometry.parameters.width || 0.5)/2)) {
+                    if (!obj.isCollected) { // Simple flag to prevent repeated messages
+                        updateMessage(`Player reached ${obj.name}!`);
+                        // obj.visible = false; // Example: collect item
+                        // obj.isCollected = true; 
+                    }
+                } else {
+                    obj.isCollected = false; // Reset if player moves away
+                }
+            });
+
+            const exitObject = gameElements.find(el => el.name === "Exit");
+            if (exitObject && player.position.distanceTo(exitObject.position) < (playerSizeOffset + (exitObject.geometry.parameters.width || 0.5)/2)) {
+                 if (!exitObject.isReached) {
+                    updateMessage(`Player reached the Exit!`);
+                    // exitObject.isReached = true;
+                    // Potentially load next stage here
+                 }
+            } else if (exitObject) {
+                // exitObject.isReached = false;
+            }
+        }
+        
+        // --- 4. Utility Functions ---
+        function updateMessage(msg) {
+            document.getElementById('messageBox').textContent = msg;
+        }
+
+        function onWindowResize() {
+            const aspect = stageWidth / stageHeight;
+            const container = document.getElementById('gameContainer');
+            const canvas = document.getElementById('gameCanvas');
+
+            let newCanvasWidth = Math.min(container.clientWidth - 32, 800);
+            let newCanvasHeight = newCanvasWidth / aspect;
+            
+            const maxHeight = window.innerHeight * 0.7;
+            if (newCanvasHeight > maxHeight) {
+                newCanvasHeight = maxHeight;
+                newCanvasWidth = newCanvasHeight * aspect;
+            }
+
+            camera.left = stageWidth / -2;
+            camera.right = stageWidth / 2;
+            camera.top = stageHeight / 2;
+            camera.bottom = stageHeight / -2;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(newCanvasWidth, newCanvasHeight);
+            canvas.style.width = newCanvasWidth + 'px';
+            canvas.style.height = newCanvasHeight + 'px';
+        }
+
+
+        // --- Start the engine ---
+        // Wait for the DOM to be fully loaded before initializing
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+    </script>
+</body>
+</html>
