@@ -509,7 +509,7 @@
                 keysPressed['arrowup'] = keysPressed['arrowdown'] = keysPressed['arrowleft'] = keysPressed['arrowright'] = false;
 
                 // Sensitivity threshold (degrees)
-                const threshold = 10;
+                const threshold = 1;
 
                 if (event.beta > threshold) keysPressed['arrowup'] = true;
                 else if (event.beta < -threshold) keysPressed['arrowdown'] = true;
