@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js Stage Engine Demo</title>
+    <title>Three.js Multi-Stage Engine Demo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -56,8 +56,8 @@
 
     <script>
         // --- Game Configuration & Stage Definition ---
-        // This string would typically be loaded from a .txt file
-        const stageDefinitionString = 'Stg1: 16.0x12.0, P1("Alice")@(0.0 0.0), D1("Fruit")@(6.0 2.0), D2("Gem")@(-5.0 -3.0), Exit@(7.0 5.0)';
+        // MODIFICATION: stageDefinitionString is now generated
+        // const stageDefinitionString = 'Stg1: 16.0x12.0, P1("Alice")@(0.0 0.0), D1("Fruit")@(6.0 2.0), D2("Gem")@(-5.0 -3.0), Exit@(7.0 5.0)';
 
         let scene, camera, renderer;
         let player, stageMesh;
@@ -67,6 +67,10 @@
 
         const playerSpeed = 0.15;
         const keysPressed = {};
+
+        // MODIFICATION: Stage level tracking
+        let currentStageLevel = 1;
+        let gameActive = true; // To pause updates during stage transition
 
         // --- 1. Stage Parser ---
         function parseStageDefinition(definitionString) {
@@ -95,7 +99,6 @@
                 return null;
             }
 
-            // First part is dimensions
             const dimensionsRegex = /^(\d+\.?\d*)x(\d+\.?\d*)$/;
             const dimMatch = parts[0].match(dimensionsRegex);
             if (!dimMatch) {
@@ -106,16 +109,14 @@
             stageData.width = parseFloat(dimMatch[1]);
             stageData.height = parseFloat(dimMatch[2]);
 
-            // Remaining parts are elements
-            // Regex: Type(P1,D1,Exit), Optional Name ("Name"), Coords @(x,y)
             const elementRegex = /^(P\d*|D\d*|Exit)(?:\("([^"]*)"\))?@\((\-?\d+\.?\d*) (\-?\d+\.?\d*)\)$/;
             for (let i = 1; i < parts.length; i++) {
                 const elementMatch = parts[i].match(elementRegex);
                 if (elementMatch) {
                     stageData.elements.push({
-                        rawType: elementMatch[1], // P1, D1, Exit
+                        rawType: elementMatch[1],
                         type: elementMatch[1].startsWith('P') ? 'Player' : (elementMatch[1].startsWith('D') ? 'Dynamic' : 'Exit'),
-                        name: elementMatch[2] || null, // Alice, Fruit, null for Exit
+                        name: elementMatch[2] || null,
                         x: parseFloat(elementMatch[3]),
                         y: parseFloat(elementMatch[4])
                     });
@@ -126,31 +127,110 @@
             return stageData;
         }
 
-        // --- 2. Initialization ---
-        function init() {
-            // Parse the stage data
+        // MODIFICATION: Procedural Stage Generator
+        function generateStageDefinition(level) {
+            const baseWidth = 14 + level * 2;
+            const baseHeight = 10 + level;
+            let definition = `Stg${level}: ${baseWidth.toFixed(1)}x${baseHeight.toFixed(1)}`;
+
+            // Player always starts near bottom-left for this example
+            const playerX = (-baseWidth / 2 + 1).toFixed(1);
+            const playerY = (-baseHeight / 2 + 1).toFixed(1);
+            definition += `, P1("Hero")@(${playerX} ${playerY})`;
+
+            // Exit always near top-right
+            const exitX = (baseWidth / 2 - 1).toFixed(1);
+            const exitY = (baseHeight / 2 - 1).toFixed(1);
+            definition += `, Exit@(${exitX} ${exitY})`;
+
+            // Add dynamic items
+            const numItems = 1 + level; // More items for higher levels
+            const itemTypes = ["Fruit", "Gem", "Potion", "Scroll"];
+            for (let i = 0; i < numItems; i++) {
+                let itemX, itemY, tooClose;
+                const maxAttempts = 10;
+                let attempt = 0;
+                do { // Try to place items not too close to player or exit initially
+                    itemX = (Math.random() * (baseWidth - 2) - (baseWidth / 2 - 1)).toFixed(1);
+                    itemY = (Math.random() * (baseHeight - 2) - (baseHeight / 2 - 1)).toFixed(1);
+                    tooClose = (Math.abs(parseFloat(itemX) - parseFloat(playerX)) < 2 && Math.abs(parseFloat(itemY) - parseFloat(playerY)) < 2) ||
+                               (Math.abs(parseFloat(itemX) - parseFloat(exitX)) < 2 && Math.abs(parseFloat(itemY) - parseFloat(exitY)) < 2);
+                    attempt++;
+                } while (tooClose && attempt < maxAttempts);
+                
+                const itemName = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+                definition += `, D${i+1}("${itemName} L${level}")@(${itemX} ${itemY})`;
+            }
+            console.log("Generated Stage:", definition);
+            return definition;
+        }
+        
+        // MODIFICATION: Scene Clearing Function
+        function clearScene() {
+            if (scene) {
+                // Remove all game elements added
+                gameElements.forEach(el => {
+                    if (el.geometry) el.geometry.dispose();
+                    if (el.material) {
+                        if (Array.isArray(el.material)) {
+                            el.material.forEach(mat => mat.dispose());
+                        } else {
+                            el.material.dispose();
+                        }
+                    }
+                    scene.remove(el);
+                });
+                if (stageMesh) {
+                    if (stageMesh.geometry) stageMesh.geometry.dispose();
+                    if (stageMesh.material) stageMesh.material.dispose();
+                    scene.remove(stageMesh);
+                    stageMesh = null;
+                }
+            }
+            gameElements.length = 0;
+            dynamicObjects.length = 0;
+            player = null; // Reset player reference
+        }
+
+
+        // --- 2. Initialization (Now LoadStage) ---
+        // MODIFICATION: Renamed init to loadStage, added stageDefinitionString parameter
+        function loadStage(stageDefinitionString) {
+            gameActive = false; // Pause game logic during setup
+
+            // MODIFICATION: Clear previous scene objects
+            clearScene();
+
             const parsedStage = parseStageDefinition(stageDefinitionString);
             if (!parsedStage) {
                 updateMessage("Failed to load stage. Check console for errors.");
+                gameActive = true;
                 return;
             }
             stageWidth = parsedStage.width;
             stageHeight = parsedStage.height;
 
-            updateMessage(`Stage "${parsedStage.name}" loaded. Dimensions: ${stageWidth}x${stageHeight}`);
+            updateMessage(`Welcome to Stage ${currentStageLevel}: "${parsedStage.name}"! Dimensions: ${stageWidth}x${stageHeight}`);
 
-            // Scene setup
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x4A5568); // Tailwind gray-600
+            // Scene setup (only if it doesn't exist)
+            if (!scene) {
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x4A5568); // Tailwind gray-600
 
-            // Camera setup (Orthographic for 2D top-down)
-            // The camera will view an area of stageWidth x stageHeight
-            const aspect = stageWidth / stageHeight;
+                 // Lighting (add once)
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // Slightly increased ambient
+                scene.add(ambientLight);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9); // Slightly increased directional
+                directionalLight.position.set(5, 10, 7.5);
+                scene.add(directionalLight);
+            }
+
+
             const canvas = document.getElementById('gameCanvas');
+            const aspect = stageWidth / stageHeight;
             
-            // Set initial canvas size maintaining aspect ratio
             const container = document.getElementById('gameContainer');
-            let canvasWidth = Math.min(container.clientWidth - 32, 800); // Max width 800px or container width
+            let canvasWidth = Math.min(container.clientWidth - 32, 800); 
             let canvasHeight = canvasWidth / aspect;
 
             const maxHeight = window.innerHeight * 0.7;
@@ -161,47 +241,73 @@
             
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
+            // Also set style for CSS to respect canvas attribute dimensions
+            canvas.style.width = canvasWidth + 'px';
+            canvas.style.height = canvasHeight + 'px';
 
-            camera = new THREE.OrthographicCamera(
-                stageWidth / -2, stageWidth / 2, 
-                stageHeight / 2, stageHeight / -2, 
-                0.1, 1000 
-            );
-            camera.position.set(0, 0, 10); // Position camera above the scene
-            camera.lookAt(0, 0, 0); // Look at the center of the scene
 
-            // Renderer setup
-            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            // Camera setup (Orthographic for 2D top-down)
+            // MODIFICATION: Ensure camera is created or updated
+            if (!camera) {
+                camera = new THREE.OrthographicCamera(
+                    stageWidth / -2, stageWidth / 2, 
+                    stageHeight / 2, stageHeight / -2, 
+                    0.1, 1000 
+                );
+                camera.position.set(0, 0, 10); 
+                camera.lookAt(0, 0, 0);
+            } else { // Update existing camera for new dimensions
+                camera.left = stageWidth / -2;
+                camera.right = stageWidth / 2;
+                camera.top = stageHeight / 2;
+                camera.bottom = stageHeight / -2;
+                camera.updateProjectionMatrix();
+            }
+            
+
+            // Renderer setup (only if it doesn't exist)
+            if (!renderer) {
+                renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+                // Event Listeners for keyboard input (add once)
+                window.addEventListener('keydown', (event) => { keysPressed[event.key.toLowerCase()] = true; });
+                window.addEventListener('keyup', (event) => { keysPressed[event.key.toLowerCase()] = false; });
+                // Handle window resize (add once)
+                window.addEventListener('resize', onWindowResize, false);
+            }
             renderer.setSize(canvasWidth, canvasHeight);
-            // document.getElementById('gameContainer').appendChild(renderer.domElement); // Canvas is already in DOM
+
 
             // Create stage ground plane
             const groundGeometry = new THREE.PlaneGeometry(stageWidth, stageHeight);
-            const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x2d3748, side: THREE.DoubleSide }); // Tailwind gray-700
+            const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x2d3748, side: THREE.DoubleSide });
             stageMesh = new THREE.Mesh(groundGeometry, groundMaterial);
-            stageMesh.rotation.x = 0; // Keep it flat on XY plane
-            stageMesh.position.z = -0.1; // Slightly below other elements
+            stageMesh.rotation.x = 0; 
+            stageMesh.position.z = -0.1; 
             scene.add(stageMesh);
+            // gameElements.push(stageMesh); // Don't add to gameElements if handled separately in clearScene
 
             // Create game elements from parsed data
             parsedStage.elements.forEach(el => {
                 let geometry, material, mesh;
-                const elementSize = Math.min(stageWidth, stageHeight) * 0.05; // Relative size
+                const elementSize = Math.min(stageWidth, stageHeight) * 0.05; 
                 
                 geometry = new THREE.BoxGeometry(elementSize, elementSize, elementSize / 2);
 
                 if (el.type === 'Player') {
                     material = new THREE.MeshStandardMaterial({ color: 0x3b82f6 }); // Blue
                     player = new THREE.Mesh(geometry, material);
-                    player.position.set(el.x, el.y, 0.5); // Player slightly elevated
+                    player.position.set(el.x, el.y, 0.5); 
                     player.name = el.name || "Player";
                     scene.add(player);
                     gameElements.push(player);
                 } else if (el.type === 'Dynamic') {
-                    material = new THREE.MeshStandardMaterial({ color: 0x10b981 }); // Green (Fruit)
-                    if (el.name && el.name.toLowerCase().includes("gem")) {
-                         material = new THREE.MeshStandardMaterial({ color: 0xa855f7 }); // Purple (Gem)
+                    let itemColor = 0x10b981; // Default Green
+                    if (el.name) {
+                        if (el.name.toLowerCase().includes("gem")) itemColor = 0xa855f7; // Purple
+                        else if (el.name.toLowerCase().includes("potion")) itemColor = 0xf472b6; // Pink
+                        else if (el.name.toLowerCase().includes("scroll")) itemColor = 0xf59e0b; // Amber
                     }
+                    material = new THREE.MeshStandardMaterial({ color: itemColor });
                     mesh = new THREE.Mesh(geometry, material);
                     mesh.position.set(el.x, el.y, 0.4);
                     mesh.name = el.name || "Dynamic Object";
@@ -219,62 +325,47 @@
             });
             
             if (!player) {
-                updateMessage("Error: Player not defined in stage data!");
+                updateMessage("Error: Player not defined in stage data! Creating default.");
                 console.error("Player not found in stage elements. Make sure a 'P' element is defined.");
-                // Create a default player if none is defined to prevent errors
                 const defaultPlayerGeom = new THREE.BoxGeometry(0.5, 0.5, 0.25);
                 const defaultPlayerMat = new THREE.MeshStandardMaterial({ color: 0x3b82f6 });
                 player = new THREE.Mesh(defaultPlayerGeom, defaultPlayerMat);
                 player.position.set(0,0,0.5);
                 scene.add(player);
-                updateMessage("Warning: Player not defined. Using default player at (0,0).");
+                gameElements.push(player); // Add to gameElements for cleanup
             }
-
-
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(5, 10, 7.5);
-            scene.add(directionalLight);
-
-            // Event Listeners for keyboard input
-            window.addEventListener('keydown', (event) => { keysPressed[event.key.toLowerCase()] = true; });
-            window.addEventListener('keyup', (event) => { keysPressed[event.key.toLowerCase()] = false; });
-            
-            // Handle window resize
-            window.addEventListener('resize', onWindowResize, false);
-
-            // Start the game loop
-            animate();
+            gameActive = true; // Resume game logic
         }
 
+        // --- Initial Setup ---
+        function initializeGame() {
+            loadStage(generateStageDefinition(currentStageLevel)); // Load the first stage
+            animate(); // Start the game loop only once
+        }
+
+
         // --- 3. Game Loop & Logic ---
+        let animationFrameId = null; // MODIFICATION: To control animation loop
         function animate() {
-            requestAnimationFrame(animate);
-            updateGameLogic();
-            renderer.render(scene, camera);
+            animationFrameId = requestAnimationFrame(animate); // Store the ID
+            if (gameActive) { // MODIFICATION: Only update if game is active
+                updateGameLogic();
+            }
+            if (renderer && scene && camera) { // Ensure they exist
+                 renderer.render(scene, camera);
+            }
         }
 
         function updateGameLogic() {
-            if (!player) return;
+            if (!player || !gameActive) return;
 
             const moveDirection = { x: 0, y: 0 };
 
-            if (keysPressed['arrowup'] || keysPressed['w']) {
-                moveDirection.y += 1;
-            }
-            if (keysPressed['arrowdown'] || keysPressed['s']) {
-                moveDirection.y -= 1;
-            }
-            if (keysPressed['arrowleft'] || keysPressed['a']) {
-                moveDirection.x -= 1;
-            }
-            if (keysPressed['arrowright'] || keysPressed['d']) {
-                moveDirection.x += 1;
-            }
+            if (keysPressed['arrowup'] || keysPressed['w']) moveDirection.y += 1;
+            if (keysPressed['arrowdown'] || keysPressed['s']) moveDirection.y -= 1;
+            if (keysPressed['arrowleft'] || keysPressed['a']) moveDirection.x -= 1;
+            if (keysPressed['arrowright'] || keysPressed['d']) moveDirection.x += 1;
 
-            // Normalize diagonal movement (optional, but good practice)
             if (moveDirection.x !== 0 && moveDirection.y !== 0) {
                 const length = Math.sqrt(moveDirection.x**2 + moveDirection.y**2);
                 moveDirection.x /= length;
@@ -284,36 +375,49 @@
             player.position.x += moveDirection.x * playerSpeed;
             player.position.y += moveDirection.y * playerSpeed;
 
-            // Boundary checks
             const halfWidth = stageWidth / 2;
             const halfHeight = stageHeight / 2;
-            const playerSizeOffset = (player.geometry.parameters.width || 0.5) / 2; // approximation
+            const playerSizeOffset = (player.geometry.parameters.width || 0.5) / 2;
 
             player.position.x = Math.max(-halfWidth + playerSizeOffset, Math.min(player.position.x, halfWidth - playerSizeOffset));
             player.position.y = Math.max(-halfHeight + playerSizeOffset, Math.min(player.position.y, halfHeight - playerSizeOffset));
         
-            // Check for interactions (basic example: logging to message box)
-            dynamicObjects.forEach(obj => {
-                if (player.position.distanceTo(obj.position) < (playerSizeOffset + (obj.geometry.parameters.width || 0.5)/2)) {
-                    if (!obj.isCollected) { // Simple flag to prevent repeated messages
-                        updateMessage(`Player reached ${obj.name}!`);
-                        // obj.visible = false; // Example: collect item
-                        // obj.isCollected = true; 
+            // Check for interactions
+            dynamicObjects.forEach((obj, index) => { // MODIFICATION: Get index for removal
+                if (obj.visible && player.position.distanceTo(obj.position) < (playerSizeOffset + (obj.geometry.parameters.width || 0.5)/2)) {
+                    if (!obj.isCollected) { 
+                        updateMessage(`Player collected ${obj.name}!`);
+                        obj.visible = false; // Example: collect item
+                        obj.isCollected = true; 
+                        // Optional: Remove from dynamicObjects array to stop checking it
+                        // dynamicObjects.splice(index, 1); // Be careful with modifying array while iterating
+                                                            // A safer way is to filter or mark for removal
                     }
-                } else {
-                    obj.isCollected = false; // Reset if player moves away
                 }
             });
+            // Filter out collected objects more safely after iteration
+            // dynamicObjects = dynamicObjects.filter(obj => !obj.isCollected);
+
 
             const exitObject = gameElements.find(el => el.name === "Exit");
             if (exitObject && player.position.distanceTo(exitObject.position) < (playerSizeOffset + (exitObject.geometry.parameters.width || 0.5)/2)) {
-                 if (!exitObject.isReached) {
-                    updateMessage(`Player reached the Exit!`);
-                    // exitObject.isReached = true;
-                    // Potentially load next stage here
-                 }
+                if (!exitObject.isReachedThisFrame) { // Prevent multiple triggers per frame
+                    exitObject.isReachedThisFrame = true; // Mark as reached for this frame
+                    updateMessage(`Player reached the Exit! Loading next stage...`);
+                    gameActive = false; // Pause game
+                    
+                    // MODIFICATION: Advance stage
+                    currentStageLevel++;
+                    setTimeout(() => { // Give a small delay for the message to be seen
+                        loadStage(generateStageDefinition(currentStageLevel));
+                        gameActive = true; // Resume game
+                         // Reset the flag for the new exit object
+                        const newExit = gameElements.find(el => el.name === "Exit");
+                        if (newExit) newExit.isReachedThisFrame = false;
+                    }, 1000); // 1 second delay
+                }
             } else if (exitObject) {
-                // exitObject.isReached = false;
+                 exitObject.isReachedThisFrame = false; // Reset if player moves away
             }
         }
         
@@ -323,6 +427,8 @@
         }
 
         function onWindowResize() {
+            if (!renderer || !camera || !stageWidth || !stageHeight) return; // MODIFICATION: guard
+            
             const aspect = stageWidth / stageHeight;
             const container = document.getElementById('gameContainer');
             const canvas = document.getElementById('gameCanvas');
@@ -343,17 +449,16 @@
             camera.updateProjectionMatrix();
 
             renderer.setSize(newCanvasWidth, newCanvasHeight);
+            // Update canvas style to ensure it scales correctly visually
             canvas.style.width = newCanvasWidth + 'px';
             canvas.style.height = newCanvasHeight + 'px';
         }
 
-
         // --- Start the engine ---
-        // Wait for the DOM to be fully loaded before initializing
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
+            document.addEventListener('DOMContentLoaded', initializeGame); // MODIFICATION: Call initializeGame
         } else {
-            init();
+            initializeGame(); // MODIFICATION: Call initializeGame
         }
 
     </script>
