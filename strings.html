@@ -130,14 +130,14 @@
 
             // Path 1: Straight Line (slightly elevated)
             paths.line = new THREE.LineCurve3(
-                new THREE.Vector3(-120, 8, 0), 
-                new THREE.Vector3(120, 8, 0)
+                new THREE.Vector3(120, 8, 0), 
+                new THREE.Vector3(-120, 8, 0)
             );
 
             // Path 2: Sine Wave
             const sinePoints = [];
             for (let i = 0; i <= 400; i++) { // More points for smoother curve
-                const x = -10 + i * 0.05;
+                const x = 10 - i * 0.05;
                 const y = Math.sin(i * 0.05) * 5.0; // Increased amplitude
                 sinePoints.push(new THREE.Vector3(x, y, -2)); // Shifted in Z
             }
