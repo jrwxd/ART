@@ -356,68 +356,112 @@
             }
         }
 
+        // --- Player Physics State ---
+        let velocity = { x: 0, y: 0 };
+        const friction = 0.92; // 0 < friction < 1, lower = more friction
+        const accelScale = 0.012; // Acceleration per degree of tilt
+        const staticFrictionThreshold = 8; // Degrees tilt needed to start moving
+
+        let zeroOrientation = { beta: 0, gamma: 0 }; // The "rest" orientation
+
+        // --- Double Tap to Reset Zero Orientation ---
+        let lastTapTime = 0;
+        window.addEventListener('touchend', function(e) {
+            const now = Date.now();
+            if (now - lastTapTime < 350) {
+                // Double tap detected
+                if (window.lastDeviceOrientation) {
+                    zeroOrientation.beta = window.lastDeviceOrientation.beta || 0;
+                    zeroOrientation.gamma = window.lastDeviceOrientation.gamma || 0;
+                    updateMessage("Orientation zeroed!");
+                }
+            }
+            lastTapTime = now;
+        });
+
+        // --- Gyroscope Controls for Mobile ---
+        window.lastDeviceOrientation = { beta: 0, gamma: 0 };
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', function(event) {
+                // Save for double-tap zeroing
+                window.lastDeviceOrientation = { beta: event.beta, gamma: event.gamma };
+                // No direct movement here; handled in updateGameLogic
+            });
+        }
+
+        // --- Override updateGameLogic for velocity/friction physics ---
         function updateGameLogic() {
             if (!player || !gameActive) return;
 
-            const moveDirection = { x: 0, y: 0 };
+            // Calculate tilt relative to zero orientation
+            const beta = (window.lastDeviceOrientation.beta || 0) - zeroOrientation.beta;   // front-back
+            const gamma = (window.lastDeviceOrientation.gamma || 0) - zeroOrientation.gamma; // left-right
 
-            if (keysPressed['arrowup'] || keysPressed['w']) moveDirection.y += 1;
-            if (keysPressed['arrowdown'] || keysPressed['s']) moveDirection.y -= 1;
-            if (keysPressed['arrowleft'] || keysPressed['a']) moveDirection.x -= 1;
-            if (keysPressed['arrowright'] || keysPressed['d']) moveDirection.x += 1;
-
-            if (moveDirection.x !== 0 && moveDirection.y !== 0) {
-                const length = Math.sqrt(moveDirection.x**2 + moveDirection.y**2);
-                moveDirection.x /= length;
-                moveDirection.y /= length;
+            // Calculate acceleration if tilt exceeds static friction
+            let ax = 0, ay = 0;
+            if (Math.abs(gamma) > staticFrictionThreshold) {
+                ax = accelScale * (gamma > 0 ? 1 : -1) * (Math.abs(gamma) - staticFrictionThreshold);
             }
-            
-            player.position.x += moveDirection.x * playerSpeed;
-            player.position.y += moveDirection.y * playerSpeed;
+            if (Math.abs(beta) > staticFrictionThreshold) {
+                ay = accelScale * (beta > 0 ? 1 : -1) * (Math.abs(beta) - staticFrictionThreshold);
+            }
 
+            // Apply acceleration
+            velocity.x += ax;
+            velocity.y += ay;
+
+            // Apply friction
+            velocity.x *= friction;
+            velocity.y *= friction;
+
+            // Clamp very small velocities to zero (simulate static friction)
+            if (Math.abs(velocity.x) < 0.001) velocity.x = 0;
+            if (Math.abs(velocity.y) < 0.001) velocity.y = 0;
+
+            // Keyboard fallback (optional: add to velocity)
+            if (keysPressed['arrowup'] || keysPressed['w']) velocity.y += accelScale * 2;
+            if (keysPressed['arrowdown'] || keysPressed['s']) velocity.y -= accelScale * 2;
+            if (keysPressed['arrowleft'] || keysPressed['a']) velocity.x -= accelScale * 2;
+            if (keysPressed['arrowright'] || keysPressed['d']) velocity.x += accelScale * 2;
+
+            // Move player
+            player.position.x += velocity.x;
+            player.position.y += velocity.y;
+
+            // Clamp to stage bounds
             const halfWidth = stageWidth / 2;
             const halfHeight = stageHeight / 2;
             const playerSizeOffset = (player.geometry.parameters.width || 0.5) / 2;
-
             player.position.x = Math.max(-halfWidth + playerSizeOffset, Math.min(player.position.x, halfWidth - playerSizeOffset));
             player.position.y = Math.max(-halfHeight + playerSizeOffset, Math.min(player.position.y, halfHeight - playerSizeOffset));
-        
-            // Check for interactions
-            dynamicObjects.forEach((obj, index) => { // MODIFICATION: Get index for removal
+
+            // --- Existing interaction logic (collect items, exit, etc.) ---
+            dynamicObjects.forEach((obj, index) => {
                 if (obj.visible && player.position.distanceTo(obj.position) < (playerSizeOffset + (obj.geometry.parameters.width || 0.5)/2)) {
                     if (!obj.isCollected) { 
                         updateMessage(`Player collected ${obj.name}!`);
-                        obj.visible = false; // Example: collect item
+                        obj.visible = false;
                         obj.isCollected = true; 
-                        // Optional: Remove from dynamicObjects array to stop checking it
-                        // dynamicObjects.splice(index, 1); // Be careful with modifying array while iterating
-                                                            // A safer way is to filter or mark for removal
                     }
                 }
             });
-            // Filter out collected objects more safely after iteration
-            // dynamicObjects = dynamicObjects.filter(obj => !obj.isCollected);
-
 
             const exitObject = gameElements.find(el => el.name === "Exit");
             if (exitObject && player.position.distanceTo(exitObject.position) < (playerSizeOffset + (exitObject.geometry.parameters.width || 0.5)/2)) {
-                if (!exitObject.isReachedThisFrame) { // Prevent multiple triggers per frame
-                    exitObject.isReachedThisFrame = true; // Mark as reached for this frame
+                if (!exitObject.isReachedThisFrame) {
+                    exitObject.isReachedThisFrame = true;
                     updateMessage(`Player reached the Exit! Loading next stage...`);
-                    gameActive = false; // Pause game
-                    
-                    // MODIFICATION: Advance stage
+                    gameActive = false;
                     currentStageLevel++;
-                    setTimeout(() => { // Give a small delay for the message to be seen
+                    setTimeout(() => {
                         loadStage(generateStageDefinition(currentStageLevel));
-                        gameActive = true; // Resume game
-                         // Reset the flag for the new exit object
+                        gameActive = true;
                         const newExit = gameElements.find(el => el.name === "Exit");
                         if (newExit) newExit.isReachedThisFrame = false;
-                    }, 1000); // 1 second delay
+                    }, 1000);
                 }
             } else if (exitObject) {
-                 exitObject.isReachedThisFrame = false; // Reset if player moves away
+                exitObject.isReachedThisFrame = false;
             }
         }
         
