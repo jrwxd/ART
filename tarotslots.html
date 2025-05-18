@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystic Tarot Slots</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel+Decorative:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body {
+            font-family: 'MedievalSharp', cursive;
+            background-color: #0f0b1a; 
+            color: #e2d8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            overflow-x: hidden;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236942a3' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .slot-machine-container {
+            background: linear-gradient(145deg, #2d243b, #1a1025);
+            border: 10px solid #4a3968;
+            border-image: linear-gradient(to bottom right, #b68fd8, #8a4bdb, #6a0dad) 1;
+            border-radius: 25px;
+            padding: 1.5rem 2rem; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4), 0 0 40px rgba(106,13,173,0.2) inset, 0 0 15px rgba(142, 68, 173, 0.3); 
+            text-align: center;
+            width: 100%;
+            max-width: 700px; 
+            transition: box-shadow 0.3s ease-in-out, border-image 0.3s ease-in-out;
+        }
+
+        @keyframes arcaneGlow { 
+            0%, 100% {
+                border-image: linear-gradient(45deg, #b68fd8, #8a4bdb, #6a0dad, #9932cc) 1;
+                box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 70px rgba(106,13,173,0.9) inset, 0 0 40px rgba(142, 68, 173, 0.8);
+            }
+            50% {
+                border-image: linear-gradient(45deg, #9932cc, #6a0dad, #8a4bdb, #b68fd8) 1; 
+                box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 100px rgba(106,13,173,1) inset, 0 0 60px rgba(142, 68, 173, 1); 
+            }
+        }
+        .slot-machine-container.big-win-celebration {
+            animation: arcaneGlow 0.8s ease-in-out infinite alternate; 
+        }
+
+        .reels-area {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            background-color: #0a0612; 
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 6px solid #614785;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.3) inset;
+        }
+        .reel-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 5px; 
+        }
+        .reel-cell {
+            width: 70px;
+            height: 95px;
+            background-color: #1e102d; 
+            border: 4px solid #7850a9;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem; 
+            line-height: 1; 
+            color: #d5c5f0; 
+            overflow: hidden;
+            margin-bottom: 5px;
+            transition: transform 0.15s ease-out, background-color 0.2s, box-shadow 0.2s;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .reel-cell-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .tarot-icon {
+            font-size: 2rem;
+            margin-bottom: 2px;
+        }
+        .tarot-name {
+            font-size: 0.5rem;
+            font-family: 'Cinzel Decorative', cursive;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+        .reel-cell:last-child {
+            margin-bottom: 0;
+        }
+        /* CSS animation for cell tumbling effect, JS will handle content changes */
+        .reel-cell.spinning-effect { 
+            animation: spinAnimation 0.05s linear infinite; 
+        }
+        .reel-cell.winning {
+            background-color: #4b0082; 
+            color: #f8e3ff; 
+            border-color: #9370db;
+            transform: scale(1.15);
+            box-shadow: 0 0 20px #8a2be2, 0 0 30px #9932cc inset;
+            animation: winningCellPulse 0.6s infinite alternate;
+        }
+        @keyframes spinAnimation { /* Only visual tumbling, not content change */
+            0% { transform: translateY(-8px) rotateX(10deg); opacity: 0.7; }
+            50% { transform: translateY(8px) rotateX(-10deg); opacity: 1; }
+            100% { transform: translateY(-8px) rotateX(10deg); opacity: 0.7; }
+        }
+        @keyframes winningCellPulse {
+            from { transform: scale(1.1); box-shadow: 0 0 15px #8a2be2, 0 0 25px #9932cc inset; }
+            to { transform: scale(1.2); box-shadow: 0 0 25px #9932cc, 0 0 35px #ba55d3 inset; }
+        }
+        .bet-selection-area {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem; 
+        }
+        .bet-button {
+            background: linear-gradient(145deg, #673ab7, #512da8); 
+            color: #e6d8fc;
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 0.8rem;
+            padding: 0.5rem 0.75rem;
+            border: 2px solid #9575cd;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 3px #4527a0;
+            transition: all 0.1s ease-in-out;
+        }
+        .bet-button:hover {
+            background: linear-gradient(145deg, #7e57c2, #673ab7);
+            box-shadow: 0 2px #4527a0;
+            transform: translateY(1px);
+        }
+        .bet-button.active {
+            background: linear-gradient(145deg, #5e35b1, #4527a0);
+            color: #fff;
+            box-shadow: 0 1px #311b92;
+            transform: translateY(2px);
+            border-color: #7c4dff;
+        }
+
+        .controls-container {
+            margin-top: 1rem; 
+        }
+        .spin-button {
+            background: linear-gradient(145deg, #9c27b0, #7b1fa2); 
+            color: #f3e5f5;
+            font-family: 'Cinzel Decorative', cursive;
+            font-weight: bold;
+            font-size: 1.4rem; 
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 6px #6a1b9a, 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .spin-button:hover {
+            background: linear-gradient(145deg, #ab47bc, #8e24aa);
+            box-shadow: 0 4px #6a1b9a, 0 8px 16px rgba(0,0,0,0.25);
+        }
+        .spin-button:active {
+            background: linear-gradient(145deg, #8e24aa, #6a1b9a);
+            box-shadow: 0 2px #4a148c, 0 5px 10px rgba(0,0,0,0.2);
+        }
+        .spin-button:disabled {
+            background: #6b7280; 
+            color: #374151;
+            box-shadow: 0 6px #4b5563;
+        }
+        .info-display {
+            margin-top: 2rem; 
+            font-size: 1.1rem;
+            background-color: #261733; 
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.25) inset;
+        }
+        .balance-display, .message-display {
+            margin-bottom: 0.75rem;
+        }
+        .balance-amount {
+            color: #bb86fc; 
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #4d237a;
+        }
+        .message-text {
+            color: #03dac6; 
+            min-height: 28px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px #018786;
+        }
+        .message-text.error {
+            color: #cf6679; 
+            text-shadow: 1px 1px 1px #b00020;
+        }
+        .title {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 2.2rem; 
+            margin-bottom: 1.5rem; 
+            color: #bb86fc;
+            text-shadow: 3px 3px #4a148c, 5px 5px #12005e; 
+            font-weight: 900;
+        }
+        
+        .tarot-legends {
+            margin-top: 1.5rem;
+            background-color: #261733;
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+        .legend-title {
+            font-family: 'Cinzel Decorative', cursive;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #bb86fc;
+        }
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-icon {
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 640px) {
+            .slot-machine-container { padding: 1rem; max-width: 100%; }
+            .reels-area { padding: 0.75rem; }
+            .reel-column { margin: 0 2px; }
+            .reel-cell {
+                width: calc((100vw - 70px) / 5); 
+                height: calc((100vw - 70px) / 4);
+                font-size: 1.5rem; 
+            }
+            .tarot-icon {
+                font-size: 1.2rem;
+            }
+            .tarot-name {
+                font-size: 0.4rem;
+            }
+            .title { font-size: 1.5rem; margin-bottom: 1.2rem;}
+            .spin-button { font-size: 1.2rem; padding: 0.75rem 1.5rem; }
+            .bet-button { font-size: 0.7rem; padding: 0.4rem 0.6rem; }
+            .info-display { font-size: 0.9rem; }
+            .message-text { font-size: 0.8rem; }
+        }
+         @media (max-width: 400px) {
+            .tarot-icon { font-size: 1rem; }
+            .tarot-name { font-size: 0.35rem; }
+            .title { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="slot-machine-container" id="slotMachineContainer">
+        <h1 class="title">Mystic Tarot Slots</h1>
+
+        <div class="bet-selection-area" id="betSelectionArea">
+            </div>
+
+        <div class="reels-area" id="reelsArea">
+            </div>
+
+        <div class="controls-container">
+            <button id="spinButton" class="spin-button">Divine Fate</button>
+        </div>
+
+        <div class="info-display">
+            <div class="balance-display">Arcane Power: <span id="balanceAmount" class="balance-amount">1000.00</span></div>
+            <div class="message-display">Mystical Guidance: <span id="messageText" class="message-text">The cards await your destiny...</span></div>
+        </div>
+        
+        <div class="tarot-legends">
+            <div class="legend-title">Mystical Cards Guide</div>
+            <div class="legend-grid" id="legendGrid">
+                <!-- Will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Configuration ---
+        const tarotCards = [
+            { symbol: '⭐', name: 'Star', payouts: { 5: 300, 4: 100, 3: 2.5 } },
+            { symbol: '🌙', name: 'Moon', payouts: { 5: 250, 4: 80, 3: 2 } },
+            { symbol: '☀️', name: 'Sun', payouts: { 5: 1000, 4: 300, 3: 8 } },
+            { symbol: '⚡', name: 'Tower', payouts: { 5: 500, 4: 150, 3: 4 } },
+            { symbol: '🔮', name: 'Crystal', payouts: { 5: 200, 4: 70, 3: 1.5 } },
+            { symbol: '🗡️', name: 'Sword', payouts: { 5: 600, 4: 200, 3: 5 } },
+            { symbol: '🏆', name: 'Chalice', payouts: { 5: 150, 4: 50, 3: 1.2 } },
+            { symbol: '👑', name: 'Emperor', payouts: { 5: 800, 4: 250, 3: 6 } },
+            { symbol: '👸', name: 'Empress', payouts: { 5: 800, 4: 250, 3: 6 } },
+            { symbol: '🧙', name: 'Magician', payouts: { 5: 1500, 4: 400, 3: 10 } },
+            { symbol: '🦉', name: 'High Priestess', payouts: { 5: 1500, 4: 400, 3: 10 } },
+            { symbol: '💀', name: 'Death', payouts: { 5: 2000, 4: 500, 3: 15 } },
+            { symbol: '🃏', name: 'Fool', payouts: { 5: 2500, 4: 600, 3: 20 } }
+        ];
+        
+        const baseSpinCost = 10; 
+        const initialBalance = 1000;
+        const NUM_REELS = 5;
+        const NUM_ROWS = 3;
+        const betMultiplierOptions = [
+            { label: '0.25x', value: 0.25 }, 
+            { label: '0.5x', value: 0.5 },   
+            { label: '1x', value: 1.0 },
+            { label: '2x', value: 2.0 }     
+        ];
+
+        // Create payouts lookup object
+        const payouts = {};
+        tarotCards.forEach(card => {
+            payouts[card.symbol] = card.payouts;
+        });
+        
+        // Create ordered arrays of symbols for virtual reel strips with weighted distribution
+        const createVirtualReelStrip = (reelNumber) => {
+            const strip = [];
+            
+            // Distribute symbols based on reel position (first reels have more common symbols, last reels fewer rare symbols)
+            tarotCards.forEach(card => {
+                let frequency;
+                const symbolValue = Math.max(...Object.values(card.payouts));
+                
+                if (symbolValue >= 1500) { // Rare symbols
+                    frequency = Math.max(1, 8 - reelNumber * 1.5); // Fewer on later reels
+                } else if (symbolValue >= 800) { // Medium-rare symbols
+                    frequency = Math.max(2, 10 - reelNumber); 
+                } else if (symbolValue >= 500) { // Medium symbols
+                    frequency = Math.max(3, 12 - reelNumber);
+                } else { // Common symbols
+                    frequency = Math.max(4, 15 - reelNumber * 0.8);
+                }
+                
+                // Add the symbol to the strip the calculated number of times
+                for (let i = 0; i < Math.floor(frequency); i++) {
+                    strip.push(card.symbol);
+                }
+            });
+            
+            // Shuffle the strip for randomness
+            return strip.sort(() => Math.random() - 0.5);
+        };
+        
+        const virtualReelStrips = [
+            createVirtualReelStrip(0),
+            createVirtualReelStrip(1),
+            createVirtualReelStrip(2),
+            createVirtualReelStrip(3),
+            createVirtualReelStrip(4)
+        ];
+
+        const paylines = [
+            Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 0 })), 
+            Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 1 })), 
+            Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 2 })), 
+            [{col:0,row:0}, {col:1,row:1}, {col:2,row:2}, {col:3,row:1}, {col:4,row:0}], 
+            [{col:0,row:2}, {col:1,row:1}, {col:2,row:0}, {col:3,row:1}, {col:4,row:2}],
+            [{col:0,row:0}, {col:1,row:0}, {col:2,row:1}, {col:3,row:2}, {col:4,row:2}], 
+            [{col:0,row:2}, {col:1,row:2}, {col:2,row:1}, {col:3,row:0}, {col:4,row:0}], 
+            [{col:0,row:1}, {col:1,row:0}, {col:2,row:0}, {col:3,row:0}, {col:4,row:1}],
+            [{col:0,row:1}, {col:1,row:2}, {col:2,row:2}, {col:3,row:2}, {col:4,row:1}]
+        ];
+
+        // --- DOM Elements ---
+        const slotMachineContainer = document.getElementById('slotMachineContainer');
+        const reelsArea = document.getElementById('reelsArea');
+        const spinButton = document.getElementById('spinButton');
+        const balanceAmountDisplay = document.getElementById('balanceAmount');
+        const messageTextDisplay = document.getElementById('messageText');
+        const betSelectionArea = document.getElementById('betSelectionArea');
+        const legendGrid = document.getElementById('legendGrid');
+        const reelCells = []; 
+
+        // --- Game State ---
+        let currentBalance = initialBalance;
+        let isSpinning = false;
+        let predeterminedOutcome = []; // Stores the final 5x3 grid
+        let currentBetMultiplier = 1.0; 
+        let reelVisualSpinIndices = [0, 0, 0, 0, 0]; // Tracks visual index for each reel strip
+        let reelsCurrentlyAnimating = [false, false, false, false, false]; // Tracks which reels are visually spinning
+        let animationFrameId = null; // For managing the requestAnimationFrame loop
+        const VISUAL_SPIN_SPEED_FACTOR = 2; // Higher is faster visual symbol cycling
+
+        // --- Tone.js Sound Synthesizers ---
+        let spinSound, reelStopSound, smallWinSound, mediumWinSound, bigWinSound, noBalanceSound, clickSound;
+        let soundsInitialized = false;
+
+        function initializeSounds() {
+            if (soundsInitialized) return;
+            Tone.start().then(() => {
+                console.log("Audio context started by user gesture.");
+                spinSound = new Tone.NoiseSynth({ 
+                    noise: { type: 'pink' }, 
+                    envelope: { attack: 0.005, decay: 0.2, sustain: 0.1, release: 0.3 } 
+                }).toDestination();
+                spinSound.volume.value = -15;
+                
+                reelStopSound = new Tone.MetalSynth({ 
+                    frequency: 200,
+                    envelope: { attack: 0.001, decay: 0.1, release: 0.2 },
+                    harmonicity: 5.1,
+                    modulationIndex: 32,
+                    resonance: 3000,
+                    octaves: 1.5
+                }).toDestination();
+                reelStopSound.volume.value = -15;
+                
+                smallWinSound = new Tone.Synth({
+                    oscillator: { type: 'triangle' },
+                    envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.5 }
+                }).toDestination();
+                smallWinSound.volume.value = -10;
+                
+                mediumWinSound = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.01, decay: 0.3, sustain: 0.3, release: 0.7 }
+                }).toDestination();
+                mediumWinSound.volume.value = -8;
+                
+                bigWinSound = new Tone.PolySynth(Tone.FMSynth, {
+                    harmonicity: 3,
+                    modulationIndex: 10,
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.01, decay: 0.2, sustain: 0.5, release: 1 },
+                    modulation: { type: 'triangle' },
+                    modulationEnvelope: { attack: 0.5, decay: 0.5, sustain: 0.7, release: 1 }
+                }).toDestination();
+                bigWinSound.volume.value = -5;
+                
+                noBalanceSound = new Tone.Synth({ 
+                    oscillator: { type: 'square' }, 
+                    envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.1 } 
+                }).toDestination();
+                noBalanceSound.volume.value = -10;
+                
+                clickSound = new Tone.Synth({ 
+                    oscillator: { type: 'sine' }, 
+                    envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.1 } 
+                }).toDestination();
+                clickSound.volume.value = -15;
+                
+                soundsInitialized = true;
+            }).catch(e => console.error("Error starting Tone.js audio context:", e));
+        }
+        
+        function createBetButtons() {
+            betSelectionArea.innerHTML = ''; 
+            betMultiplierOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.classList.add('bet-button');
+                button.textContent = option.label;
+                button.dataset.multiplier = option.value;
+                if (option.value === currentBetMultiplier) button.classList.add('active');
+                button.addEventListener('click', () => {
+                    if (!soundsInitialized) initializeSounds(); 
+                    if (soundsInitialized && clickSound) clickSound.triggerAttackRelease('E5', '32n');
+                    currentBetMultiplier = parseFloat(option.value);
+                    updateSpinButtonText();
+                    document.querySelectorAll('.bet-button').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                });
+                betSelectionArea.appendChild(button);
+            });
+        }
+
+        function updateSpinButtonText() {
+            const cost = baseSpinCost * currentBetMultiplier;
+            spinButton.textContent = `Divine Fate (${cost.toFixed(2)})`;
+        }
+
+        function createLegend() {
+            legendGrid.innerHTML = '';
+            tarotCards.forEach(card => {
+                const item = document.createElement('div');
+                item.classList.add('legend-item');
+                
+                const icon = document.createElement('span');
+                icon.classList.add('legend-icon');
+                icon.textContent = card.symbol;
+                
+                const name = document.createElement('span');
+                name.textContent = card.name;
+                
+                item.appendChild(icon);
+                item.appendChild(name);
+                legendGrid.appendChild(item);
+            });
+        }
+
+        function createReelGrid() {
+            reelsArea.innerHTML = ''; 
+            for (let col = 0; col < NUM_REELS; col++) {
+                const columnDiv = document.createElement('div');
+                columnDiv.classList.add('reel-column');
+                reelCells[col] = [];
+                for (let row = 0; row < NUM_ROWS; row++) {
+                    const cellDiv = document.createElement('div');
+                    cellDiv.classList.add('reel-cell');
+                    cellDiv.id = `cell-${col}-${row}`;
+                    
+                    // Create content container for better layout control
+                    const cellContent = document.createElement('div');
+                    cellContent.classList.add('reel-cell-content');
+                    
+                    // Separate elements for icon and name
+                    const iconElement = document.createElement('div');
+                    iconElement.classList.add('tarot-icon');
+                    
+                    const nameElement = document.createElement('div');
+                    nameElement.classList.add('tarot-name');
+                    
+                    cellContent.appendChild(iconElement);
+                    cellContent.appendChild(nameElement);
+                    cellDiv.appendChild(cellContent);
+                    columnDiv.appendChild(cellDiv);
+                    reelCells[col][row] = cellDiv;
+                }
+                reelsArea.appendChild(columnDiv);
+            }
+        }
+        
+        // Sets the visual display of the reels based on a given 5x3 symbol grid
+        function setReelDisplay(symbolGrid) {
+            for (let col = 0; col < NUM_REELS; col++) {
+                for (let row = 0; row < NUM_ROWS; row++) {
+                    if (reelCells[col] && reelCells[col][row] && symbolGrid[col] && symbolGrid[col][row]) {
+                        const cell = reelCells[col][row];
+                        const symbol = symbolGrid[col][row];
+                        const card = tarotCards.find(c => c.symbol === symbol);
+                        
+                        // Set the icon and name in the appropriate elements
+                        const iconElement = cell.querySelector('.tarot-icon');
+                        const nameElement = cell.querySelector('.tarot-name');
+                        
+                        if (iconElement && nameElement && card) {
+                            iconElement.textContent = card.symbol;
+                            nameElement.textContent = card.name;
+                        }
+                    }
+                }
+            }
+        }
+
+        function initializeGame() {
+            createReelGrid(); 
+            createLegend();
+            predeterminedOutcome = generateOutcomeFromVirtualReels(); // Generate initial outcome
+            setReelDisplay(predeterminedOutcome); // Display initial outcome
+            createBetButtons(); 
+            updateBalanceDisplay();
+            updateSpinButtonText(); 
+            spinButton.addEventListener('click', () => {
+                 if (!soundsInitialized) initializeSounds(); 
+                handleSpin();
+            });
+        }
+        
+        // Generates the 5x3 grid outcome by sampling from virtual reel strips
+        function generateOutcomeFromVirtualReels() {
+            const newGrid = [];
+            for (let col = 0; col < NUM_REELS; col++) {
+                newGrid[col] = [];
+                const currentReelStrip = virtualReelStrips[col];
+                const stripLength = currentReelStrip.length;
+                const startIndex = Math.floor(Math.random() * stripLength); // This is the "landing" position
+                
+                for (let row = 0; row 
