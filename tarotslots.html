@@ -19,9 +19,8 @@
             margin: 0;
             padding: 1rem;
             overflow-x: hidden;
-            /* Animated gradient background */
             background: linear-gradient(45deg, #0f0b1a, #1a1025, #2d1a3b, #3b1f4a, #2d1a3b, #1a1025);
-            background-size: 600% 600%; /* Increased size for slower, smoother animation */
+            background-size: 600% 600%;
             animation: gradientBG 35s ease infinite;
         }
 
@@ -42,25 +41,25 @@
             width: 100%;
             max-width: 700px;
             transition: box-shadow 0.3s ease-in-out, border-image 0.3s ease-in-out;
-            position: relative; /* For particle positioning */
+            position: relative;
         }
 
         @keyframes arcaneGlow {
             0%, 100% {
                 border-image: linear-gradient(45deg, #e7c6ff, #ad70f0, #8a2be2, #c06eff) 1;
                 box-shadow: 0 15px 35px rgba(0,0,0,0.6),
-                            0 0 80px rgba(148,0,211,0.9) inset, /* Deeper purple glow */
-                            0 0 50px rgba(186,85,211,0.8), /* Orchid */
-                            0 0 10px rgba(255,255,255,0.5); /* Softer white hot center */
+                            0 0 80px rgba(148,0,211,0.9) inset,
+                            0 0 50px rgba(186,85,211,0.8),
+                            0 0 10px rgba(255,255,255,0.5);
                 transform: scale(1.005);
             }
             50% {
                 border-image: linear-gradient(45deg, #c06eff, #8a2be2, #ad70f0, #e7c6ff) 1;
                 box-shadow: 0 20px 45px rgba(0,0,0,0.8),
-                            0 0 120px rgba(148,0,211,1) inset, /* More intense */
+                            0 0 120px rgba(148,0,211,1) inset,
                             0 0 70px rgba(186,85,211,1),
                             0 0 15px rgba(255,255,255,0.7);
-                transform: scale(1.015); /* Slightly more pronounced pulse */
+                transform: scale(1.015);
             }
         }
 
@@ -77,6 +76,7 @@
             border-radius: 15px;
             border: 6px solid #614785;
             box-shadow: 0 8px 15px rgba(0,0,0,0.3) inset;
+            overflow: hidden; /* Important for the visual effect of symbols scrolling */
         }
 
         .reel-column {
@@ -98,9 +98,9 @@
             font-size: 2.5rem;
             line-height: 1;
             color: #d5c5f0;
-            overflow: hidden;
+            overflow: hidden; /* Crucial for individual cell symbol appearance */
             margin-bottom: 5px;
-            transition: transform 0.15s ease-out, background-color 0.2s, box-shadow 0.2s, filter 0.2s;
+            transition: background-color 0.2s, box-shadow 0.2s, filter 0.2s, transform 0.1s ease-out; /* Keep transform for winning pulse */
             text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
             position: relative;
         }
@@ -111,15 +111,17 @@
             align-items: center;
             justify-content: center;
             text-align: center;
+            width: 100%; /* Ensure content fills cell */
+            height: 100%;
         }
 
         .tarot-icon {
-            font-size: 2rem; /* Slightly larger for better visibility */
+            font-size: 2rem;
             margin-bottom: 3px;
         }
 
         .tarot-name {
-            font-size: 0.55rem; /* Slightly larger */
+            font-size: 0.55rem;
             font-family: 'Cinzel Decorative', cursive;
             white-space: nowrap;
             font-weight: bold;
@@ -129,27 +131,17 @@
             margin-bottom: 0;
         }
 
-        .reel-cell.spinning-effect {
-            animation: spinAnimation 0.04s linear infinite; /* Slightly faster visual tumble */
-        }
-
-        @keyframes spinAnimation { /* More dynamic tumble */
-            0% { transform: translateY(-10px) rotateX(15deg) scaleY(0.95); opacity: 0.6; }
-            25% { transform: translateY(5px) rotateX(-7deg); opacity: 0.8; }
-            50% { transform: translateY(10px) rotateX(-15deg) scaleY(0.95); opacity: 1; }
-            75% { transform: translateY(-5px) rotateX(7deg); opacity: 0.8; }
-            100% { transform: translateY(-10px) rotateX(15deg) scaleY(0.95); opacity: 0.6; }
-        }
+        /* REMOVED .reel-cell.spinning-effect and @keyframes spinAnimation */
 
         .reel-cell.winning {
-            background-color: #5a009d; /* Brighter purple */
+            background-color: #5a009d;
             color: #fff;
-            border-color: #c585ff; /* Lighter, glowing border */
-            transform: scale(1.15); /* Keep existing scale */
+            border-color: #c585ff;
+            /* transform: scale(1.15); Re-applied in JS if needed, or keep for pulse */
             animation: winningCellPulse 0.5s infinite alternate;
         }
 
-        @keyframes winningCellPulse { /* More glitter */
+        @keyframes winningCellPulse {
             from {
                 transform: scale(1.12);
                 box-shadow: 0 0 20px #b68fd8, 0 0 35px #d09fff inset, 0 0 8px #ffffff;
@@ -178,20 +170,20 @@
             border: 2px solid #9575cd;
             border-radius: 8px;
             cursor: pointer;
-            box-shadow: 0 3px #4527a0, 0 0 5px rgba(182, 143, 216, 0); /* Initial transparent glow */
+            box-shadow: 0 3px #4527a0, 0 0 5px rgba(182, 143, 216, 0);
             transition: all 0.1s ease-in-out, box-shadow 0.2s ease;
         }
 
         .bet-button:hover {
             background: linear-gradient(145deg, #7e57c2, #673ab7);
-            box-shadow: 0 2px #4527a0, 0 0 10px rgba(200, 160, 230, 0.7); /* Glow on hover */
+            box-shadow: 0 2px #4527a0, 0 0 10px rgba(200, 160, 230, 0.7);
             transform: translateY(-1px) scale(1.03);
         }
 
         .bet-button.active {
             background: linear-gradient(145deg, #5e35b1, #4527a0);
             color: #fff;
-            box-shadow: 0 1px #311b92 inset, 0 0 12px rgba(220, 190, 255, 0.8); /* Inner shadow and stronger glow */
+            box-shadow: 0 1px #311b92 inset, 0 0 12px rgba(220, 190, 255, 0.8);
             transform: translateY(1px) scale(1.02);
             border-color: #bca0e0;
         }
@@ -212,8 +204,9 @@
             cursor: pointer;
             transition: background 0.2s ease-in-out, box-shadow 0.1s ease-in-out, transform 0.1s ease-in-out;
             animation: subtlePulse 2.5s infinite ease-in-out;
+            min-width: 200px; /* Ensure button doesn't resize too much with text change */
         }
-        @keyframes subtlePulse { /* For spin button */
+        @keyframes subtlePulse {
             0%, 100% {
                 box-shadow: 0 6px #6a1b9a, 0 10px 20px rgba(0,0,0,0.3), 0 0 12px rgba(220, 180, 255, 0.2);
                 transform: scale(1);
@@ -227,18 +220,18 @@
         .spin-button:hover {
             background: linear-gradient(145deg, #ab47bc, #8e24aa);
             box-shadow: 0 4px #6a1b9a, 0 8px 16px rgba(0,0,0,0.25), 0 0 25px rgba(230, 190, 255, 0.6);
-            transform: translateY(-2px) scale(1.05); /* More lift and scale */
-            animation-play-state: paused; /* Pause pulse on hover */
+            transform: translateY(-2px) scale(1.05);
+            animation-play-state: paused;
         }
 
         .spin-button:active {
             background: linear-gradient(145deg, #8e24aa, #6a1b9a);
-            box-shadow: 0 2px #4a148c inset, 0 5px 10px rgba(0,0,0,0.2); /* Inner shadow */
+            box-shadow: 0 2px #4a148c inset, 0 5px 10px rgba(0,0,0,0.2);
             transform: translateY(1px) scale(1.02);
         }
 
         .spin-button:disabled {
-            background: #5b6270; /* Darker disabled */
+            background: #5b6270;
             color: #909ab0;
             box-shadow: 0 6px #404853 inset;
             cursor: not-allowed;
@@ -249,7 +242,7 @@
         .info-display {
             margin-top: 2rem;
             font-size: 1.1rem;
-            background-color: rgba(38, 23, 51, 0.8); /* Slightly more transparent */
+            background-color: rgba(38, 23, 51, 0.8);
             padding: 1rem;
             border-radius: 10px;
             box-shadow: 0 5px 10px rgba(0,0,0,0.25) inset, 0 0 10px rgba(74, 57, 104, 0.3);
@@ -260,13 +253,13 @@
         }
 
         .balance-amount {
-            color: #dda0dd; /* Plum, slightly softer */
+            color: #dda0dd;
             font-weight: bold;
             text-shadow: 1px 1px 3px #5d337a;
         }
 
         .message-text {
-            color: #40e0d0; /* Turquoise */
+            color: #40e0d0;
             min-height: 28px;
             font-size: 0.9rem;
             font-weight: bold;
@@ -279,16 +272,16 @@
         }
 
         .message-text.error {
-            color: #ff69b4; /* Hot Pink for error */
+            color: #ff69b4;
             text-shadow: 1px 1px 2px #b00020;
         }
 
         .title {
             font-family: 'Cinzel Decorative', cursive;
-            font-size: 2.3rem; /* Slightly larger */
+            font-size: 2.3rem;
             margin-bottom: 1.5rem;
-            color: #e7c6ff; /* Lighter purple for title */
-            text-shadow: 3px 3px #5a106d, 6px 6px #2a004f, 0 0 15px rgba(231, 198, 255, 0.5); /* Enhanced shadow */
+            color: #e7c6ff;
+            text-shadow: 3px 3px #5a106d, 6px 6px #2a004f, 0 0 15px rgba(231, 198, 255, 0.5);
             font-weight: 900;
         }
 
@@ -323,7 +316,6 @@
             font-size: 1.2rem;
         }
 
-        /* Particle Styles */
         .sparkle-particle {
             position: absolute;
             width: 10px;
@@ -332,43 +324,42 @@
             pointer-events: none;
             z-index: 1000;
             opacity: 1;
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease-out; /* Added cubic-bezier for bouncier feel */
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease-out;
         }
         .coin-particle {
             position: absolute;
             width: 12px;
             height: 12px;
             background-color: gold;
-            border: 1px solid #b8860b; /* DarkGoldenRod */
+            border: 1px solid #b8860b;
             border-radius: 50%;
             pointer-events: none;
             z-index: 1001;
             opacity: 0.95;
-            transition: transform 1.2s cubic-bezier(0.39, 0.575, 0.565, 1), opacity 1s ease-in; /* Gravity feel */
+            transition: transform 1.2s cubic-bezier(0.39, 0.575, 0.565, 1), opacity 1s ease-in;
             box-shadow: 0 0 5px yellow;
         }
-
 
         @media (max-width: 640px) {
             .slot-machine-container { padding: 1rem; max-width: 100%; }
             .reels-area { padding: 0.75rem; }
             .reel-column { margin: 0 2px; }
             .reel-cell {
-                width: calc((100vw - 60px) / 5); /* Adjusted for slightly smaller margins */
-                height: calc((100vw - 60px) / 3.8); /* Adjusted height ratio */
+                width: calc((100vw - 60px) / 5);
+                height: calc((100vw - 60px) / 3.8);
                 font-size: 1.5rem;
             }
             .tarot-icon { font-size: 1.3rem; }
             .tarot-name { font-size: 0.45rem; }
             .title { font-size: 1.6rem; margin-bottom: 1.2rem;}
-            .spin-button { font-size: 1.2rem; padding: 0.75rem 1.5rem; }
+            .spin-button { font-size: 1.2rem; padding: 0.75rem 1.5rem; min-width: 160px;}
             .bet-button { font-size: 0.7rem; padding: 0.4rem 0.6rem; }
             .info-display { font-size: 0.9rem; }
             .message-text { font-size: 0.8rem; min-height: 24px; }
         }
         @media (max-width: 400px) {
             .tarot-icon { font-size: 1.1rem; }
-            .tarot-name { font-size: 0.38rem; } /* Ensure readability */
+            .tarot-name { font-size: 0.38rem; }
             .title { font-size: 1.4rem; }
             .reel-cell {
                  width: calc((100vw - 50px) / 5);
@@ -380,10 +371,8 @@
 <body>
     <div class="slot-machine-container" id="slotMachineContainer">
         <h1 class="title">Mystic Tarot Slots</h1>
-        <div class="bet-selection-area" id="betSelectionArea">
-            </div>
-        <div class="reels-area" id="reelsArea">
-            </div>
+        <div class="bet-selection-area" id="betSelectionArea"></div>
+        <div class="reels-area" id="reelsArea"></div>
         <div class="controls-container">
             <button id="spinButton" class="spin-button">Divine Fate</button>
         </div>
@@ -393,8 +382,7 @@
         </div>
         <div class="tarot-legends">
             <div class="legend-title">Mystical Cards Guide</div>
-            <div class="legend-grid" id="legendGrid">
-                </div>
+            <div class="legend-grid" id="legendGrid"></div>
         </div>
     </div>
 
@@ -402,18 +390,18 @@
         // --- Game Configuration ---
         const tarotCards = [
             { symbol: '⭐', name: 'Star', payouts: { 5: 300, 4: 100, 3: 2.5 } },
-            { symbol: '�', name: 'Moon', payouts: { 5: 250, 4: 80, 3: 2 } },
-            { symbol: '☀️', name: 'Sun', payouts: { 5: 1000, 4: 300, 3: 8 } }, // High value
+            { symbol: '🌙', name: 'Moon', payouts: { 5: 250, 4: 80, 3: 2 } },
+            { symbol: '☀️', name: 'Sun', payouts: { 5: 1000, 4: 300, 3: 8 } },
             { symbol: '⚡', name: 'Tower', payouts: { 5: 500, 4: 150, 3: 4 } },
             { symbol: '🔮', name: 'Crystal', payouts: { 5: 200, 4: 70, 3: 1.5 } },
             { symbol: '🗡️', name: 'Sword', payouts: { 5: 600, 4: 200, 3: 5 } },
-            { symbol: '🏆', name: 'Chalice', payouts: { 5: 150, 4: 50, 3: 1.2 } }, // Common
+            { symbol: '🏆', name: 'Chalice', payouts: { 5: 150, 4: 50, 3: 1.2 } },
             { symbol: '👑', name: 'Emperor', payouts: { 5: 800, 4: 250, 3: 6 } },
             { symbol: '👸', name: 'Empress', payouts: { 5: 800, 4: 250, 3: 6 } },
-            { symbol: '🧙', name: 'Magician', payouts: { 5: 1500, 4: 400, 3: 10 } }, // Rare
-            { symbol: '🦉', name: 'Priestess', payouts: { 5: 1500, 4: 400, 3: 10 } }, // Renamed for brevity
-            { symbol: '💀', name: 'Death', payouts: { 5: 2000, 4: 500, 3: 15 } }, // Very Rare
-            { symbol: '🃏', name: 'Fool', payouts: { 5: 2500, 4: 600, 3: 20 } }  // Top Rare
+            { symbol: '🧙', name: 'Magician', payouts: { 5: 1500, 4: 400, 3: 10 } },
+            { symbol: '🦉', name: 'Priestess', payouts: { 5: 1500, 4: 400, 3: 10 } },
+            { symbol: '💀', name: 'Death', payouts: { 5: 2000, 4: 500, 3: 15 } },
+            { symbol: '🃏', name: 'Fool', payouts: { 5: 2500, 4: 600, 3: 20 } }
         ];
 
         const baseSpinCost = 10;
@@ -421,11 +409,8 @@
         const NUM_REELS = 5;
         const NUM_ROWS = 3;
         const betMultiplierOptions = [
-            { label: '0.25x', value: 0.25 },
-            { label: '0.5x', value: 0.5 },
-            { label: '1x', value: 1.0 },
-            { label: '2x', value: 2.0 },
-            { label: '5x', value: 5.0 } // Added higher bet
+            { label: '0.25x', value: 0.25 }, { label: '0.5x', value: 0.5 },
+            { label: '1x', value: 1.0 }, { label: '2x', value: 2.0 }, { label: '5x', value: 5.0 }
         ];
         const payouts = {};
         tarotCards.forEach(card => { payouts[card.symbol] = card.payouts; });
@@ -435,37 +420,25 @@
             tarotCards.forEach(card => {
                 let frequency;
                 const symbolValue = Math.max(...Object.values(card.payouts));
-                if (symbolValue >= 2000) { // Fool, Death
-                    frequency = Math.max(1, 3 - reelNumber * 0.5);
-                } else if (symbolValue >= 1000) { // Magician, Priestess, Sun
-                    frequency = Math.max(1, 5 - reelNumber * 0.8);
-                } else if (symbolValue >= 500) { // Emperor, Empress, Sword, Tower
-                    frequency = Math.max(2, 8 - reelNumber * 1);
-                } else { // Common: Star, Moon, Crystal, Chalice
-                    frequency = Math.max(4, 12 - reelNumber * 0.5);
-                }
+                if (symbolValue >= 2000) { frequency = Math.max(1, 3 - reelNumber * 0.5); }
+                else if (symbolValue >= 1000) { frequency = Math.max(1, 5 - reelNumber * 0.8); }
+                else if (symbolValue >= 500) { frequency = Math.max(2, 8 - reelNumber * 1); }
+                else { frequency = Math.max(4, 12 - reelNumber * 0.5); }
                 for (let i = 0; i < Math.floor(frequency); i++) { strip.push(card.symbol); }
             });
             return strip.sort(() => Math.random() - 0.5);
         };
-
         const virtualReelStrips = Array.from({ length: NUM_REELS }, (_, i) => createVirtualReelStrip(i));
 
         const paylines = [
-            Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 0 })), // Top row
-            Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 1 })), // Middle row
-            Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 2 })), // Bottom row
-            [{col:0,row:0}, {col:1,row:1}, {col:2,row:2}, {col:3,row:1}, {col:4,row:0}], // V shape
-            [{col:0,row:2}, {col:1,row:1}, {col:2,row:0}, {col:3,row:1}, {col:4,row:2}], // Inverse V
-            [{col:0,row:0}, {col:1,row:0}, {col:2,row:1}, {col:3,row:2}, {col:4,row:2}],
-            [{col:0,row:2}, {col:1,row:2}, {col:2,row:1}, {col:3,row:0}, {col:4,row:0}],
-            [{col:0,row:1}, {col:1,row:0}, {col:2,row:0}, {col:3,row:0}, {col:4,row:1}], // U
-            [{col:0,row:1}, {col:1,row:2}, {col:2,row:2}, {col:3,row:2}, {col:4,row:1}], // Inverse U
-            [{col:0,row:0}, {col:1,row:1}, {col:2,row:1}, {col:3,row:1}, {col:4,row:0}], // W-ish
-            [{col:0,row:2}, {col:1,row:1}, {col:2,row:1}, {col:3,row:1}, {col:4,row:2}]  // M-ish
+            Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 0 })), Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 1 })),
+            Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 2 })), [{col:0,row:0}, {col:1,row:1}, {col:2,row:2}, {col:3,row:1}, {col:4,row:0}],
+            [{col:0,row:2}, {col:1,row:1}, {col:2,row:0}, {col:3,row:1}, {col:4,row:2}], [{col:0,row:0}, {col:1,row:0}, {col:2,row:1}, {col:3,row:2}, {col:4,row:2}],
+            [{col:0,row:2}, {col:1,row:2}, {col:2,row:1}, {col:3,row:0}, {col:4,row:0}], [{col:0,row:1}, {col:1,row:0}, {col:2,row:0}, {col:3,row:0}, {col:4,row:1}],
+            [{col:0,row:1}, {col:1,row:2}, {col:2,row:2}, {col:3,row:2}, {col:4,row:1}], [{col:0,row:0}, {col:1,row:1}, {col:2,row:1}, {col:3,row:1}, {col:4,row:0}],
+            [{col:0,row:2}, {col:1,row:1}, {col:2,row:1}, {col:3,row:1}, {col:4,row:2}]
         ];
 
-        // --- DOM Elements ---
         const slotMachineContainer = document.getElementById('slotMachineContainer');
         const reelsArea = document.getElementById('reelsArea');
         const spinButton = document.getElementById('spinButton');
@@ -475,13 +448,16 @@
         const legendGrid = document.getElementById('legendGrid');
         const reelCells = [];
 
-        // --- Game State ---
         let currentBalance = initialBalance;
-        let isSpinning = false;
         let predeterminedOutcome = [];
         let currentBetMultiplier = 1.0;
         let reelVisualSpinIndices = Array(NUM_REELS).fill(0);
         let messageTimeout;
+
+        // --- Spin State & Control ---
+        let spinState = 'idle'; // 'idle', 'spinning', 'stopping'
+        let stopSignalPromises = []; // Promises to signal individual reels to stop
+        let resolveStopSignalPromises = []; // Functions to resolve the above promises
 
         // --- Tone.js Sound Synthesizers ---
         let spinSound, reelStopSound, smallWinSound, mediumWinSound, bigWinSound, jackpotSound, noBalanceSound, clickSound;
@@ -495,31 +471,22 @@
                 console.log("Audio context started.");
                 spinSound = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.005, decay: 0.15, sustain: 0.05, release: 0.2 } }).toDestination();
                 spinSound.volume.value = -20;
-
                 reelStopSound = new Tone.MembraneSynth({ pitchDecay: 0.02, octaves: 3, oscillator: {type: "sine"}, envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.2} }).toDestination();
                 reelStopSound.volume.value = -15;
-
                 smallWinSound = new Tone.Synth({ oscillator: { type: 'triangle8' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.3 } }).toDestination();
                 smallWinSound.volume.value = -14;
-
                 mediumWinSound = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fmtriangle', modulationType: 'square', harmonicity: 0.5 }, envelope: { attack: 0.02, decay: 0.4, sustain: 0.2, release: 0.5 } }).toDestination();
                 mediumWinSound.volume.value = -10;
-
                 bigWinSound = new Tone.PolySynth(Tone.FMSynth, { harmonicity: 1.5, modulationIndex: 12, detune: -5, oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.5, sustain: 0.3, release: 0.8 }, modulation: { type: 'triangle' }, modulationEnvelope: { attack: 0.05, decay: 0.3, sustain: 0.5, release: 0.8 } }).toDestination();
                 bigWinSound.volume.value = -8;
-
                 jackpotSound = new Tone.PolySynth(Tone.Synth, { oscillator: {type: "pulse", width: 0.2}, envelope: { attack: 0.01, decay: 1.5, sustain: 0.5, release: 2.0 } }).toDestination();
                 const jackpotReverb = new Tone.Reverb(1.5).toDestination();
                 jackpotSound.connect(jackpotReverb);
                 jackpotSound.volume.value = -6;
-
-
                 noBalanceSound = new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.1 } }).toDestination();
                 noBalanceSound.volume.value = -12;
-
                 clickSound = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.1 } }).toDestination();
                 clickSound.volume.value = -18;
-
                 soundsInitialized = true;
             }).catch(e => console.error("Error starting Tone.js audio context:", e));
         }
@@ -528,71 +495,41 @@
         function createParticle(options) {
             const particle = document.createElement('div');
             particle.classList.add(options.type === 'coin' ? 'coin-particle' : 'sparkle-particle');
-            particle.style.left = `${options.x}px`;
-            particle.style.top = `${options.y}px`;
-            if (options.type !== 'coin') { // Sparkles get random colors
-                 particle.style.backgroundColor = `hsl(${Math.random() * 60 + 240 + (options.colorHueShift || 0)}, 100%, ${70 + Math.random()*15}%)`; // Purples, Pinks, with some variation
-            }
-
+            particle.style.left = `${options.x}px`; particle.style.top = `${options.y}px`;
+            if (options.type !== 'coin') { particle.style.backgroundColor = `hsl(${Math.random() * 60 + 240 + (options.colorHueShift || 0)}, 100%, ${70 + Math.random()*15}%)`;}
             options.container.appendChild(particle);
-
-            // Initial state for animation (e.g., small and centered)
             particle.style.transform = `translate(-50%, -50%) scale(0.1) rotate(0deg)`;
-
-            setTimeout(() => { // Animate out
+            setTimeout(() => {
                 const angle = options.angle || (Math.random() * Math.PI * 2);
-                const distance = options.distance || (Math.random() * 60 + 30); // 30 to 90px
-                const rotation = options.rotation || (Math.random() * 720 - 360); // Random rotation
-
-                if (options.type === 'coin') {
-                    particle.style.transform = `translate(${Math.cos(angle) * distance * 0.5}px, ${distance * 1.5 + Math.random()*20}px) scale(1) rotate(${rotation}deg)`; // Fall down
-                } else {
-                     particle.style.transform = `translate(${Math.cos(angle) * distance - particle.offsetWidth/2}px, ${Math.sin(angle) * distance - particle.offsetHeight/2}px) scale(${Math.random() * 0.5 + 0.8}) rotate(${rotation}deg)`;
-                }
+                const distance = options.distance || (Math.random() * 60 + 30);
+                const rotation = options.rotation || (Math.random() * 720 - 360);
+                if (options.type === 'coin') { particle.style.transform = `translate(${Math.cos(angle) * distance * 0.5}px, ${distance * 1.5 + Math.random()*20}px) scale(1) rotate(${rotation}deg)`;}
+                else { particle.style.transform = `translate(${Math.cos(angle) * distance - particle.offsetWidth/2}px, ${Math.sin(angle) * distance - particle.offsetHeight/2}px) scale(${Math.random() * 0.5 + 0.8}) rotate(${rotation}deg)`;}
                 particle.style.opacity = '0';
             }, 10);
-
-            setTimeout(() => {
-                particle.remove();
-            }, options.duration || 700); // Default duration 700ms
+            setTimeout(() => { particle.remove(); }, options.duration || 700);
         }
-
         function triggerSparkleExplosion(x, y, count = 10, container = slotMachineContainer, colorHueShift = 0) {
-            for (let i = 0; i < count; i++) {
-                createParticle({ x, y, container, type: 'sparkle', colorHueShift });
-            }
+            for (let i = 0; i < count; i++) { createParticle({ x, y, container, type: 'sparkle', colorHueShift }); }
         }
         function triggerCoinShower(count = 30, container = slotMachineContainer) {
             let releasedCoins = 0;
             const interval = setInterval(() => {
-                if (releasedCoins >= count) {
-                    clearInterval(interval);
-                    return;
-                }
-                createParticle({
-                    x: Math.random() * container.offsetWidth,
-                    y: -10, // Start above
-                    container,
-                    type: 'coin',
-                    angle: Math.PI / 2, // Mostly downwards
-                    distance: container.offsetHeight + 20,
-                    duration: 1200 + Math.random() * 500
-                });
+                if (releasedCoins >= count) { clearInterval(interval); return; }
+                createParticle({ x: Math.random() * container.offsetWidth, y: -10, container, type: 'coin', angle: Math.PI / 2, distance: container.offsetHeight + 20, duration: 1200 + Math.random() * 500 });
                 releasedCoins++;
-            }, 60); // Release a coin every 60ms
+            }, 60);
         }
-
 
         // --- UI & Game Logic ---
         function createBetButtons() {
             betSelectionArea.innerHTML = '';
             betMultiplierOptions.forEach(option => {
                 const button = document.createElement('button');
-                button.classList.add('bet-button');
-                button.textContent = option.label;
-                button.dataset.multiplier = option.value;
+                button.classList.add('bet-button'); button.textContent = option.label; button.dataset.multiplier = option.value;
                 if (option.value === currentBetMultiplier) button.classList.add('active');
                 button.addEventListener('click', () => {
+                    if (spinState !== 'idle') return; // Prevent bet change during spin
                     if (!soundsInitialized) initializeSounds();
                     if (soundsInitialized && clickSound) clickSound.triggerAttackRelease('G5', '32n', Tone.now());
                     currentBetMultiplier = parseFloat(option.value);
@@ -606,21 +543,18 @@
 
         function updateSpinButtonText() {
             const cost = baseSpinCost * currentBetMultiplier;
-            spinButton.textContent = `Divine Fate (${cost.toFixed(2)})`;
+            if (spinState === 'idle') spinButton.textContent = `Divine Fate (${cost.toFixed(2)})`;
+            else if (spinState === 'spinning') spinButton.textContent = 'Stop';
+            else if (spinState === 'stopping') spinButton.textContent = 'Stopping...';
         }
 
         function createLegend() {
             legendGrid.innerHTML = '';
             tarotCards.forEach(card => {
-                const item = document.createElement('div');
-                item.classList.add('legend-item');
-                const icon = document.createElement('span');
-                icon.classList.add('legend-icon');
-                icon.textContent = card.symbol;
-                const name = document.createElement('span');
-                name.textContent = `${card.name} (3x: ${card.payouts[3]}, 4x: ${card.payouts[4]}, 5x: ${card.payouts[5]})`; // Show payouts
-                item.appendChild(icon);
-                item.appendChild(name);
+                const item = document.createElement('div'); item.classList.add('legend-item');
+                const icon = document.createElement('span'); icon.classList.add('legend-icon'); icon.textContent = card.symbol;
+                const name = document.createElement('span'); name.textContent = `${card.name} (3x: ${card.payouts[3]}, 4x: ${card.payouts[4]}, 5x: ${card.payouts[5]})`;
+                item.appendChild(icon); item.appendChild(name);
                 legendGrid.appendChild(item);
             });
         }
@@ -628,31 +562,24 @@
         function createReelGrid() {
             reelsArea.innerHTML = '';
             for (let col = 0; col < NUM_REELS; col++) {
-                const columnDiv = document.createElement('div');
-                columnDiv.classList.add('reel-column');
+                const columnDiv = document.createElement('div'); columnDiv.classList.add('reel-column');
                 reelCells[col] = [];
                 for (let row = 0; row < NUM_ROWS; row++) {
-                    const cellDiv = document.createElement('div');
-                    cellDiv.classList.add('reel-cell');
-                    cellDiv.id = `cell-${col}-${row}`;
-                    const cellContent = document.createElement('div');
-                    cellContent.classList.add('reel-cell-content');
-                    const iconElement = document.createElement('div');
-                    iconElement.classList.add('tarot-icon');
-                    const nameElement = document.createElement('div');
-                    nameElement.classList.add('tarot-name');
-                    cellContent.appendChild(iconElement);
-                    cellContent.appendChild(nameElement);
-                    cellDiv.appendChild(cellContent);
-                    columnDiv.appendChild(cellDiv);
+                    const cellDiv = document.createElement('div'); cellDiv.classList.add('reel-cell'); cellDiv.id = `cell-${col}-${row}`;
+                    const cellContent = document.createElement('div'); cellContent.classList.add('reel-cell-content');
+                    const iconElement = document.createElement('div'); iconElement.classList.add('tarot-icon');
+                    const nameElement = document.createElement('div'); nameElement.classList.add('tarot-name');
+                    cellContent.appendChild(iconElement); cellContent.appendChild(nameElement);
+                    cellDiv.appendChild(cellContent); columnDiv.appendChild(cellDiv);
                     reelCells[col][row] = cellDiv;
                 }
                 reelsArea.appendChild(columnDiv);
             }
         }
 
-        function setReelDisplay(symbolGrid) {
+        function setReelDisplay(symbolGrid, targetCol = -1) { // targetCol to update only one col if needed
             for (let col = 0; col < NUM_REELS; col++) {
+                if (targetCol !== -1 && col !== targetCol) continue;
                 for (let row = 0; row < NUM_ROWS; row++) {
                     if (reelCells[col] && reelCells[col][row] && symbolGrid[col] && symbolGrid[col][row]) {
                         const cell = reelCells[col][row];
@@ -663,37 +590,43 @@
                         if (iconElement && nameElement && card) {
                             iconElement.textContent = card.symbol;
                             nameElement.textContent = card.name;
+                        } else if (iconElement && nameElement) { // Fallback for safety
+                            iconElement.textContent = symbol || '?';
+                            nameElement.textContent = 'Error';
                         }
                     }
                 }
             }
         }
+
         function initializeGame() {
-            createReelGrid();
-            createLegend();
+            createReelGrid(); createLegend();
             predeterminedOutcome = generateOutcomeFromVirtualReels();
             setReelDisplay(predeterminedOutcome);
-            createBetButtons();
-            updateBalanceDisplay();
-            updateSpinButtonText();
+            createBetButtons(); updateBalanceDisplay(); updateSpinButtonText();
 
-            const spinHandler = () => {
+            const mainButtonHandler = () => {
                 if (!soundsInitialized && !(typeof Tone !== 'undefined' && Tone.context && Tone.context.state === 'running')) {
                     initializeSounds();
                     setTimeout(() => {
                         if (soundsInitialized || (typeof Tone !== 'undefined' && Tone.context && Tone.context.state === 'running')) {
-                            handleSpin();
-                        } else {
-                            showMessage("Click 'Divine Fate' again to enable sound & spin.", true, 3000);
-                        }
+                            processSpinOrStop();
+                        } else { showMessage("Click again to enable sound & play.", true, 3000); }
                     }, 250);
-                } else {
-                    handleSpin();
-                }
+                } else { processSpinOrStop(); }
             };
+
             if (spinButton._clickHandler) { spinButton.removeEventListener('click', spinButton._clickHandler); }
-            spinButton.addEventListener('click', spinHandler);
-            spinButton._clickHandler = spinHandler;
+            spinButton.addEventListener('click', mainButtonHandler);
+            spinButton._clickHandler = mainButtonHandler;
+        }
+
+        function processSpinOrStop() {
+            if (spinState === 'idle') {
+                startSpinSequence();
+            } else if (spinState === 'spinning') {
+                initiateStopSequence();
+            }
         }
 
         function generateOutcomeFromVirtualReels() {
@@ -702,7 +635,7 @@
                 newGrid[col] = [];
                 const currentReelStrip = virtualReelStrips[col];
                 const stripLength = currentReelStrip.length;
-                const startIndex = Math.floor(Math.random() * stripLength);
+                const startIndex = Math.floor(Math.random() * stripLength); // Symbol for middle row
                 for (let row = 0; row < NUM_ROWS; row++) {
                     const offset = row - Math.floor(NUM_ROWS / 2);
                     const stripIndex = (startIndex + offset + stripLength) % stripLength;
@@ -712,168 +645,251 @@
             return newGrid;
         }
 
-        function updateBalanceDisplay() {
-            balanceAmountDisplay.textContent = currentBalance.toFixed(2);
-        }
+        function updateBalanceDisplay() { balanceAmountDisplay.textContent = currentBalance.toFixed(2); }
 
         function showMessage(text, isError = false, duration = 4000) {
             clearTimeout(messageTimeout);
             messageTextDisplay.classList.remove('fade-out');
             messageTextDisplay.textContent = text;
             messageTextDisplay.classList.toggle('error', isError);
-            messageTextDisplay.style.opacity = '1'; // Ensure visible before fade
-
-            if (duration > 0) {
-                messageTimeout = setTimeout(() => {
-                    messageTextDisplay.classList.add('fade-out');
-                }, duration);
-            }
+            messageTextDisplay.style.opacity = '1';
+            if (duration > 0) { messageTimeout = setTimeout(() => { messageTextDisplay.classList.add('fade-out'); }, duration); }
         }
 
         function clearWinningHighlights() {
             slotMachineContainer.classList.remove('big-win-celebration');
-            reelCells.forEach(columnOfCells => columnOfCells.forEach(cell => cell.classList.remove('winning')));
+            reelCells.forEach(columnOfCells => columnOfCells.forEach(cell => {
+                cell.classList.remove('winning');
+                cell.style.transform = ''; // Reset transform from winning pulse
+            }));
         }
 
-        const REEL_SPIN_DURATION_BASE = 700; // ms
-        const REEL_SPIN_STAGGER = 200;    // ms
+        const REEL_SPIN_DURATION_BASE = 2000; // Natural spin time for first reel (ms)
+        const REEL_SPIN_STAGGER = 300;    // Stagger for natural spin completion (ms)
+        const STOP_DECELERATION_DURATION = 500; // How long deceleration takes after stop signal (ms)
+        const STOP_STAGGER = 100; // Quick stagger when user presses stop (ms)
 
-        async function handleSpin() {
-            if (isSpinning) return;
+        const VISUAL_UPDATE_INTERVAL_NORMAL = 50; // ms, for normal spinning
+        const VISUAL_UPDATE_INTERVAL_FAST_DECEL = 30; // ms, for fast part of deceleration
+        const VISUAL_UPDATE_INTERVAL_SLOW_DECEL = 80; // ms, for slow part of deceleration
+
+
+        async function startSpinSequence() {
+            if (spinState !== 'idle') return;
+
             const currentSpinCost = parseFloat((baseSpinCost * currentBetMultiplier).toFixed(2));
             if (currentBalance < currentSpinCost) {
                 showMessage('Not enough Arcane Power!', true, 3000);
                 if (soundsInitialized && noBalanceSound) noBalanceSound.triggerAttackRelease('A2', '8n', Tone.now());
                 return;
             }
-            isSpinning = true;
-            spinButton.disabled = true;
-            slotMachineContainer.classList.remove('big-win-celebration');
+
+            spinState = 'spinning';
             currentBalance -= currentSpinCost;
             updateBalanceDisplay();
-            showMessage('The ether shifts...', false, 0); // Persistent until win/loss message
+            showMessage('The ether shifts...', false, 0);
             clearWinningHighlights();
-            if (soundsInitialized && spinSound) spinSound.triggerAttackRelease("2n", Tone.now()); // Longer spin sound
+            spinButton.disabled = false; // It should be enabled to be clicked for "Stop"
+            updateSpinButtonText(); // Sets text to "Stop"
+            document.querySelectorAll('.bet-button').forEach(btn => btn.disabled = true); // Disable bet changes
+
+
+            if (soundsInitialized && spinSound) spinSound.triggerAttack("2n", Tone.now());
 
             predeterminedOutcome = generateOutcomeFromVirtualReels();
             const reelAnimationPromises = [];
+
             for (let col = 0; col < NUM_REELS; col++) {
                 reelVisualSpinIndices[col] = Math.floor(Math.random() * (virtualReelStrips[col] ? virtualReelStrips[col].length : 10));
-                reelAnimationPromises.push(animateSingleReel(col, REEL_SPIN_DURATION_BASE + col * REEL_SPIN_STAGGER));
+                stopSignalPromises[col] = new Promise(resolve => {
+                    resolveStopSignalPromises[col] = resolve;
+                });
+                reelAnimationPromises.push(
+                    animateSingleReel(
+                        col,
+                        REEL_SPIN_DURATION_BASE + col * REEL_SPIN_STAGGER,
+                        stopSignalPromises[col]
+                    )
+                );
             }
-            await Promise.all(reelAnimationPromises);
-            setReelDisplay(predeterminedOutcome);
+
+            await Promise.all(reelAnimationPromises); // Waits for all reels to complete their animation (either natural or forced stop)
+
+            if (soundsInitialized && spinSound && spinSound.state === "started") { // Stop spin sound if still playing
+                 spinSound.triggerRelease(Tone.now() + 0.05);
+            }
+
+            setReelDisplay(predeterminedOutcome); // Ensure final display is correct
 
             const { totalWinnings, winningPaylines } = calculateWinnings(predeterminedOutcome, currentBetMultiplier);
             if (totalWinnings > 0) {
                 currentBalance += totalWinnings;
                 currentBalance = parseFloat(currentBalance.toFixed(2));
                 updateBalanceDisplay();
-                highlightWinningCells(winningPaylines); // This will also trigger sparkles per cell
+                highlightWinningCells(winningPaylines);
                 showMessage(`Mystic Win! +${totalWinnings.toFixed(2)}!`, false, 5000);
 
                 const effectiveSpinCost = baseSpinCost * currentBetMultiplier;
-                if (totalWinnings >= effectiveSpinCost * 50) { // Jackpot win
+                if (totalWinnings >= effectiveSpinCost * 50) {
                     if (soundsInitialized && jackpotSound) jackpotSound.triggerAttackRelease(["C4", "E4", "G4", "C5", "E5", "G5"], "1.5n", Tone.now());
                     slotMachineContainer.classList.add('big-win-celebration');
-                    triggerCoinShower(50); // More coins for jackpot
-                    // Global sparkles for jackpot
+                    triggerCoinShower(50);
                     const machineRect = slotMachineContainer.getBoundingClientRect();
-                    const centerX = machineRect.left + window.scrollX + machineRect.width / 2;
-                    const centerY = machineRect.top + window.scrollY + machineRect.height / 2;
-                    triggerSparkleExplosion(centerX, centerY, 30, document.body, 30); // Gold-ish sparkles from center
-                } else if (totalWinnings >= effectiveSpinCost * 10) { // Big win
+                    triggerSparkleExplosion(machineRect.left + window.scrollX + machineRect.width / 2, machineRect.top + window.scrollY + machineRect.height / 2, 30, document.body, 30);
+                } else if (totalWinnings >= effectiveSpinCost * 10) {
                     if (soundsInitialized && bigWinSound) bigWinSound.triggerAttackRelease(["C4", "G4", "C5", "E5"], "0.8n", Tone.now());
                     slotMachineContainer.classList.add('big-win-celebration');
                     triggerCoinShower(25);
-                } else if (totalWinnings >= effectiveSpinCost * 3) { // Medium win
+                } else if (totalWinnings >= effectiveSpinCost * 3) {
                     if (soundsInitialized && mediumWinSound) mediumWinSound.triggerAttackRelease(["E4", "A4", "C#5"], "0.5n", Tone.now());
-                } else { // Small win
+                } else {
                     if (soundsInitialized && smallWinSound) smallWinSound.triggerAttackRelease('A4', '0.2n', Tone.now() + 0.05);
                 }
             } else {
                 showMessage('The spirits are silent this time.', false, 3000);
             }
-            isSpinning = false;
+
+            spinState = 'idle';
             spinButton.disabled = false;
+            updateSpinButtonText(); // Resets text to "Divine Fate (cost)"
+            document.querySelectorAll('.bet-button').forEach(btn => btn.disabled = false); // Re-enable bet changes
         }
 
-        const VISUAL_UPDATE_INTERVAL = 50; // ms, affects visual speed of spinning symbols
+        function initiateStopSequence() {
+            if (spinState !== 'spinning') return;
 
-        function animateSingleReel(col, duration) {
-            return new Promise(resolve => {
+            spinState = 'stopping';
+            spinButton.disabled = true; // Disable button temporarily while processing stop
+            updateSpinButtonText(); // Sets text to "Stopping..."
+
+            for (let col = 0; col < NUM_REELS; col++) {
+                // Stagger the resolution of stop signals
+                setTimeout(() => {
+                    if (resolveStopSignalPromises[col]) {
+                        resolveStopSignalPromises[col](); // Signal reel to start its deceleration
+                        resolveStopSignalPromises[col] = null; // Prevent multiple resolutions
+                    }
+                }, col * STOP_STAGGER);
+            }
+            // The main spinSequence function will handle the rest once all reels have stopped.
+            // Re-enable spin button after a short delay to prevent issues if reels stop super fast
+            setTimeout(() => {
+                 if(spinState === 'stopping') spinButton.disabled = false; // It will be re-enabled fully by startSpinSequence
+            }, NUM_REELS * STOP_STAGGER + STOP_DECELERATION_DURATION);
+        }
+
+
+        function animateSingleReel(col, initialSpinDuration, stopSignal) {
+            return new Promise(resolveReelAnimation => {
                 const reelColumnCells = reelCells[col];
                 const strip = virtualReelStrips[col];
-                if (!strip || strip.length === 0) {
-                    reelColumnCells.forEach(cell => cell.classList.remove('spinning-effect'));
-                    resolve(); return;
-                }
+                if (!strip || strip.length === 0) { resolveReelAnimation(); return; }
+
                 const stripLength = strip.length;
-                let startTime = null;
-                let lastUpdateTime = 0;
-                reelColumnCells.forEach(cell => cell.classList.add('spinning-effect'));
+                let animationFrameId;
+                let startTime = performance.now();
+                let lastUpdateTime = startTime;
+                let currentVisualUpdateInterval = VISUAL_UPDATE_INTERVAL_NORMAL;
+                let isInStoppingPhase = false;
+                let decelerationPhaseStartTime = 0;
+
+                // Listen for the stop signal
+                stopSignal.then(() => {
+                    if (!isInStoppingPhase) { // Enter stopping phase only once
+                        isInStoppingPhase = true;
+                        decelerationPhaseStartTime = performance.now();
+                        // The effective duration is now controlled by STOP_DECELERATION_DURATION
+                    }
+                });
 
                 function animationStep(timestamp) {
-                    if (!startTime) startTime = timestamp;
-                    const progress = timestamp - startTime;
+                    const elapsedTotal = timestamp - startTime;
 
-                    if (timestamp - lastUpdateTime > VISUAL_UPDATE_INTERVAL) {
+                    if (isInStoppingPhase) {
+                        const elapsedInDeceleration = timestamp - decelerationPhaseStartTime;
+                        if (elapsedInDeceleration < STOP_DECELERATION_DURATION * 0.6) { // 60% fast blur
+                            currentVisualUpdateInterval = VISUAL_UPDATE_INTERVAL_FAST_DECEL;
+                        } else { // Last 40% slow down
+                            currentVisualUpdateInterval = VISUAL_UPDATE_INTERVAL_SLOW_DECEL;
+                        }
+
+                        if (elapsedInDeceleration >= STOP_DECELERATION_DURATION) {
+                            // Deceleration complete, set to final symbols for this column
+                            setFinalSymbolsForColumn(col);
+                            if (soundsInitialized && reelStopSound) reelStopSound.triggerAttackRelease(`G${2 + col % 2}`, '16n', Tone.now() + Math.random()*0.02);
+                            resolveReelAnimation();
+                            return;
+                        }
+                    } else if (elapsedTotal >= initialSpinDuration) {
+                        // Natural spin duration complete (if stop wasn't pressed)
+                        setFinalSymbolsForColumn(col);
+                        if (soundsInitialized && reelStopSound) reelStopSound.triggerAttackRelease(`G${2 + col % 2}`, '16n', Tone.now()+ Math.random()*0.02);
+                        resolveReelAnimation();
+                        return;
+                    }
+
+                    // --- Visual Update Logic (Symbol Cycling) ---
+                    if (timestamp - lastUpdateTime > currentVisualUpdateInterval) {
                         lastUpdateTime = timestamp;
                         reelVisualSpinIndices[col] = (reelVisualSpinIndices[col] + 1) % stripLength;
-                        for (let row = 0; row < NUM_ROWS; row++) {
-                            const currentSymbolIndexOnStrip = (reelVisualSpinIndices[col] + row - Math.floor(NUM_ROWS / 2) + stripLength) % stripLength;
-                            const symbolForCell = strip[currentSymbolIndexOnStrip];
-                            const card = tarotCards.find(c => c.symbol === symbolForCell);
-                            const cell = reelColumnCells[row];
+
+                        for (let r = 0; r < NUM_ROWS; r++) {
+                            const cell = reelColumnCells[r];
                             const iconElement = cell.querySelector('.tarot-icon');
                             const nameElement = cell.querySelector('.tarot-name');
-                            if (iconElement && card) {
+
+                            // Calculate which symbol from the strip should be visible
+                            const offsetFromMiddle = r - Math.floor(NUM_ROWS / 2);
+                            const symbolIndexOnStrip = (reelVisualSpinIndices[col] + offsetFromMiddle + stripLength) % stripLength;
+                            const symbolForCell = strip[symbolIndexOnStrip];
+                            const card = tarotCards.find(c => c.symbol === symbolForCell);
+
+                            if (iconElement && nameElement && card) {
                                 iconElement.textContent = card.symbol;
-                                if (nameElement) nameElement.textContent = card.name.substring(0, Math.min(card.name.length, 5)) + (card.name.length > 5 ? '.' : ''); // Shortened name
-                            } else if (iconElement && symbolForCell) {
-                                iconElement.textContent = symbolForCell;
-                                if (nameElement) nameElement.textContent = '';
+                                nameElement.textContent = card.name.substring(0, Math.min(card.name.length, 6)) + (card.name.length > 6 ? '.' : '');
+                            } else if (iconElement && nameElement) { // Fallback
+                                iconElement.textContent = symbolForCell || '?';
+                                nameElement.textContent = "---";
                             }
                         }
                     }
-
-                    if (progress < duration) {
-                        requestAnimationFrame(animationStep);
-                    } else {
-                        reelColumnCells.forEach(cell => cell.classList.remove('spinning-effect'));
-                        // Final outcome is set globally after all animations
-                        if (soundsInitialized && reelStopSound) reelStopSound.triggerAttackRelease(`G${2 + col % 2}`, '8n', Tone.now() + Math.random() * 0.03); // Staggered pitch
-                        resolve();
-                    }
+                    animationFrameId = requestAnimationFrame(animationStep);
                 }
-                requestAnimationFrame(animationStep);
+                animationFrameId = requestAnimationFrame(animationStep);
             });
         }
+
+        function setFinalSymbolsForColumn(col) {
+            for (let r = 0; r < NUM_ROWS; r++) {
+                const cell = reelCells[col][r];
+                const finalSymbol = predeterminedOutcome[col][r];
+                const card = tarotCards.find(c => c.symbol === finalSymbol);
+                const iconElement = cell.querySelector('.tarot-icon');
+                const nameElement = cell.querySelector('.tarot-name');
+                if (iconElement && nameElement && card) {
+                    iconElement.textContent = card.symbol;
+                    nameElement.textContent = card.name;
+                }
+            }
+        }
+
 
         function calculateWinnings(grid, betMultiplier) {
             let totalWinnings = 0;
             const winningPaylinesDetails = [];
-            paylines.forEach((paylineCoords, paylineIndex) => {
+            paylines.forEach((paylineCoords) => {
                 const symbolsOnPayline = paylineCoords.map(coord => grid[coord.col][coord.row]);
                 const firstSymbol = symbolsOnPayline[0];
                 if (!firstSymbol) return;
                 let consecutiveCount = 0;
-                for (const symbol of symbolsOnPayline) {
-                    if (symbol === firstSymbol) { consecutiveCount++; }
-                    else { break; }
-                }
+                for (const symbol of symbolsOnPayline) { if (symbol === firstSymbol) { consecutiveCount++; } else { break; } }
                 const cardPayoutData = payouts[firstSymbol];
                 if (cardPayoutData && cardPayoutData[consecutiveCount]) {
                     const payoutMultiplierValue = cardPayoutData[consecutiveCount];
                     const betPerLine = (baseSpinCost * betMultiplier) / paylines.length;
                     const lineWin = payoutMultiplierValue * betPerLine;
                     totalWinnings += lineWin;
-                    winningPaylinesDetails.push({
-                        paylineIndex: paylineIndex,
-                        coords: paylineCoords.slice(0, consecutiveCount),
-                        symbol: firstSymbol,
-                        count: consecutiveCount
-                    });
+                    winningPaylinesDetails.push({ coords: paylineCoords.slice(0, consecutiveCount), symbol: firstSymbol, count: consecutiveCount });
                 }
             });
             return { totalWinnings: parseFloat(totalWinnings.toFixed(2)), winningPaylines: winningPaylinesDetails };
@@ -885,22 +901,17 @@
                     if(reelCells[coord.col] && reelCells[coord.col][coord.row]) {
                         const cell = reelCells[coord.col][coord.row];
                         cell.classList.add('winning');
-                        // Trigger sparkles for each winning cell
                         const cellRect = cell.getBoundingClientRect();
-                        const containerRect = slotMachineContainer.getBoundingClientRect(); // Use this if particles are appended to slotMachineContainer
+                        const containerRect = slotMachineContainer.getBoundingClientRect();
                         const relX = cellRect.left - containerRect.left + cellRect.width / 2;
                         const relY = cellRect.top - containerRect.top + cellRect.height / 2;
-                        triggerSparkleExplosion(relX, relY, 5, slotMachineContainer); // 5 sparkles per winning cell
+                        triggerSparkleExplosion(relX, relY, 5, slotMachineContainer);
                     }
                 });
             });
         }
 
-        // --- Initialize Game ---
         document.addEventListener('DOMContentLoaded', initializeGame);
     </script>
 </body>
 </html>
-```
-
-I hope you find these enhancements make the game significantly more captivating! Let me know your though�
