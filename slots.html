@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5x3 Slot Machine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #1a202c; /* Dark blue-gray background */
+            color: #e2e8f0; /* Light gray text */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        .slot-machine-container {
+            background-color: #2d3748; /* Slightly lighter dark blue-gray */
+            border: 8px solid #4a5568; /* Medium gray border */
+            border-radius: 20px;
+            padding: 1.5rem; /* Adjusted padding */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3), 0 0 30px rgba(255,215,0,0.3) inset;
+            text-align: center;
+            width: 100%;
+            max-width: 600px; /* Increased max-width for 5 reels */
+        }
+        .reels-area { /* Renamed from reels-container for clarity */
+            display: flex;
+            justify-content: center; /* Center the columns */
+            margin-bottom: 2rem;
+            background-color: #1a202c;
+            padding: 1rem; /* Adjusted padding */
+            border-radius: 15px;
+            border: 4px solid #718096;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2) inset;
+        }
+        .reel-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 4px; /* Spacing between columns */
+        }
+        .reel-cell {
+            width: 60px;  /* Width of each symbol cell */
+            height: 70px; /* Height of each symbol cell */
+            background-color: #edf2f7;
+            border: 3px solid #a0aec0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem; /* Symbol size */
+            color: #2d3748;
+            overflow: hidden;
+            margin-bottom: 4px; /* Spacing between cells in a column */
+            transition: transform 0.2s ease-out, background-color 0.3s;
+        }
+        .reel-cell:last-child {
+            margin-bottom: 0;
+        }
+        .reel-cell.spinning {
+            animation: spinAnimation 0.07s linear infinite;
+        }
+        .reel-cell.winning { /* Style for winning cells */
+            background-color: #fcd34d; /* Gold background */
+            color: #583600;
+            border-color: #f59e0b;
+            transform: scale(1.1); /* Slightly enlarge winning cells */
+        }
+        @keyframes spinAnimation { /* Simple up-down animation */
+            0% { transform: translateY(-8px); opacity: 0.7; }
+            50% { transform: translateY(8px); opacity: 1; }
+            100% { transform: translateY(-8px); opacity: 0.7; }
+        }
+        .controls-container {
+            margin-top: 1.5rem;
+        }
+        .spin-button {
+            background: linear-gradient(145deg, #fcd34d, #fbbf24);
+            color: #583600;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.25rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 5px #c28700, 0 8px 15px rgba(0,0,0,0.3);
+            transition: all 0.1s ease-in-out;
+            text-transform: uppercase;
+        }
+        .spin-button:hover {
+            background: linear-gradient(145deg, #fbbf24, #f59e0b);
+            box-shadow: 0 3px #c28700, 0 6px 12px rgba(0,0,0,0.2);
+            transform: translateY(2px);
+        }
+        .spin-button:active {
+            background: linear-gradient(145deg, #f59e0b, #d97706);
+            box-shadow: 0 1px #c28700, 0 3px 6px rgba(0,0,0,0.2);
+            transform: translateY(4px);
+        }
+        .spin-button:disabled {
+            background: #9ca3af;
+            color: #4b5563;
+            cursor: not-allowed;
+            box-shadow: 0 5px #6b7280;
+        }
+        .info-display {
+            margin-top: 1.5rem;
+            font-size: 1rem;
+            background-color: #4a5568;
+            padding: 0.75rem;
+            border-radius: 8px;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2) inset;
+        }
+        .balance-display, .message-display {
+            margin-bottom: 0.5rem;
+        }
+        .balance-amount {
+            color: #fcd34d;
+            font-weight: bold;
+        }
+        .message-text {
+            color: #68d391; /* Green for win messages */
+            min-height: 24px; /* Ensure space for messages */
+            word-wrap: break-word; /* Wrap long messages */
+        }
+        .message-text.error {
+            color: #fc8181; /* Red for error/loss messages */
+        }
+        .title {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: #fcd34d;
+            text-shadow: 2px 2px #c28700;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .slot-machine-container {
+                padding: 1rem;
+                max-width: 100%; /* Allow full width on small screens */
+            }
+            .reels-area {
+                padding: 0.5rem;
+            }
+            .reel-column {
+                margin: 0 2px;
+            }
+            .reel-cell {
+                width: calc((100vw - 80px) / 5); /* Dynamic width based on screen size */
+                height: calc((100vw - 80px) / 5 * 1.16); /* Maintain aspect ratio */
+                font-size: 1.5rem; /* Adjust font size for smaller cells */
+                border-width: 2px;
+            }
+            .title {
+                font-size: 1.5rem;
+            }
+            .spin-button {
+                font-size: 1rem;
+                padding: 0.5rem 1rem;
+            }
+            .info-display {
+                font-size: 0.875rem;
+            }
+        }
+         @media (max-width: 400px) {
+            .reel-cell {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="slot-machine-container">
+        <h1 class="title">Pixel Slots 5x3</h1>
+
+        <div class="reels-area" id="reelsArea">
+            </div>
+
+        <div class="controls-container">
+            <button id="spinButton" class="spin-button">Spin (Cost: 10)</button>
+        </div>
+
+        <div class="info-display">
+            <div class="balance-display">Balance: <span id="balanceAmount" class="balance-amount">100</span></div>
+            <div class="message-display">Message: <span id="messageText" class="message-text">Good Luck!</span></div>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Configuration ---
+        const symbols = ['🍒', '🍋', '🍊', '🍉', '⭐', '🔔', '💎'];
+        const spinCost = 10;
+        const initialBalance = 100;
+        const NUM_REELS = 5;
+        const NUM_ROWS = 3;
+
+        // Payouts for winning combinations (symbol: {matchLength: payout})
+        const payouts = {
+            '🍒': { 5: 100, 4: 40, 3: 10 },
+            '🍋': { 5: 150, 4: 60, 3: 15 },
+            '🍊': { 5: 200, 4: 80, 3: 20 },
+            '🍉': { 5: 300, 4: 120, 3: 25 },
+            '⭐': { 5: 500, 4: 200, 3: 50 },
+            '🔔': { 5: 750, 4: 300, 3: 75 },
+            '💎': { 5: 1000, 4: 400, 3: 100 }
+        };
+        
+        // Define Paylines: array of arrays, where each inner array contains {col, row} objects
+        // For simplicity, 3 horizontal paylines
+        const paylines = [
+            Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 0 })), // Top row
+            Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 1 })), // Middle row
+            Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 2 }))  // Bottom row
+            // Future: Add diagonal or V-shape paylines here
+            // e.g., [{col:0,row:0}, {col:1,row:1}, {col:2,row:2}, {col:3,row:1}, {col:4,row:0}] // A V-shape
+        ];
+
+
+        // --- DOM Elements ---
+        const reelsArea = document.getElementById('reelsArea');
+        const spinButton = document.getElementById('spinButton');
+        const balanceAmountDisplay = document.getElementById('balanceAmount');
+        const messageTextDisplay = document.getElementById('messageText');
+        const reelCells = []; // 2D array to store cell DOM elements: reelCells[col][row]
+
+        // --- Game State ---
+        let currentBalance = initialBalance;
+        let isSpinning = false;
+        let currentGridSymbols = []; // To store the symbols currently on the grid
+
+        /**
+         * Creates the 5x3 grid of reel cells in the DOM.
+         */
+        function createReelGrid() {
+            reelsArea.innerHTML = ''; // Clear previous grid if any
+            for (let col = 0; col < NUM_REELS; col++) {
+                const columnDiv = document.createElement('div');
+                columnDiv.classList.add('reel-column');
+                reelCells[col] = [];
+                currentGridSymbols[col] = [];
+                for (let row = 0; row < NUM_ROWS; row++) {
+                    const cellDiv = document.createElement('div');
+                    cellDiv.classList.add('reel-cell');
+                    cellDiv.id = `cell-${col}-${row}`;
+                    const initialSymbol = symbols[Math.floor(Math.random() * symbols.length)]; // Random initial display
+                    cellDiv.textContent = initialSymbol;
+                    currentGridSymbols[col][row] = initialSymbol;
+                    columnDiv.appendChild(cellDiv);
+                    reelCells[col][row] = cellDiv;
+                }
+                reelsArea.appendChild(columnDiv);
+            }
+        }
+
+        /**
+         * Initializes the game.
+         */
+        function initializeGame() {
+            createReelGrid();
+            updateBalanceDisplay();
+            spinButton.addEventListener('click', handleSpin);
+            spinButton.textContent = `Spin (Cost: ${spinCost})`;
+        }
+
+        /**
+         * Generates a random 5x3 grid of symbols.
+         * @returns {string[][]} A 2D array of symbols.
+         */
+        function generateGridSymbols() {
+            const grid = [];
+            for (let col = 0; col < NUM_REELS; col++) {
+                grid[col] = [];
+                for (let row = 0; row < NUM_ROWS; row++) {
+                    grid[col][row] = symbols[Math.floor(Math.random() * symbols.length)];
+                }
+            }
+            return grid;
+        }
+
+        /**
+         * Handles the spin button click.
+         */
+        async function handleSpin() {
+            if (isSpinning) return;
+
+            if (currentBalance < spinCost) {
+                displayMessage("Not enough balance!", true);
+                return;
+            }
+
+            isSpinning = true;
+            spinButton.disabled = true;
+            spinButton.textContent = 'Spinning...';
+            displayMessage("Spinning reels...", false);
+            clearWinningHighlights(); // Clear previous win highlights
+
+            currentBalance -= spinCost;
+            updateBalanceDisplay();
+
+            // Start animation on all cells
+            for (let c = 0; c < NUM_REELS; c++) {
+                for (let r = 0; r < NUM_ROWS; r++) {
+                    reelCells[c][r].classList.add('spinning');
+                    // Optionally, make each column "stop" at a slightly different time for visual effect
+                    // For now, all stop together after the main delay.
+                }
+            }
+            
+            // Simulate spinning delay (e.g., 1 to 2 seconds)
+            const spinDuration = 1000 + Math.random() * 1000;
+            await new Promise(resolve => setTimeout(resolve, spinDuration));
+
+            currentGridSymbols = generateGridSymbols(); // Get the final symbols
+
+            // Stop animation and display final symbols
+            for (let c = 0; c < NUM_REELS; c++) {
+                for (let r = 0; r < NUM_ROWS; r++) {
+                    reelCells[c][r].classList.remove('spinning');
+                    reelCells[c][r].textContent = currentGridSymbols[c][r];
+                }
+            }
+            
+            checkWin(currentGridSymbols);
+
+            isSpinning = false;
+            spinButton.disabled = false;
+            spinButton.textContent = `Spin (Cost: ${spinCost})`;
+
+            if (currentBalance < spinCost) {
+                spinButton.disabled = true;
+                displayMessage("Game Over! No credits.", true);
+            }
+        }
+        
+        /**
+         * Checks the grid for winning combinations based on defined paylines.
+         * @param {string[][]} grid - The 5x3 grid of symbols.
+         */
+        function checkWin(grid) {
+            let totalWinAmount = 0;
+            let winDetails = []; // To store details of each win
+
+            paylines.forEach((line, lineIndex) => {
+                const symbolsOnLine = line.map(pos => grid[pos.col][pos.row]);
+                const firstSymbol = symbolsOnLine[0];
+                let matchLength = 0;
+
+                for (let i = 0; i < symbolsOnLine.length; i++) {
+                    if (symbolsOnLine[i] === firstSymbol) {
+                        matchLength++;
+                    } else {
+                        break; // Sequence broken from the left
+                    }
+                }
+
+                if (matchLength >= 3) { // Minimum 3 of a kind for a win
+                    if (payouts[firstSymbol] && payouts[firstSymbol][matchLength]) {
+                        const winForThisLine = payouts[firstSymbol][matchLength];
+                        totalWinAmount += winForThisLine;
+                        winDetails.push({
+                            symbol: firstSymbol,
+                            length: matchLength,
+                            amount: winForThisLine,
+                            lineIndex: lineIndex,
+                            positions: line.slice(0, matchLength) // Store winning positions
+                        });
+                    }
+                }
+            });
+
+            if (totalWinAmount > 0) {
+                currentBalance += totalWinAmount;
+                updateBalanceDisplay();
+                
+                let messageToShow = `Total Win: ${totalWinAmount}!`;
+                if (winDetails.length > 0) {
+                    // Highlight winning cells
+                    winDetails.forEach(win => {
+                        win.positions.forEach(pos => {
+                            reelCells[pos.col][pos.row].classList.add('winning');
+                        });
+                    });
+                    // Create a more detailed message if space allows, or a summary
+                    if (winDetails.length === 1) {
+                        messageToShow = `${winDetails[0].length} ${winDetails[0].symbol}s win ${winDetails[0].amount}!`;
+                    } else {
+                         messageToShow = `Multiple Wins! Total: ${totalWinAmount}!`;
+                    }
+                }
+                displayMessage(messageToShow, false);
+            } else {
+                displayMessage("No win this time. Good luck next spin!", true);
+            }
+        }
+
+        /**
+         * Clears highlights from winning cells.
+         */
+        function clearWinningHighlights() {
+            for (let c = 0; c < NUM_REELS; c++) {
+                for (let r = 0; r < NUM_ROWS; r++) {
+                    reelCells[c][r].classList.remove('winning');
+                }
+            }
+        }
+
+        /**
+         * Updates the balance display on the UI.
+         */
+        function updateBalanceDisplay() {
+            balanceAmountDisplay.textContent = currentBalance;
+        }
+
+        /**
+         * Displays a message to the player.
+         * @param {string} message - The message to display.
+         * @param {boolean} isError - If true, styles the message as an error/loss.
+         */
+        function displayMessage(message, isError = false) {
+            messageTextDisplay.textContent = message;
+            messageTextDisplay.classList.toggle('error', isError);
+        }
+
+        // --- Start the Game ---
+        initializeGame();
+    </script>
+</body>
+</html>
