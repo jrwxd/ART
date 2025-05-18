@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel Slots - Card & Symbol Frenzy</title>
+    <title>Pixel Slots - Virtual Reels (Believable Spin)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         body {
             font-family: 'Press Start 2P', cursive;
-            background-color: #0f172a; /* Even darker blue */
+            background-color: #0f172a; 
             color: #e2e8f0;
             display: flex;
             flex-direction: column;
@@ -73,10 +73,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem; /* Adjusted for potentially wider '10' */
-            line-height: 1; /* Ensure text is centered vertically */
+            font-size: 2.5rem; 
+            line-height: 1; 
             color: #1e293b; 
-            overflow: hidden;
+            overflow: hidden; /* Important for smooth visual spin */
             margin-bottom: 5px;
             transition: transform 0.15s ease-out, background-color 0.2s, box-shadow 0.2s;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
@@ -84,8 +84,9 @@
         .reel-cell:last-child {
             margin-bottom: 0;
         }
-        .reel-cell.spinning {
-            animation: spinAnimation 0.05s linear infinite, flickerAnimation 0.1s infinite alternate;
+        /* CSS animation for cell tumbling effect, JS will handle content changes */
+        .reel-cell.spinning-effect { 
+            animation: spinAnimation 0.05s linear infinite; 
         }
         .reel-cell.winning {
             background-color: #fde047; 
@@ -95,15 +96,12 @@
             box-shadow: 0 0 20px #facc15, 0 0 30px #fde047 inset;
             animation: winningCellPulse 0.6s infinite alternate;
         }
-        @keyframes spinAnimation {
-            0% { transform: translateY(-12px) rotateX(15deg); opacity: 0.6; }
-            50% { transform: translateY(12px) rotateX(-15deg); opacity: 1; }
-            100% { transform: translateY(-12px) rotateX(15deg); opacity: 0.6; }
+        @keyframes spinAnimation { /* Only visual tumbling, not content change */
+            0% { transform: translateY(-8px) rotateX(10deg); opacity: 0.7; }
+            50% { transform: translateY(8px) rotateX(-10deg); opacity: 1; }
+            100% { transform: translateY(-8px) rotateX(10deg); opacity: 0.7; }
         }
-        @keyframes flickerAnimation {
-            from { opacity: 0.7; }
-            to { opacity: 1; }
-        }
+        /* flickerAnimation removed as JS handles visual symbol cycling */
         @keyframes winningCellPulse {
             from { transform: scale(1.1); box-shadow: 0 0 15px #facc15, 0 0 25px #fde047 inset; }
             to { transform: scale(1.2); box-shadow: 0 0 25px #fde047, 0 0 35px #fef08a inset; }
@@ -192,12 +190,11 @@
             text-shadow: 1px 1px 1px #e11d48;
         }
         .title {
-            font-size: 2.2rem; /* Slightly adjusted for longer title */
-            margin-bottom: 1.5rem; /* Adjusted margin */
+            font-size: 2.2rem; 
+            margin-bottom: 1.5rem; 
             color: #fde047;
             text-shadow: 3px 3px #ef4444, 5px 5px #7f1d1d; 
         }
-        /* Responsive adjustments */
         @media (max-width: 640px) {
             .slot-machine-container { padding: 1rem; max-width: 100%; }
             .reels-area { padding: 0.75rem; }
@@ -205,7 +202,7 @@
             .reel-cell {
                 width: calc((100vw - 70px) / 5); 
                 height: calc((100vw - 70px) / 5 * 1.15);
-                font-size: 1.5rem; /* Adjusted for smaller screens to fit '10' etc. */
+                font-size: 1.5rem; 
             }
             .title { font-size: 1.5rem; margin-bottom: 1.2rem;}
             .spin-button { font-size: 1.2rem; padding: 0.75rem 1.5rem; }
@@ -221,7 +218,7 @@
 </head>
 <body>
     <div class="slot-machine-container" id="slotMachineContainer">
-        <h1 class="title">Card & Symbol Frenzy!</h1>
+        <h1 class="title">Virtual Reel Frenzy!</h1>
 
         <div class="bet-selection-area" id="betSelectionArea">
             </div>
@@ -241,7 +238,6 @@
 
     <script>
         // --- Game Configuration ---
-        // New symbol set including face cards, numbers, and specified "suits"
         const symbols = ['💩', '🍭', '🍋', '🍒', '🌈', '❤️', '⭐', '9', '10', 'J', 'Q', 'K', 'A'];
         const baseSpinCost = 10; 
         const initialBalance = 100;
@@ -253,7 +249,6 @@
             { label: '1x', value: 1.0 }     
         ];
 
-        // New payouts for the new symbol set
         const payouts = { 
             '💩': { 5: 8,   4: 2,  3: 0.5 }, 
             '🍭': { 5: 10,  4: 3,  3: 0.8 }, 
@@ -270,6 +265,14 @@
             'A':  { 5: 250, 4: 50, 3: 15 }  
         };
         
+        const virtualReelStrips = [
+            ['💩','🍭','🍋','🍒','🌈','❤️','⭐','9','10','J','Q','K','A','💩','🍭','🍋','🍒','🌈','❤️','⭐','9','10','J','Q','💩','🍭','🍋','🍒','🌈','❤️','⭐','9','10','💩','🍭','🍋','🍒','🌈','❤️','⭐','9','💩','🍭','🍋','🍒','🌈','❤️','⭐','💩','🍭','🍋','🍒','🌈','❤️','💩','🍭','🍋','🍒','🌈','💩','🍭','🍋','🍒','💩','🍭','🍋','💩','🍭','💩', '💩', '💩', '🍋', '🍒', '9', '❤️', '⭐', 'J', 'A'],
+            ['💩','🍭','🍋','🍒','🌈','❤️','⭐','9','10','J','Q','K','A','💩','🍭','🍋','🍒','🌈','❤️','⭐','9','10','J','Q','K','💩','🍭','🍋','🍒','🌈','❤️','⭐','9','10','J','💩','🍭','🍋','🍒','🌈','❤️','⭐','9','💩','🍭','🍋','🍒','🌈','💩','🍭','🍋', 'K', 'A', 'Q', 'J', '10', '⭐', '❤️', '🌈', '🍒', '🍋', '🍭', '💩'],
+            ['A','K','Q','J','10','9','⭐','❤️','🌈','🍒','🍋','🍭','💩','A','K','Q','J','10','9','⭐','❤️','🌈','A','K','Q','J','10','⭐','A','K','Q','A', 'K', 'J', '10', '9', '⭐', '❤️', '🌈', '🍒', '🍋', '🍭', '💩', '💩', '🍭', '🍋', '🍒', '🌈', '❤️', '⭐', '9', '10', 'J', 'Q', 'K', 'A'],
+            ['💩','🍭','🍋','🍒','🌈','❤️','⭐','9','10','J','Q','K','A','💩','🍭','🍋','🍒','🌈','❤️','⭐','9','10','J','Q','K','💩','🍭','🍋','🍒','🌈','❤️','⭐','9','10','J','💩','🍭','🍋','🍒','🌈','❤️','⭐','9','💩','🍭','🍋','🍒','🌈','💩','🍭','🍋', 'K', 'A', 'Q', 'J', '10', '⭐', '❤️', '🌈', '🍒', '🍋', '🍭', '💩'],
+            ['A','K','Q','J','10','9','⭐','❤️','🌈','🍒','🍋','🍭','💩','K','Q','J','10','9','⭐','❤️','🌈','🍒','🍋','🍭','Q','J','10','9','⭐','❤️','🌈','🍒','🍋','J','10','9','⭐','❤️','🌈','🍒','10','9','⭐','❤️','🌈','9','⭐','❤️','⭐', 'A', 'K', 'Q', 'J', '10', '9', '⭐', '❤️', '🌈', '🍒', '🍋', '🍭', '💩']
+        ];
+
         const paylines = [
             Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 0 })), 
             Array.from({ length: NUM_REELS }, (_, col) => ({ col, row: 1 })), 
@@ -292,64 +295,37 @@
         // --- Game State ---
         let currentBalance = initialBalance;
         let isSpinning = false;
-        let currentGridSymbols = [];
+        let predeterminedOutcome = []; // Stores the final 5x3 grid
         let currentBetMultiplier = 1.0; 
+        let reelVisualSpinIndices = [0, 0, 0, 0, 0]; // Tracks visual index for each reel strip
+        let reelsCurrentlyAnimating = [false, false, false, false, false]; // Tracks which reels are visually spinning
+        let animationFrameId = null; // For managing the requestAnimationFrame loop
+        const VISUAL_SPIN_SPEED_FACTOR = 2; // Higher is faster visual symbol cycling
 
         // --- Tone.js Sound Synthesizers ---
         let spinSound, reelStopSound, smallWinSound, mediumWinSound, bigWinSound, noBalanceSound, clickSound;
         let soundsInitialized = false;
 
-        // Initializes sound effects using Tone.js. Must be called after a user gesture.
         function initializeSounds() {
             if (soundsInitialized) return;
             Tone.start().then(() => {
-                console.log("Audio context started successfully by user gesture.");
-                // Spin sound: white noise with a short envelope
-                spinSound = new Tone.NoiseSynth({
-                    noise: { type: 'white' },
-                    envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 }
-                }).toDestination();
-
-                // Reel stop sound: a quick, percussive thud
-                reelStopSound = new Tone.MembraneSynth({
-                    pitchDecay: 0.02, octaves: 2, oscillator: { type: 'sine' },
-                    envelope: { attack: 0.001, decay: 0.15, sustain: 0.01, release: 0.2, attackCurve: 'step' }
-                }).toDestination();
-                reelStopSound.volume.value = -10; // Lower volume for reel stops
-
-                // Win sounds: tiered synth sounds
-                const winSynthConfig = {
-                    oscillator: { type: 'triangle' },
-                    envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.3 }
-                };
+                console.log("Audio context started by user gesture.");
+                spinSound = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+                reelStopSound = new Tone.MembraneSynth({ pitchDecay: 0.04, octaves: 3, oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.15, sustain: 0.01, release: 0.3, attackCurve: 'step' } }).toDestination();
+                reelStopSound.volume.value = -10;
+                const winSynthConfig = { oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.3 } };
                 smallWinSound = new Tone.Synth(winSynthConfig).toDestination();
                 mediumWinSound = new Tone.Synth(winSynthConfig).toDestination();
                 bigWinSound = new Tone.Synth(winSynthConfig).toDestination();
-                smallWinSound.volume.value = -8;
-                mediumWinSound.volume.value = -5;
-                bigWinSound.volume.value = -2; // Louder for big wins
-
-                // No balance sound: a distinct error-like sound
-                noBalanceSound = new Tone.Synth({
-                    oscillator: { type: 'square' },
-                    envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.1 }
-                }).toDestination();
+                smallWinSound.volume.value = -8; mediumWinSound.volume.value = -5; bigWinSound.volume.value = -2;
+                noBalanceSound = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.1 } }).toDestination();
                 noBalanceSound.volume.value = -10;
-
-                // Click sound for UI interactions
-                clickSound = new Tone.Synth({
-                    oscillator: { type: 'sine' },
-                    envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.1 }
-                }).toDestination();
+                clickSound = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.1 } }).toDestination();
                 clickSound.volume.value = -15;
-
                 soundsInitialized = true;
-            }).catch(e => {
-                console.error("Error starting Tone.js audio context:", e);
-            });
+            }).catch(e => console.error("Error starting Tone.js audio context:", e));
         }
         
-        // Creates the bet selection buttons in the UI.
         function createBetButtons() {
             betSelectionArea.innerHTML = ''; 
             betMultiplierOptions.forEach(option => {
@@ -357,13 +333,10 @@
                 button.classList.add('bet-button');
                 button.textContent = option.label;
                 button.dataset.multiplier = option.value;
-                if (option.value === currentBetMultiplier) {
-                    button.classList.add('active');
-                }
+                if (option.value === currentBetMultiplier) button.classList.add('active');
                 button.addEventListener('click', () => {
                     if (!soundsInitialized) initializeSounds(); 
                     if (soundsInitialized && clickSound) clickSound.triggerAttackRelease('C5', '32n');
-                    
                     currentBetMultiplier = parseFloat(option.value);
                     updateSpinButtonText();
                     document.querySelectorAll('.bet-button').forEach(btn => btn.classList.remove('active'));
@@ -373,67 +346,100 @@
             });
         }
 
-        // Updates the text on the spin button to reflect the current bet cost.
         function updateSpinButtonText() {
             const cost = baseSpinCost * currentBetMultiplier;
             spinButton.textContent = `Spin (${cost.toFixed(2)})`;
         }
 
-        // Creates the 5x3 grid of reel cells in the HTML.
         function createReelGrid() {
             reelsArea.innerHTML = ''; 
             for (let col = 0; col < NUM_REELS; col++) {
                 const columnDiv = document.createElement('div');
                 columnDiv.classList.add('reel-column');
                 reelCells[col] = [];
-                currentGridSymbols[col] = [];
                 for (let row = 0; row < NUM_ROWS; row++) {
                     const cellDiv = document.createElement('div');
                     cellDiv.classList.add('reel-cell');
                     cellDiv.id = `cell-${col}-${row}`;
-                    const initialSymbol = symbols[Math.floor(Math.random() * symbols.length)];
-                    cellDiv.textContent = initialSymbol;
-                    currentGridSymbols[col][row] = initialSymbol;
                     columnDiv.appendChild(cellDiv);
                     reelCells[col][row] = cellDiv;
                 }
                 reelsArea.appendChild(columnDiv);
             }
         }
+        
+        // Sets the visual display of the reels based on a given 5x3 symbol grid
+        function setReelDisplay(symbolGrid) {
+            for (let col = 0; col < NUM_REELS; col++) {
+                for (let row = 0; row < NUM_ROWS; row++) {
+                    if (reelCells[col] && reelCells[col][row] && symbolGrid[col] && symbolGrid[col][row]) {
+                       reelCells[col][row].textContent = symbolGrid[col][row];
+                    }
+                }
+            }
+        }
 
-        // Initializes the game: creates grid, buttons, sets up listeners.
         function initializeGame() {
-            createReelGrid();
+            createReelGrid(); 
+            predeterminedOutcome = generateOutcomeFromVirtualReels(); // Generate initial outcome
+            setReelDisplay(predeterminedOutcome); // Display initial outcome
             createBetButtons(); 
             updateBalanceDisplay();
             updateSpinButtonText(); 
             spinButton.addEventListener('click', () => {
-                 if (!soundsInitialized) {
-                    initializeSounds(); 
-                }
+                 if (!soundsInitialized) initializeSounds(); 
                 handleSpin();
             });
         }
-
-        // Generates a new 5x3 grid of random symbols.
-        function generateGridSymbols() {
-            const grid = [];
+        
+        // Generates the 5x3 grid outcome by sampling from virtual reel strips
+        function generateOutcomeFromVirtualReels() {
+            const newGrid = [];
             for (let col = 0; col < NUM_REELS; col++) {
-                grid[col] = [];
+                newGrid[col] = [];
+                const currentReelStrip = virtualReelStrips[col];
+                const stripLength = currentReelStrip.length;
+                const startIndex = Math.floor(Math.random() * stripLength); // This is the "landing" position
+                
                 for (let row = 0; row < NUM_ROWS; row++) {
-                    grid[col][row] = symbols[Math.floor(Math.random() * symbols.length)];
+                    const symbolIndex = (startIndex + row) % stripLength;
+                    newGrid[col][row] = currentReelStrip[symbolIndex];
                 }
             }
-            return grid;
+            return newGrid;
         }
 
-        // Handles the main spin logic.
+        // The main animation loop for visually spinning reels
+        function visualSpinLoop() {
+            let stillAnimating = false;
+            for (let col = 0; col < NUM_REELS; col++) {
+                if (reelsCurrentlyAnimating[col]) {
+                    stillAnimating = true;
+                    const currentReelStrip = virtualReelStrips[col];
+                    const stripLength = currentReelStrip.length;
+                    
+                    // Update the 3 cells for this column
+                    for (let row = 0; row < NUM_ROWS; row++) {
+                        const symbolIndex = (reelVisualSpinIndices[col] + row) % stripLength;
+                        reelCells[col][row].textContent = currentReelStrip[symbolIndex];
+                    }
+                    reelVisualSpinIndices[col] = (reelVisualSpinIndices[col] + VISUAL_SPIN_SPEED_FACTOR) % stripLength;
+                }
+            }
+
+            if (stillAnimating) {
+                animationFrameId = requestAnimationFrame(visualSpinLoop);
+            } else {
+                animationFrameId = null; // Stop the loop if no reels are animating
+            }
+        }
+
+
         async function handleSpin() {
-            if (isSpinning) return; // Prevent multiple spins if already spinning
+            if (isSpinning) return; 
 
             const currentSpinCost = baseSpinCost * currentBetMultiplier;
 
-            // Check for sufficient balance
             if (currentBalance < currentSpinCost) {
                 displayMessage("Not enough balance!", true);
                 if (soundsInitialized && noBalanceSound) noBalanceSound.triggerAttackRelease('C3', '8n', Tone.now() + 0.1);
@@ -441,55 +447,62 @@
             }
 
             isSpinning = true;
-            spinButton.disabled = true; // Disable spin button during spin
+            spinButton.disabled = true; 
             spinButton.textContent = 'Spinning...';
             displayMessage("Spinning reels...", false);
-            clearWinningHighlights(); // Clear previous win visuals
+            clearWinningHighlights(); 
             slotMachineContainer.classList.remove('big-win-celebration'); 
-            slotMachineContainer.style.animation = 'none'; // Explicitly stop ongoing animation
+            slotMachineContainer.style.animation = 'none'; 
 
+            // 1. Determine the final outcome immediately (secretly)
+            predeterminedOutcome = generateOutcomeFromVirtualReels();
 
-            if (soundsInitialized && spinSound) spinSound.triggerAttackRelease('4n'); // Play spin sound
+            if (soundsInitialized && spinSound) spinSound.triggerAttackRelease('4n'); 
 
-
-            currentBalance -= currentSpinCost; // Deduct cost
+            currentBalance -= currentSpinCost; 
             updateBalanceDisplay();
 
-            // Animate all reel cells
+            // 2. Start visual spinning animation for all reels
             for (let c = 0; c < NUM_REELS; c++) {
+                reelsCurrentlyAnimating[c] = true;
+                reelVisualSpinIndices[c] = Math.floor(Math.random() * virtualReelStrips[c].length); // Random start for visual
                 for (let r = 0; r < NUM_ROWS; r++) {
-                    reelCells[c][r].classList.add('spinning');
+                    reelCells[c][r].classList.add('spinning-effect'); // Apply CSS tumbling
                 }
             }
-            
-            const spinDuration = 1500 + Math.random() * 1000; // Randomize spin duration
-            // Staggered reel stop effect
-            for (let c = 0; c < NUM_REELS; c++) {
-                await new Promise(resolve => setTimeout(resolve, spinDuration / (NUM_REELS * 1.5) )); 
-                // Display temporary random symbols during individual reel "stops"
-                for (let r = 0; r < NUM_ROWS; r++) {
-                    reelCells[c][r].textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                }
-                if(soundsInitialized && reelStopSound) reelStopSound.triggerAttackRelease('G2', '16n', Tone.now() + 0.05 * c); // Play reel stop sound
-            }
-            
-            currentGridSymbols = generateGridSymbols(); // Determine final symbols for the grid
+            if (animationFrameId) cancelAnimationFrame(animationFrameId); // Clear previous loop if any
+            animationFrameId = requestAnimationFrame(visualSpinLoop); // Start new animation loop
 
-            // Display final symbols and stop spinning animation
+            // 3. Staggered "stopping" of reels
+            const baseStopDelay = 1000; // Minimum spin time before first reel stops
+            const delayBetweenReels = 300; // Time between each reel stopping
+
             for (let c = 0; c < NUM_REELS; c++) {
+                await new Promise(resolve => setTimeout(resolve, (c === 0 ? baseStopDelay : delayBetweenReels) ));
+                
+                reelsCurrentlyAnimating[c] = false; // Stop this reel's visual cycling in the animation loop
+                
+                // Set the final symbols for this reel from the predetermined outcome
                 for (let r = 0; r < NUM_ROWS; r++) {
-                    reelCells[c][r].classList.remove('spinning');
-                    reelCells[c][r].textContent = currentGridSymbols[c][r];
+                    reelCells[c][r].textContent = predeterminedOutcome[c][r];
+                    reelCells[c][r].classList.remove('spinning-effect'); // Remove CSS tumbling
                 }
+                if(soundsInitialized && reelStopSound) reelStopSound.triggerAttackRelease('G2', '16n', Tone.now());
             }
             
-            checkWin(currentGridSymbols, currentSpinCost); // Check for wins with the current bet amount
+            // Ensure animation loop is fully stopped if it hasn't already
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+
+            // 4. Check for wins based on the predeterminedOutcome
+            checkWin(predeterminedOutcome, currentSpinCost); 
 
             isSpinning = false;
-            spinButton.disabled = false; // Re-enable spin button
+            spinButton.disabled = false; 
             updateSpinButtonText();
 
-            // Check if player can afford the absolute minimum bet for the next spin
             if (currentBalance < (baseSpinCost * betMultiplierOptions[0].value)) { 
                 spinButton.disabled = true;
                 displayMessage("Game Over! Insufficient funds.", true);
@@ -497,33 +510,29 @@
             }
         }
         
-        // Checks the grid for winning combinations based on paylines and payouts.
         function checkWin(grid, betAmount) {
             let totalPayoutAmount = 0; 
             let winDetails = []; 
 
-            // Iterate over each defined payline
             paylines.forEach((line, lineIndex) => {
-                const symbolsOnLine = line.map(pos => grid[pos.col][pos.row]); // Get symbols on this payline
-                const firstSymbol = symbolsOnLine[0]; // Winning symbol must match the first symbol on the line (left-to-right)
+                const symbolsOnLine = line.map(pos => grid[pos.col][pos.row]); 
+                const firstSymbol = symbolsOnLine[0]; 
                 let matchLength = 0;
 
-                // Count consecutive matching symbols from the left
                 for (let i = 0; i < symbolsOnLine.length; i++) {
                     if (symbolsOnLine[i] === firstSymbol) {
                         matchLength++;
                     } else {
-                        break; // Sequence broken
+                        break; 
                     }
                 }
 
-                // A win requires at least 3 matching symbols
                 if (matchLength >= 3) { 
                     if (payouts[firstSymbol] && payouts[firstSymbol][matchLength]) {
                         const payoutMultiplier = payouts[firstSymbol][matchLength];
-                        const winForThisLine = payoutMultiplier * betAmount; // Calculate win for this line
+                        const winForThisLine = payoutMultiplier * betAmount; 
                         totalPayoutAmount += winForThisLine;
-                        winDetails.push({ // Store details of this winning line
+                        winDetails.push({ 
                             symbol: firstSymbol,
                             length: matchLength,
                             amount: winForThisLine,
@@ -534,52 +543,47 @@
                 }
             });
 
-            // Handle wins
             if (totalPayoutAmount > 0) {
-                currentBalance += totalPayoutAmount; // Add winnings to balance
+                currentBalance += totalPayoutAmount; 
                 updateBalanceDisplay();
                 
                 let messageToShow = `Total Win: ${totalPayoutAmount.toFixed(2)}!`;
-                // Highlight the cells that are part of winning lines
                 winDetails.forEach(win => {
                     win.positions.forEach(pos => {
                         reelCells[pos.col][pos.row].classList.add('winning');
                     });
                 });
 
-                // Customize win message
                 if (winDetails.length === 1) {
                     messageToShow = `${winDetails[0].length} ${winDetails[0].symbol}s pay ${winDetails[0].amount.toFixed(2)}!`;
                 } else if (winDetails.length > 1) {
                      messageToShow = `Multiple Wins! Total: ${totalPayoutAmount.toFixed(2)}!`;
                 }
-                displayMessage(messageToShow, false); // Show win message (not an error)
+                displayMessage(messageToShow, false); 
 
-                // Play tiered win sounds
                 if (soundsInitialized) {
-                    const bigWinThreshold = betAmount * 20; // Define what constitutes a "big win"
-                    const mediumWinThreshold = betAmount * 5; // Define "medium win"
+                    const bigWinThreshold = betAmount * 20; 
+                    const mediumWinThreshold = betAmount * 5; 
 
                     if (totalPayoutAmount >= bigWinThreshold) { 
                         if(bigWinSound) bigWinSound.triggerAttackRelease('C5', '1n', Tone.now());
                         if(bigWinSound) bigWinSound.triggerAttackRelease('G5', '1n', Tone.now() + 0.3);
                         if(bigWinSound) bigWinSound.triggerAttackRelease('E6', '1n', Tone.now() + 0.6);
-                        slotMachineContainer.classList.add('big-win-celebration'); // Trigger visual celebration
-                        slotMachineContainer.style.animation = ''; // Reset animation to replay if needed
+                        slotMachineContainer.classList.add('big-win-celebration'); 
+                        slotMachineContainer.style.animation = ''; 
                     } else if (totalPayoutAmount >= mediumWinThreshold) { 
                         if(mediumWinSound) mediumWinSound.triggerAttackRelease('A4', '2n');
                         if(mediumWinSound) mediumWinSound.triggerAttackRelease('E5', '2n', Tone.now() + 0.2);
-                    } else { // Small win
+                    } else { 
                         if(smallWinSound) smallWinSound.triggerAttackRelease('C4', '4n');
                     }
                 }
 
             } else {
-                displayMessage("No win. Spin again!", true); // No win message (styled as error/info)
+                displayMessage("No win. Spin again!", true); 
             }
         }
 
-        // Removes the 'winning' class from all reel cells to clear highlights.
         function clearWinningHighlights() {
             for (let c = 0; c < NUM_REELS; c++) {
                 for (let r = 0; r < NUM_ROWS; r++) {
@@ -588,15 +592,13 @@
             }
         }
 
-        // Updates the player's balance display in the UI.
         function updateBalanceDisplay() {
             balanceAmountDisplay.textContent = currentBalance.toFixed(2);
         }
 
-        // Displays a message to the player in the message area.
         function displayMessage(message, isError = false) {
             messageTextDisplay.textContent = message;
-            messageTextDisplay.classList.toggle('error', isError); // Add/remove 'error' class for styling
+            messageTextDisplay.classList.toggle('error', isError); 
         }
 
         // --- Start the Game ---
