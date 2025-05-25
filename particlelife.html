@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Particle Simulation</title>
+</head>
+<body>
+  <script>
+    class ParticleSimulation {
+      constructor(numParticles = 50) {
+        this.canvas = document.createElement('canvas');
+        document.body.appendChild(this.canvas);
+        this.context = this.canvas.getContext('2d');
+
+        this.handleResize();
+        window.addEventListener('resize', () => this.handleResize());
+
+        this.numParticles = numParticles;
+        this.particles = [];
+        this.initParticles();
+
+        this.animate();
+      }
+
+      handleResize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+      }
+
+      initParticles() {
+        for (let i = 0; i < this.numParticles; i++) {
+          this.particles.push({
+            x: Math.random() * this.canvas.width,
+            y: Math.random() * this.canvas.height,
+            size: 2 + Math.random() * 5,
+            color: this.getRandomColor(),
+            vx: (Math.random() - 0.5) * 5,
+            vy: (Math.random() - 0.5) * 5
+          });
+        }
+      }
+
+      getRandomColor() {
+        const r = Math.floor(Math.random() * 256);
+        const g = Math.floor(Math.random() * 256);
+        const b = Math.floor(Math.random() * 256);
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+
+      updateParticles() {
+        for (let p of this.particles) {
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if (p.x < 0 || p.x > this.canvas.width) {
+            p.vx = -p.vx;
+          }
+          if (p.y < 0 || p.y > this.canvas.height) {
+            p.vy = -p.vy;
+          }
+        }
+      }
+
+      drawParticles() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        for (let p of this.particles) {
+          this.context.fillStyle = p.color;
+          this.context.beginPath();
+          this.context.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          this.context.closePath();
+          this.context.fill();
+        }
+      }
+
+      animate() {
+        this.updateParticles();
+        this.drawParticles();
+        requestAnimationFrame(() => this.animate());
+      }
+    }
+
+    new ParticleSimulation(100);
+  </script>
+</body>
+</html>
