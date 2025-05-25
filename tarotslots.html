@@ -462,34 +462,55 @@
         // --- Tone.js Sound Synthesizers ---
         let spinSound, reelStopSound, smallWinSound, mediumWinSound, bigWinSound, jackpotSound, noBalanceSound, clickSound;
         let soundsInitialized = false;
+        let audioContextStarted = false;
 
-        function initializeSounds() {
-            if (typeof Tone === 'undefined' || soundsInitialized || (Tone.context && Tone.context.state === 'running')) {
-                soundsInitialized = true; return;
-            }
-            Tone.start().then(() => {
-                console.log("Audio context started.");
-                spinSound = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.005, decay: 0.15, sustain: 0.05, release: 0.2 } }).toDestination();
-                spinSound.volume.value = -20;
-                reelStopSound = new Tone.MembraneSynth({ pitchDecay: 0.02, octaves: 3, oscillator: {type: "sine"}, envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.2} }).toDestination();
-                reelStopSound.volume.value = -15;
-                smallWinSound = new Tone.Synth({ oscillator: { type: 'triangle8' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.3 } }).toDestination();
-                smallWinSound.volume.value = -14;
-                mediumWinSound = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fmtriangle', modulationType: 'square', harmonicity: 0.5 }, envelope: { attack: 0.02, decay: 0.4, sustain: 0.2, release: 0.5 } }).toDestination();
-                mediumWinSound.volume.value = -10;
-                bigWinSound = new Tone.PolySynth(Tone.FMSynth, { harmonicity: 1.5, modulationIndex: 12, detune: -5, oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.5, sustain: 0.3, release: 0.8 }, modulation: { type: 'triangle' }, modulationEnvelope: { attack: 0.05, decay: 0.3, sustain: 0.5, release: 0.8 } }).toDestination();
-                bigWinSound.volume.value = -8;
-                jackpotSound = new Tone.PolySynth(Tone.Synth, { oscillator: {type: "pulse", width: 0.2}, envelope: { attack: 0.01, decay: 1.5, sustain: 0.5, release: 2.0 } }).toDestination();
-                const jackpotReverb = new Tone.Reverb(1.5).toDestination();
-                jackpotSound.connect(jackpotReverb);
-                jackpotSound.volume.value = -6;
-                noBalanceSound = new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.1 } }).toDestination();
-                noBalanceSound.volume.value = -12;
-                clickSound = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.1 } }).toDestination();
-                clickSound.volume.value = -18;
+        async function initializeSounds() {
+            if (soundsInitialized) return;
+            
+            try {
+                // Don't start audio context until user interaction
+                if (Tone.context.state === 'suspended') {
+                    console.log('Audio context suspended, waiting for user interaction...');
+                    return;
+                }
+                
+                await Tone.start();
+                audioContextStarted = true;
+                
+                spinSound = new Tone.Oscillator(200, "triangle").toDestination();
+                winSound = new Tone.Oscillator(440, "sine").toDestination();
+                // ... rest of your sound setup
+                
                 soundsInitialized = true;
-            }).catch(e => console.error("Error starting Tone.js audio context:", e));
+                console.log('Sounds initialized successfully');
+            } catch (error) {
+                console.warn('Failed to initialize sounds:', error);
+                soundsInitialized = false;
+            }
         }
+
+        // Add this function to handle user interaction
+        async function startAudioContext() {
+            if (!audioContextStarted && Tone.context.state === 'suspended') {
+                try {
+                    await Tone.start();
+                    audioContextStarted = true;
+                    console.log('Audio context started');
+                    
+                    // Now initialize sounds
+                    if (!soundsInitialized) {
+                        await initializeSounds();
+                    }
+                } catch (error) {
+                    console.warn('Failed to start audio context:', error);
+                }
+            }
+        }
+
+        // Add event listeners for user interaction - add this after your existing event listeners:
+        document.addEventListener('click', startAudioContext, { once: true });
+        document.addEventListener('keydown', startAudioContext, { once: true });
+        document.addEventListener('touchstart', startAudioContext, { once: true });
 
         // --- Particle Effects ---
         function createParticle(options) {
