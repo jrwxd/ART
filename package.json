@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/jrwxd/ART#readme",
   "dependencies": {
+    "jsdom": "^26.1.0",
     "three": "^0.175.0"
   }
 }

@@ -27,6 +27,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*backup*
 
 # Dependency directories
 node_modules/
@@ -35,6 +36,7 @@ bower_components/
 vendor/
 
 # Build outputs
+integrity_checks.js
 dist/
 build/
 out/
