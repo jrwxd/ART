@@ -693,8 +693,14 @@
             updateSpinButtonText(); // Sets text to "Stop"
             document.querySelectorAll('.bet-button').forEach(btn => btn.disabled = true); // Disable bet changes
 
-
-            if (soundsInitialized && spinSound) spinSound.triggerAttack("2n", Tone.now());
+            if (soundsInitialized && spinSound) {
+                // Stop any existing spin sound first
+                if (spinSound.state === "started") {
+                    spinSound.triggerRelease(Tone.now());
+                }
+                // Then start new spin sound
+                spinSound.triggerAttack("2n", Tone.now() + 0.1);
+            }
 
             predeterminedOutcome = generateOutcomeFromVirtualReels();
             const reelAnimationPromises = [];
