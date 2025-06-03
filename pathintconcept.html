@@ -13,10 +13,10 @@
     <!-- Chosen Palette: Warm Stone & Indigo -->
     <!-- Application Structure Plan: The application is designed as a guided, non-linear journey. It starts with a high-level vision, then uses interactive cards to explain core concepts. The main 3-phase framework is presented in a tabbed interface to prevent overwhelming the user. A key feature is the interactive HTML/CSS workflow diagram where each step is clickable, revealing more information. This structure was chosen to transform a dense technical document into an explorable experience, allowing users to choose their own depth of exploration from a guided path, enhancing usability and comprehension over a simple linear page. -->
     <!-- Visualization & Content Choices: 
-        - Report Info: Core Concepts (Sec 2) -> Goal: Make abstract ideas tangible -> Viz/Method: Interactive cards with simple canvas animations -> Interaction: Click to activate animation -> Justification: Visual metaphors are more intuitive than text alone.
-        - Report Info: Action Function Components (Sec 3.3) -> Goal: Demonstrate trade-offs in path weighting -> Viz/Method: Bar chart (Chart.js) paired with sliders -> Interaction: User adjusts sliders to see chart and descriptions update in real-time -> Justification: Turns a static formula into a hands-on, dynamic control panel.
-        - Report Info: Workflow Diagram (Sec 6) -> Goal: Explain the end-to-end process interactively -> Viz/Method: HTML/CSS flexbox diagram -> Interaction: Clicking a node opens a modal with details -> Justification: Replaces a static diagram with a layered information experience, reducing initial cognitive load.
-        - Report Info: Challenges & Future Directions (Sec 5, 7) -> Goal: Present pros and cons scannably -> Viz/Method: Two-column layout with hover-reveal cards -> Interaction: Hover to see details -> Justification: Encourages quick exploration and comparison.
+        - Report Info: Core Concepts (Sec 2) -> Goal: Make abstract ideas tangible -> Viz/Method: Interactive cards with simple canvas animations and icons -> Interaction: Click to activate animation, visual feedback on active card -> Justification: Visual metaphors and icons enhance intuitive understanding.
+        - Report Info: Action Function Components (Sec 3.3) -> Goal: Demonstrate trade-offs in path weighting -> Viz/Method: Bar chart (Chart.js) paired with styled sliders -> Interaction: User adjusts sliders to see chart and descriptions update in real-time -> Justification: Turns a static formula into a hands-on, dynamic control panel with better visual appeal.
+        - Report Info: Workflow Diagram (Sec 6) -> Goal: Explain the end-to-end process interactively -> Viz/Method: HTML/CSS flexbox diagram with enhanced hover/active states -> Interaction: Clicking a node opens a modal with details -> Justification: Replaces a static diagram with a layered information experience, reducing initial cognitive load and improving visual feedback.
+        - Report Info: Challenges & Future Directions (Sec 5, 7) -> Goal: Present pros and cons scannably -> Viz/Method: Two-column layout with enhanced hover-reveal cards with icons -> Interaction: Hover to see details, subtle lift effect -> Justification: Encourages quick exploration and comparison with clearer visual distinction.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
@@ -27,51 +27,68 @@
             color: #292524; /* stone-800 */
         }
         .nav-link {
-            transition: color 0.2s;
+            transition: color 0.2s, transform 0.2s;
+            display: inline-block;
         }
         .nav-link:hover {
             color: #4f46e5; /* indigo-600 */
+            transform: translateY(-1px);
         }
         .concept-card {
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.3s ease-out, box-shadow 0.3s ease-out, border-color 0.3s;
+            border: 2px solid transparent;
         }
-        .concept-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        .concept-card:hover, .concept-card.active-concept {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 12px 20px -4px rgb(0 0 0 / 0.15), 0 5px 8px -5px rgb(0 0 0 / 0.1);
+        }
+        .concept-card.active-concept {
+            border-color: #6366f1; /* indigo-500 */
+        }
+        .tab-button {
+            transition: background-color 0.2s, color 0.2s, transform 0.2s;
+        }
+        .tab-button:hover:not(.active) {
+            background-color: #e0e7ff; /* indigo-100 */
+            color: #4338ca; /* indigo-700 */
+            transform: translateY(-1px);
         }
         .tab-button.active {
             background-color: #4f46e5; /* indigo-600 */
             color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
         .workflow-node {
-            transition: all 0.3s ease;
+            transition: all 0.3s ease-in-out;
             cursor: pointer;
         }
-        .workflow-node:hover {
-            transform: scale(1.05);
+        .workflow-node:hover, .workflow-node.active-node {
+            transform: scale(1.08) rotate(-1deg);
             background-color: #a78bfa; /* violet-400 */
             color: white;
+            box-shadow: 0 8px 15px rgba(167, 139, 250, 0.3);
         }
         .workflow-arrow {
             position: relative;
             flex-grow: 1;
-            height: 2px;
+            height: 3px;
             background-color: #a5b4fc; /* indigo-300 */
+            border-radius: 3px;
         }
         .workflow-arrow::after {
-            content: '';
+            content: '▶'; /* Using a unicode arrow */
+            font-size: 16px;
+            color: #a5b4fc;
             position: absolute;
-            right: -1px;
-            top: -5px;
-            border-left: 10px solid #a5b4fc;
-            border-top: 6px solid transparent;
-            border-bottom: 6px solid transparent;
+            right: -10px; /* Adjust for new arrow */
+            top: 50%;
+            transform: translateY(-50%);
         }
         .modal-overlay {
-            transition: opacity 0.3s ease;
+            transition: opacity 0.3s ease-in-out;
         }
         .modal-content {
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-in-out;
         }
         .chart-container {
             position: relative;
@@ -81,30 +98,84 @@
             margin-right: auto;
             height: 350px;
             max-height: 400px;
+            padding: 1rem;
+            background-color: #f9fafb; /* gray-50 */
+            border-radius: 0.5rem;
+            box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
         }
         @media (max-width: 768px) {
             .chart-container {
                 height: 300px;
             }
         }
+        /* Custom slider styles */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+            width: 100%;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            background: #e5e7eb; /* gray-200 */
+            height: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        input[type="range"]::-moz-range-track {
+            background: #e5e7eb; /* gray-200 */
+            height: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -0.25rem; /* (track-height - thumb-height) / 2 */
+            background-color: #4f46e5; /* indigo-600 */
+            height: 1rem;
+            width: 1rem;
+            border-radius: 9999px;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        input[type="range"]::-moz-range-thumb {
+            background-color: #4f46e5; /* indigo-600 */
+            height: 1rem;
+            width: 1rem;
+            border-radius: 9999px;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .challenge-future-card {
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+        }
+        .challenge-future-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px -3px rgb(0 0 0 / 0.1), 0 3px 5px -3px rgb(0 0 0 / 0.1);
+        }
+        .section-icon {
+            font-size: 1.5em;
+            margin-right: 0.5rem;
+            color: #818cf8; /* indigo-400 */
+        }
     </style>
 </head>
 <body class="antialiased">
 
-    <!-- Header & Navigation -->
-    <header class="bg-stone-50/80 backdrop-blur-lg sticky top-0 z-50 border-b border-stone-200">
+    <header class="bg-stone-50/90 backdrop-blur-md sticky top-0 z-50 border-b border-stone-200 shadow-sm">
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex-shrink-0">
-                    <h1 class="text-xl font-bold text-indigo-600">Path Integral Synthesis</h1>
+                    <h1 class="text-2xl font-bold text-indigo-600 flex items-center">
+                        <span class="mr-2">🌌</span> Path Integral Synthesis
+                    </h1>
                 </div>
                 <div class="hidden md:block">
-                    <div class="ml-10 flex items-baseline space-x-4">
-                        <a href="#vision" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Vision</a>
-                        <a href="#concepts" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Core Concepts</a>
-                        <a href="#framework" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Framework</a>
-                        <a href="#workflow" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Interactive Workflow</a>
-                        <a href="#challenges" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Challenges & Future</a>
+                    <div class="ml-10 flex items-baseline space-x-1">
+                        <a href="#vision" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700 hover:text-indigo-600">✨ Vision</a>
+                        <a href="#concepts" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700 hover:text-indigo-600">💡 Core Concepts</a>
+                        <a href="#framework" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700 hover:text-indigo-600">🏗️ Framework</a>
+                        <a href="#workflow" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700 hover:text-indigo-600">🔄 Interactive Workflow</a>
+                        <a href="#challenges" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700 hover:text-indigo-600">🎯 Challenges & Future</a>
                     </div>
                 </div>
             </div>
@@ -113,164 +184,156 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-        <!-- Vision Section -->
-        <section id="vision" class="text-center py-16">
-            <h2 class="text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl lg:text-6xl">A New Spin on Latent Diffusion</h2>
-            <p class="mt-6 max-w-3xl mx-auto text-lg leading-8 text-stone-600">
-                This interactive document explores a novel framework for video generation: applying the principles of **path integrals** to the latent space of Stable Diffusion models. We move beyond simple interpolation to explore a multitude of trajectories, aiming for richer, more dynamic, and semantically coherent video transitions.
+        <section id="vision" class="text-center py-16 md:py-24">
+            <h2 class="text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl lg:text-6xl leading-tight">
+                A <span class="text-indigo-600">New Spin</span> on Latent Diffusion
+            </h2>
+            <p class="mt-8 max-w-3xl mx-auto text-lg leading-8 text-stone-600">
+                This interactive explainer unveils a novel framework for video generation: applying the principles of **path integrals** to the latent space of Stable Diffusion models. Journey beyond simple interpolation to explore a multitude of trajectories, aiming for richer, more dynamic, and semantically coherent video transitions.
             </p>
         </section>
 
-        <!-- Core Concepts Section -->
         <section id="concepts" class="py-16">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold tracking-tight text-stone-900">Core Concepts Explained</h2>
-                <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">Click on a card to explore the foundational ideas behind this technique and see a visual metaphor in action.</p>
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold tracking-tight text-stone-900 flex items-center justify-center"><span class="section-icon">💡</span>Core Concepts Explained</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">Click a card to delve into the foundational ideas and see a visual metaphor spring to life.</p>
             </div>
             <div class="grid md:grid-cols-3 gap-8">
-                <!-- Card 1: Latent Space -->
-                <div id="concept-card-1" class="concept-card bg-white p-6 rounded-lg shadow-md cursor-pointer border-2 border-transparent">
-                    <h3 class="text-xl font-semibold mb-2 text-indigo-700">1. Latent Space</h3>
-                    <p class="text-stone-600 mb-4">A compressed, lower-dimensional space where complex data (like images) is represented. Smooth movements in this space correspond to smooth visual transitions. Each point is a potential image.</p>
-                    <canvas id="canvas-latent" class="w-full h-48 bg-stone-100 rounded"></canvas>
+                <div id="concept-card-1" class="concept-card bg-white p-6 rounded-xl shadow-lg cursor-pointer">
+                    <h3 class="text-xl font-semibold mb-3 text-indigo-700 flex items-center"><span class="mr-2 text-2xl">🧊</span>1. Latent Space</h3>
+                    <p class="text-stone-600 mb-4 text-sm">A compressed realm where complex data (like images) is elegantly represented. Smooth voyages here translate to fluid visual shifts. Each point is a world of potential imagery.</p>
+                    <canvas id="canvas-latent" class="w-full h-48 bg-stone-100 rounded-lg border border-stone-200"></canvas>
                 </div>
-                <!-- Card 2: Path Integral -->
-                <div id="concept-card-2" class="concept-card bg-white p-6 rounded-lg shadow-md cursor-pointer border-2 border-transparent">
-                    <h3 class="text-xl font-semibold mb-2 text-indigo-700">2. Path Integral Adaptation</h3>
-                    <p class="text-stone-600 mb-4">Instead of one path from start to end, we sample many possible paths. Each is "weighted" by its quality (e.g., smoothness). The final video is a weighted average of all these potential journeys.</p>
-                    <canvas id="canvas-path" class="w-full h-48 bg-stone-100 rounded"></canvas>
+                <div id="concept-card-2" class="concept-card bg-white p-6 rounded-xl shadow-lg cursor-pointer">
+                    <h3 class="text-xl font-semibold mb-3 text-indigo-700 flex items-center"><span class="mr-2 text-2xl">🌿</span>2. Path Integral Adaptation</h3>
+                    <p class="text-stone-600 mb-4 text-sm">Instead of one rigid path, we explore countless possibilities from start to end. Each is "weighted" by its elegance (e.g., smoothness). The final video is a harmonious blend of these journeys.</p>
+                    <canvas id="canvas-path" class="w-full h-48 bg-stone-100 rounded-lg border border-stone-200"></canvas>
                 </div>
-                <!-- Card 3: Video Synthesis -->
-                <div id="concept-card-3" class="concept-card bg-white p-6 rounded-lg shadow-md cursor-pointer border-2 border-transparent">
-                    <h3 class="text-xl font-semibold mb-2 text-indigo-700">3. Video Synthesis</h3>
-                    <p class="text-stone-600 mb-4">A video is created frame-by-frame. The latent vector for each frame is determined by the "integrated" path. This generates a sequence of images that form a coherent and dynamic video.</p>
-                    <canvas id="canvas-video" class="w-full h-48 bg-stone-100 rounded"></canvas>
+                <div id="concept-card-3" class="concept-card bg-white p-6 rounded-xl shadow-lg cursor-pointer">
+                    <h3 class="text-xl font-semibold mb-3 text-indigo-700 flex items-center"><span class="mr-2 text-2xl">🎞️</span>3. Video Synthesis</h3>
+                    <p class="text-stone-600 mb-4 text-sm">A video unfolds frame by frame. The essence (latent vector) for each frame is distilled from the "integrated" path, generating a sequence of images that form a coherent and dynamic visual narrative.</p>
+                    <canvas id="canvas-video" class="w-full h-48 bg-stone-100 rounded-lg border border-stone-200"></canvas>
                 </div>
             </div>
         </section>
 
-        <!-- Implementation Framework Section -->
         <section id="framework" class="py-16">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold tracking-tight text-stone-900">The 3-Phase Implementation Framework</h2>
-                <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">This process breaks down the complex task into manageable phases, from defining potential paths to generating the final video.</p>
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold tracking-tight text-stone-900 flex items-center justify-center"><span class="section-icon">🏗️</span>The 3-Phase Implementation Framework</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">This structured approach deconstructs the complex task into clear, manageable phases, from charting potential paths to crafting the final video.</p>
             </div>
-            <!-- Tabs -->
-            <div class="mb-4 flex justify-center space-x-2 p-1 bg-stone-200 rounded-lg">
-                <button class="tab-button w-full sm:w-auto px-4 py-2 text-sm font-medium rounded-md active" data-tab="phase1">Phase 1: Defining & Sampling Paths</button>
-                <button class="tab-button w-full sm:w-auto px-4 py-2 text-sm font-medium rounded-md" data-tab="phase2">Phase 2: Integrating Paths</button>
-                <button class="tab-button w-full sm:w-auto px-4 py-2 text-sm font-medium rounded-md" data-tab="phase3">Phase 3: Control & Refinement</button>
+            <div class="mb-6 flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-2 p-1 bg-stone-200 rounded-lg shadow-inner">
+                <button class="tab-button w-full sm:w-auto px-5 py-3 text-sm font-semibold rounded-md active" data-tab="phase1">Phase 1: Defining & Sampling</button>
+                <button class="tab-button w-full sm:w-auto px-5 py-3 text-sm font-semibold rounded-md" data-tab="phase2">Phase 2: Integrating Paths</button>
+                <button class="tab-button w-full sm:w-auto px-5 py-3 text-sm font-semibold rounded-md" data-tab="phase3">Phase 3: Control & Refinement</button>
             </div>
-            <!-- Tab Content -->
-            <div class="bg-white p-8 rounded-lg shadow-inner">
+            <div class="bg-white p-8 md:p-10 rounded-xl shadow-xl">
                 <div id="phase1" class="tab-content">
-                    <h3 class="text-2xl font-semibold mb-4 text-stone-800">Phase 1: Defining and Sampling Paths</h3>
-                    <p class="text-stone-600 mb-6">This is the exploratory phase. The system generates a vast number of potential evolutionary paths between the start and end points in latent space. The diversity and quality of these paths are fundamental to the final video's richness.</p>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="bg-stone-50 p-4 rounded-lg">
-                            <h4 class="font-semibold text-indigo-700">Path Generation Strategies</h4>
-                            <p class="text-sm text-stone-600">Paths are generated using methods like perturbations on a baseline, stochastic processes (like Brownian Bridges), or guided sampling towards intermediate concepts.</p>
+                    <h3 class="text-2xl font-semibold mb-5 text-stone-800">Phase 1: Defining and Sampling Paths</h3>
+                    <p class="text-stone-600 mb-8 text-base leading-relaxed">This is the exploratory heart of the process. The system charts a universe of potential evolutionary paths within the latent space, connecting start and end points. The diversity and inherent quality of these paths are the bedrock of the final video's depth and richness.</p>
+                    <div class="grid md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-stone-50 p-5 rounded-lg border border-stone-200">
+                            <h4 class="font-semibold text-indigo-700 text-lg mb-2">Path Generation Strategies</h4>
+                            <p class="text-sm text-stone-600">Paths are woven using diverse methods: subtle perturbations on a baseline trajectory, sophisticated stochastic processes (like Brownian Bridges), or intelligently guided sampling towards intermediate conceptual anchors.</p>
                         </div>
-                        <div class="bg-stone-50 p-4 rounded-lg">
-                            <h4 class="font-semibold text-indigo-700">The "Action" Function</h4>
-                            <p class="text-sm text-stone-600">Each path is assigned a score or "Action" based on desirable qualities. This is the heart of creative control. Use the sliders below to see how different factors can be weighted.</p>
+                        <div class="bg-stone-50 p-5 rounded-lg border border-stone-200">
+                            <h4 class="font-semibold text-indigo-700 text-lg mb-2">The "Action" Function</h4>
+                            <p class="text-sm text-stone-600">Each path is evaluated and assigned a score or "Action" reflecting its desirable qualities. This function is the core of creative control. Experiment with the sliders below to intuitively grasp how different factors can be weighted.</p>
                         </div>
                     </div>
                     <div class="mt-8">
                         <div class="chart-container">
                             <canvas id="actionChart"></canvas>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 max-w-3xl mx-auto">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 mt-8 max-w-2xl mx-auto">
                             <div>
-                                <label for="smoothness" class="block text-sm font-medium text-stone-700">Smoothness</label>
-                                <input id="smoothness" type="range" min="0" max="100" value="70" class="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer">
+                                <label for="smoothness" class="block text-sm font-medium text-stone-700 mb-1">Smoothness <span class="text-xs text-stone-500">(Fluidity)</span></label>
+                                <input id="smoothness" type="range" min="0" max="100" value="70" class="w-full">
                             </div>
                             <div>
-                                <label for="semantic" class="block text-sm font-medium text-stone-700">Semantic Coherence</label>
-                                <input id="semantic" type="range" min="0" max="100" value="85" class="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer">
+                                <label for="semantic" class="block text-sm font-medium text-stone-700 mb-1">Semantic Coherence <span class="text-xs text-stone-500">(Meaning)</span></label>
+                                <input id="semantic" type="range" min="0" max="100" value="85" class="w-full">
                             </div>
                             <div>
-                                <label for="constraint" class="block text-sm font-medium text-stone-700">Constraint Adherence</label>
-                                <input id="constraint" type="range" min="0" max="100" value="50" class="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer">
+                                <label for="constraint" class="block text-sm font-medium text-stone-700 mb-1">Constraint Adherence <span class="text-xs text-stone-500">(Guidance)</span></label>
+                                <input id="constraint" type="range" min="0" max="100" value="50" class="w-full">
                             </div>
                             <div>
-                                <label for="novelty" class="block text-sm font-medium text-stone-700">Novelty/Exploration</label>
-                                <input id="novelty" type="range" min="0" max="100" value="40" class="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer">
+                                <label for="novelty" class="block text-sm font-medium text-stone-700 mb-1">Novelty/Exploration <span class="text-xs text-stone-500">(Surprise)</span></label>
+                                <input id="novelty" type="range" min="0" max="100" value="40" class="w-full">
                             </div>
                         </div>
-                        <p id="action-explainer" class="text-center mt-4 text-stone-600 max-w-2xl mx-auto"></p>
+                        <p id="action-explainer" class="text-center mt-6 text-stone-600 text-sm max-w-xl mx-auto bg-indigo-50 p-3 rounded-md border border-indigo-200"></p>
                     </div>
                 </div>
                 <div id="phase2" class="tab-content hidden">
-                     <h3 class="text-2xl font-semibold mb-4 text-stone-800">Phase 2: Integrating Over Paths</h3>
-                    <p class="text-stone-600">Here, we combine the contributions of all sampled paths. For each frame of the video, the final latent state is a weighted average of the states from all paths at that specific time. Paths with a "better" action score contribute more heavily, guiding the final video towards the desired characteristics.</p>
+                     <h3 class="text-2xl font-semibold mb-5 text-stone-800">Phase 2: Integrating Over Paths</h3>
+                    <p class="text-stone-600 text-base leading-relaxed">In this crucial phase, we synthesize the wisdom of all sampled paths. For every frame of the upcoming video, the definitive latent state is meticulously calculated as a weighted average of states from all paths at that precise moment in time. Paths that scored higher on the "Action" function contribute more significantly, steering the final video towards the artistically desired characteristics and ensuring a harmonious outcome.</p>
                 </div>
                 <div id="phase3" class="tab-content hidden">
-                     <h3 class="text-2xl font-semibold mb-4 text-stone-800">Phase 3: Control and Refinement</h3>
-                    <p class="text-stone-600">This phase is about user interaction and control. By adjusting prompts, setting waypoints, and tuning the action function weights, the user can steer the creative direction of the video. The system is designed for iterative refinement, allowing for a feedback loop between the user and the generative process.</p>
+                     <h3 class="text-2xl font-semibold mb-5 text-stone-800">Phase 3: Control and Refinement</h3>
+                    <p class="text-stone-600 text-base leading-relaxed">This phase empowers the creator with nuanced control and iterative refinement. By adjusting textual prompts, defining key visual waypoints, and fine-tuning the weights within the action function, the user can sculpt the creative direction of the video. The system is architected for a dynamic feedback loop, fostering a collaborative dance between human intuition and algorithmic generation.</p>
                 </div>
             </div>
         </section>
 
-        <!-- Interactive Workflow Section -->
         <section id="workflow" class="py-16">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold tracking-tight text-stone-900">Interactive Workflow</h2>
-                <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">This diagram illustrates the end-to-end process. Click on any step to see a detailed explanation of what happens at that stage.</p>
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold tracking-tight text-stone-900 flex items-center justify-center"><span class="section-icon">🔄</span>Interactive Workflow</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">This diagram visualizes the end-to-end journey. Click any step to unveil a detailed explanation of its role in the grand synthesis.</p>
             </div>
-            <div class="w-full overflow-x-auto pb-4">
-                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 min-w-[800px]">
-                    <div class="workflow-node bg-indigo-200 text-indigo-800 font-semibold p-4 rounded-lg shadow-md text-center" data-step="1">User Input</div>
-                    <div class="workflow-arrow w-16 md:w-auto h-8 md:h-auto"></div>
-                    <div class="workflow-node bg-indigo-200 text-indigo-800 font-semibold p-4 rounded-lg shadow-md text-center" data-step="2">Path Sampling Loop</div>
-                    <div class="workflow-arrow w-16 md:w-auto h-8 md:h-auto"></div>
-                    <div class="workflow-node bg-indigo-200 text-indigo-800 font-semibold p-4 rounded-lg shadow-md text-center" data-step="3">Path Integration</div>
-                    <div class="workflow-arrow w-16 md:w-auto h-8 md:h-auto"></div>
-                    <div class="workflow-node bg-indigo-200 text-indigo-800 font-semibold p-4 rounded-lg shadow-md text-center" data-step="4">Frame Generation</div>
-                    <div class="workflow-arrow w-16 md:w-auto h-8 md:h-auto"></div>
-                    <div class="workflow-node bg-green-200 text-green-800 font-semibold p-4 rounded-lg shadow-md text-center" data-step="5">Output Video</div>
+            <div class="w-full overflow-x-auto pb-6">
+                <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center space-y-4 md:space-y-0 md:space-x-2 min-w-[900px] px-4">
+                    <div class="workflow-node bg-indigo-200 text-indigo-800 font-semibold p-4 rounded-xl shadow-md text-center flex-1 md:flex-initial min-h-[60px] flex items-center justify-center" data-step="1">1. User Input</div>
+                    <div class="workflow-arrow w-full md:w-16 h-8 md:h-auto self-center"></div>
+                    <div class="workflow-node bg-indigo-200 text-indigo-800 font-semibold p-4 rounded-xl shadow-md text-center flex-1 md:flex-initial min-h-[60px] flex items-center justify-center" data-step="2">2. Path Sampling</div>
+                    <div class="workflow-arrow w-full md:w-16 h-8 md:h-auto self-center"></div>
+                    <div class="workflow-node bg-indigo-200 text-indigo-800 font-semibold p-4 rounded-xl shadow-md text-center flex-1 md:flex-initial min-h-[60px] flex items-center justify-center" data-step="3">3. Path Integration</div>
+                    <div class="workflow-arrow w-full md:w-16 h-8 md:h-auto self-center"></div>
+                    <div class="workflow-node bg-indigo-200 text-indigo-800 font-semibold p-4 rounded-xl shadow-md text-center flex-1 md:flex-initial min-h-[60px] flex items-center justify-center" data-step="4">4. Frame Generation</div>
+                    <div class="workflow-arrow w-full md:w-16 h-8 md:h-auto self-center"></div>
+                    <div class="workflow-node bg-green-200 text-green-800 font-semibold p-4 rounded-xl shadow-md text-center flex-1 md:flex-initial min-h-[60px] flex items-center justify-center" data-step="5">5. Output Video</div>
                 </div>
             </div>
         </section>
         
-        <!-- Challenges & Future Section -->
         <section id="challenges" class="py-16">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold tracking-tight text-stone-900">Challenges & The Road Ahead</h2>
-                <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">This approach is ambitious and presents exciting problems to solve. Here's a look at the key challenges and future directions for this research.</p>
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold tracking-tight text-stone-900 flex items-center justify-center"><span class="section-icon">🎯</span>Challenges & The Road Ahead</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">This ambitious voyage presents fascinating problems to solve and exciting frontiers to explore. Here's a glimpse of the key hurdles and future horizons.</p>
             </div>
-            <div class="grid md:grid-cols-2 gap-8">
+            <div class="grid md:grid-cols-2 gap-10">
                 <div>
-                    <h3 class="text-2xl font-semibold mb-4 text-center">Key Challenges</h3>
-                    <div class="space-y-4">
-                        <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-xl transition-shadow">
-                            <h4 class="font-semibold text-rose-600">Computational Cost</h4>
-                            <p class="text-sm text-stone-600">Sampling and evaluating thousands of high-dimensional paths is extremely intensive and requires significant GPU resources.</p>
+                    <h3 class="text-2xl font-semibold mb-6 text-center text-stone-800">Key Challenges</h3>
+                    <div class="space-y-5">
+                        <div class="challenge-future-card bg-white p-5 rounded-lg shadow-lg border-l-4 border-rose-500">
+                            <h4 class="font-semibold text-rose-600 text-lg mb-1 flex items-center"><span class="mr-2">🏋️</span>Computational Cost</h4>
+                            <p class="text-sm text-stone-600 leading-relaxed">Sampling and evaluating thousands, potentially millions, of high-dimensional paths is an immense computational undertaking, demanding significant GPU resources and optimized algorithms.</p>
                         </div>
-                        <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-xl transition-shadow">
-                            <h4 class="font-semibold text-rose-600">Defining the "Optimal" Action</h4>
-                            <p class="text-sm text-stone-600">The action function is subjective. Balancing creative exploration with visual coherence is a major research question.</p>
+                        <div class="challenge-future-card bg-white p-5 rounded-lg shadow-lg border-l-4 border-rose-500">
+                            <h4 class="font-semibold text-rose-600 text-lg mb-1 flex items-center"><span class="mr-2">🎨</span>Defining "Optimal" Action</h4>
+                            <p class="text-sm text-stone-600 leading-relaxed">The "action" function is inherently subjective and application-dependent. Striking the perfect balance between creative exploration, visual coherence, and narrative intent is a profound research question.</p>
                         </div>
-                         <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-xl transition-shadow">
-                            <h4 class="font-semibold text-rose-600">Ensuring Visual Quality</h4>
-                            <p class="text-sm text-stone-600">Averaging many paths could lead to blurry or nonsensical results if not carefully guided by a strong action function.</p>
+                         <div class="challenge-future-card bg-white p-5 rounded-lg shadow-lg border-l-4 border-rose-500">
+                            <h4 class="font-semibold text-rose-600 text-lg mb-1 flex items-center"><span class="mr-2">🖼️</span>Ensuring Visual Quality</h4>
+                            <p class="text-sm text-stone-600 leading-relaxed">Averaging a multitude of paths, if not meticulously guided by a robust action function, could inadvertently lead to visually indistinct, blurry, or semantically nonsensical intermediate states.</p>
                         </div>
                     </div>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-semibold mb-4 text-center">Future Directions</h3>
-                     <div class="space-y-4">
-                        <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-xl transition-shadow">
-                            <h4 class="font-semibold text-emerald-600">Interactive Path Steering</h4>
-                            <p class="text-sm text-stone-600">Develop real-time interfaces that allow a user to "steer" the path integration process dynamically.</p>
+                    <h3 class="text-2xl font-semibold mb-6 text-center text-stone-800">Future Directions</h3>
+                     <div class="space-y-5">
+                        <div class="challenge-future-card bg-white p-5 rounded-lg shadow-lg border-l-4 border-emerald-500">
+                            <h4 class="font-semibold text-emerald-600 text-lg mb-1 flex items-center"><span class="mr-2">🕹️</span>Interactive Path Steering</h4>
+                            <p class="text-sm text-stone-600 leading-relaxed">Develop intuitive, real-time interfaces that empower users to dynamically "steer" or influence the path integration process, akin to conducting an orchestra of possibilities.</p>
                         </div>
-                        <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-xl transition-shadow">
-                            <h4 class="font-semibold text-emerald-600">Learning the Action Function</h4>
-                            <p class="text-sm text-stone-600">Use machine learning to train an action function based on user ratings of generated videos, creating a personalized model.</p>
+                        <div class="challenge-future-card bg-white p-5 rounded-lg shadow-lg border-l-4 border-emerald-500">
+                            <h4 class="font-semibold text-emerald-600 text-lg mb-1 flex items-center"><span class="mr-2">🧠</span>Learning the Action Function</h4>
+                            <p class="text-sm text-stone-600 leading-relaxed">Employ machine learning techniques to train an adaptive action function. This model could learn from user ratings of generated videos, creating a personalized and evolving creative partner.</p>
                         </div>
-                         <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-xl transition-shadow">
-                            <h4 class="font-semibold text-emerald-600">Conditional Integration</h4>
-                            <p class="text-sm text-stone-600">Integrate paths conditioned on other data streams, such as an audio track's beat or a text narrative's emotional arc.</p>
+                         <div class="challenge-future-card bg-white p-5 rounded-lg shadow-lg border-l-4 border-emerald-500">
+                            <h4 class="font-semibold text-emerald-600 text-lg mb-1 flex items-center"><span class="mr-2">🔗</span>Conditional Integration</h4>
+                            <p class="text-sm text-stone-600 leading-relaxed">Expand the framework to integrate paths conditioned on diverse external data streams, such as an audio track's rhythmic beat, a textual narrative's emotional arc, or even biometric feedback.</p>
                         </div>
                     </div>
                 </div>
@@ -279,26 +342,24 @@
 
     </main>
 
-    <!-- Modal for Workflow Details -->
-    <div id="workflow-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden opacity-0">
-        <div class="modal-content bg-white rounded-lg shadow-xl max-w-lg w-full p-6 transform scale-95">
-            <div class="flex justify-between items-start">
-                <h3 id="modal-title" class="text-xl font-semibold text-stone-800"></h3>
-                <button id="modal-close" class="text-stone-500 hover:text-stone-800">&times;</button>
+    <div id="workflow-modal" class="modal-overlay fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] hidden opacity-0">
+        <div class="modal-content bg-white rounded-xl shadow-2xl max-w-md w-full p-6 md:p-8 transform scale-95 opacity-0">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-xl font-semibold text-indigo-700"></h3>
+                <button id="modal-close" class="text-stone-400 hover:text-indigo-600 text-2xl leading-none">&times;</button>
             </div>
-            <p id="modal-body" class="mt-4 text-stone-600"></p>
+            <p id="modal-body" class="text-stone-600 leading-relaxed"></p>
         </div>
     </div>
     
-    <footer class="text-center py-8 border-t border-stone-200">
-        <p class="text-stone-500 text-sm">Conceptual document by John | Interactive experience created by Gemini</p>
+    <footer class="text-center py-10 mt-16 border-t border-stone-200 bg-stone-50">
+        <p class="text-stone-500 text-sm">Conceptual document by John | Interactive experience crafted by Gemini</p>
+        <p class="text-xs text-stone-400 mt-1">Exploring the frontiers of generative art.</p>
     </footer>
-
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- Data ---
     const workflowDetails = {
         1: { title: 'Step 1: User Input', body: 'The process begins with user-provided parameters: start/end prompts or images, video duration, quality settings, and weights for the action function. These inputs define the creative boundaries for the video generation.' },
         2: { title: 'Step 2: Path Sampling Loop', body: 'The system generates a large number of candidate paths between the start and end points. Each path is a unique potential video evolution. The action for each path is evaluated and stored, creating a pool of weighted possibilities.' },
@@ -307,7 +368,6 @@ document.addEventListener('DOMContentLoaded', () => {
         5: { title: 'Step 5: Output Video', body: 'All the generated frames are assembled in sequence into a final video file. The user can then review the output and optionally refine the input parameters for another iteration.' },
     };
 
-    // --- Tab Functionality ---
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
     tabButtons.forEach(button => {
@@ -316,16 +376,11 @@ document.addEventListener('DOMContentLoaded', () => {
             button.classList.add('active');
             const tabId = button.getAttribute('data-tab');
             tabContents.forEach(content => {
-                if (content.id === tabId) {
-                    content.classList.remove('hidden');
-                } else {
-                    content.classList.add('hidden');
-                }
+                content.classList.toggle('hidden', content.id !== tabId);
             });
         });
     });
 
-    // --- Action Chart Functionality ---
     const actionSliders = {
         smoothness: document.getElementById('smoothness'),
         semantic: document.getElementById('semantic'),
@@ -333,8 +388,8 @@ document.addEventListener('DOMContentLoaded', () => {
         novelty: document.getElementById('novelty'),
     };
     const actionExplainer = document.getElementById('action-explainer');
-    const ctx = document.getElementById('actionChart').getContext('2d');
-    const chart = new Chart(ctx, {
+    const ctxAction = document.getElementById('actionChart').getContext('2d');
+    const actionChart = new Chart(ctxAction, {
         type: 'bar',
         data: {
             labels: ['Smoothness', 'Semantics', 'Constraints', 'Novelty'],
@@ -342,18 +397,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 label: 'Weighting',
                 data: [70, 85, 50, 40],
                 backgroundColor: [
-                    'rgba(79, 70, 229, 0.6)',
-                    'rgba(129, 140, 248, 0.6)',
-                    'rgba(167, 139, 250, 0.6)',
-                    'rgba(196, 181, 253, 0.6)',
+                    'rgba(79, 70, 229, 0.7)',  // indigo-600
+                    'rgba(129, 140, 248, 0.7)', // indigo-400
+                    'rgba(167, 139, 250, 0.7)', // violet-400
+                    'rgba(196, 181, 253, 0.7)', // violet-300
                 ],
                 borderColor: [
-                    'rgba(79, 70, 229, 1)',
-                    'rgba(129, 140, 248, 1)',
-                    'rgba(167, 139, 250, 1)',
-                    'rgba(196, 181, 253, 1)',
+                    '#4f46e5',
+                    '#818cf8',
+                    '#a78bfa',
+                    '#c4b5fd',
                 ],
-                borderWidth: 1
+                borderWidth: 2,
+                borderRadius: 4,
+                borderSkipped: false,
             }]
         },
         options: {
@@ -363,50 +420,66 @@ document.addEventListener('DOMContentLoaded', () => {
             scales: {
                 x: {
                     beginAtZero: true,
-                    max: 100
+                    max: 100,
+                    grid: { display: false },
+                    ticks: { font: { size: 10 } }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { font: { size: 12 } }
                 }
             },
             plugins: {
-                legend: {
-                    display: false
-                },
+                legend: { display: false },
                 tooltip: {
+                    enabled: true,
+                    backgroundColor: '#292524', // stone-800
+                    titleFont: { weight: 'bold' },
+                    bodyFont: { size: 12 },
+                    padding: 10,
+                    cornerRadius: 4,
                     callbacks: {
-                        label: function(context) {
-                            return `Weight: ${context.raw}`;
-                        }
+                        label: function(context) { return `Current Weight: ${context.raw}`; }
                     }
                 }
+            },
+            animation: {
+                duration: 500,
+                easing: 'easeInOutQuart',
             }
         }
     });
 
     function updateActionChart() {
         const values = [
-            actionSliders.smoothness.value,
-            actionSliders.semantic.value,
-            actionSliders.constraint.value,
-            actionSliders.novelty.value
+            parseInt(actionSliders.smoothness.value),
+            parseInt(actionSliders.semantic.value),
+            parseInt(actionSliders.constraint.value),
+            parseInt(actionSliders.novelty.value)
         ];
-        chart.data.datasets[0].data = values;
-        chart.update();
+        actionChart.data.datasets[0].data = values;
+        actionChart.update();
 
         const maxVal = Math.max(...values);
-        const dominantFactor = chart.data.labels[values.indexOf(maxVal)];
-        actionExplainer.textContent = `Current focus is on ${dominantFactor}, guiding the path generation towards its associated qualities.`;
+        const dominantFactors = values.map((val, index) => val === maxVal ? actionChart.data.labels[index] : null).filter(Boolean);
+        let explainerText = 'Current focus is on ';
+        if (dominantFactors.length > 1) {
+            explainerText += dominantFactors.slice(0, -1).join(', ') + ' and ' + dominantFactors.slice(-1);
+        } else {
+            explainerText += dominantFactors[0];
+        }
+        actionExplainer.innerHTML = `💡 ${explainerText}, guiding path generation towards associated qualities.`;
     }
 
-    Object.values(actionSliders).forEach(slider => {
-        slider.addEventListener('input', updateActionChart);
-    });
+    Object.values(actionSliders).forEach(slider => slider.addEventListener('input', updateActionChart));
     updateActionChart();
 
-    // --- Modal Functionality ---
     const modal = document.getElementById('workflow-modal');
     const modalClose = document.getElementById('modal-close');
     const modalTitle = document.getElementById('modal-title');
     const modalBody = document.getElementById('modal-body');
     const workflowNodes = document.querySelectorAll('.workflow-node');
+    let activeNode = null;
     
     workflowNodes.forEach(node => {
         node.addEventListener('click', () => {
@@ -414,91 +487,138 @@ document.addEventListener('DOMContentLoaded', () => {
             modalTitle.textContent = workflowDetails[step].title;
             modalBody.textContent = workflowDetails[step].body;
             modal.classList.remove('hidden');
+            
+            if(activeNode) activeNode.classList.remove('active-node');
+            node.classList.add('active-node');
+            activeNode = node;
+
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
-                modal.querySelector('.modal-content').classList.remove('scale-95');
+                modal.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0');
             }, 10);
         });
     });
 
     function closeModal() {
         modal.classList.add('opacity-0');
-        modal.querySelector('.modal-content').classList.add('scale-95');
+        modal.querySelector('.modal-content').classList.add('scale-95', 'opacity-0');
+        if(activeNode) activeNode.classList.remove('active-node');
+        activeNode = null;
         setTimeout(() => modal.classList.add('hidden'), 300);
     }
     
     modalClose.addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeModal();
-        }
+        if (e.target === modal) closeModal();
     });
 
-    // --- Concept Canvas Animations ---
     const conceptCanvases = {
-        latent: { ctx: document.getElementById('canvas-latent').getContext('2d'), id: 1, animFunc: animateLatentSpace },
-        path: { ctx: document.getElementById('canvas-path').getContext('2d'), id: 2, animFunc: animatePathIntegral },
-        video: { ctx: document.getElementById('canvas-video').getContext('2d'), id: 3, animFunc: animateVideoSynthesis },
+        latent: { ctx: document.getElementById('canvas-latent').getContext('2d'), id: 1, animFunc: animateLatentSpace, card: document.getElementById('concept-card-1') },
+        path: { ctx: document.getElementById('canvas-path').getContext('2d'), id: 2, animFunc: animatePathIntegral, card: document.getElementById('concept-card-2') },
+        video: { ctx: document.getElementById('canvas-video').getContext('2d'), id: 3, animFunc: animateVideoSynthesis, card: document.getElementById('concept-card-3') },
     };
-    let activeCanvas = null;
+    let activeConcept = null;
+    let globalFrame = 0;
 
-    function resizeCanvas(canvas) {
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
+    function resizeAllCanvases() {
+        Object.values(conceptCanvases).forEach(c => {
+            const canvas = c.ctx.canvas;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            if (activeConcept && activeConcept.id === c.id) {
+                 // If it's the active canvas, restart its animation to adapt to new size
+                cancelAnimationFrame(activeConcept.animationFrame);
+                c.animFunc();
+            } else {
+                // Draw a static placeholder for inactive canvases
+                drawStaticPlaceholder(c.ctx, c.id);
+            }
+        });
+    }
+    
+    function drawStaticPlaceholder(ctx, id) {
+        const w = ctx.canvas.width;
+        const h = ctx.canvas.height;
+        ctx.clearRect(0,0,w,h);
+        ctx.fillStyle = '#A8A29E'; // stone-400
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 14px Inter';
+        
+        if (id === 1) { // Latent Space
+            ctx.beginPath();
+            ctx.ellipse(w/2, h/2, w*0.35, h*0.25, 0, 0, 2*Math.PI);
+            ctx.strokeStyle = '#A8A29E';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillText('Explore Latent Space', w/2, h/2 + 5);
+        } else if (id === 2) { // Path Integral
+            ctx.beginPath();
+            ctx.moveTo(w*0.15, h*0.5);
+            ctx.bezierCurveTo(w*0.3, h*0.2, w*0.7, h*0.8, w*0.85, h*0.5);
+            ctx.strokeStyle = '#A8A29E';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillText('Discover Paths', w/2, h/2+5);
+        } else { // Video Synthesis
+            for(let i=0; i<3; i++) {
+                ctx.strokeRect(w/2 - 45 + i*30, h/2 - 20, 25, 40);
+            }
+            ctx.fillText('Synthesize Video', w/2, h/2+5);
+        }
     }
 
     Object.values(conceptCanvases).forEach(c => {
-        resizeCanvas(c.ctx.canvas);
-        const card = document.getElementById(`concept-card-${c.id}`);
-        card.addEventListener('click', () => {
-            if (activeCanvas) {
-                activeCanvas.card.classList.remove('border-indigo-500', 'shadow-xl');
-                cancelAnimationFrame(activeCanvas.animationFrame);
+        c.card.addEventListener('click', () => {
+            if (activeConcept) {
+                activeConcept.card.classList.remove('active-concept');
+                cancelAnimationFrame(activeConcept.animationFrame);
+                drawStaticPlaceholder(activeConcept.ctx, activeConcept.id); // Redraw static for previous
             }
-            activeCanvas = { ...c, card };
-            card.classList.add('border-indigo-500', 'shadow-xl');
+            activeConcept = c;
+            c.card.classList.add('active-concept');
+            globalFrame = 0; // Reset global frame for fresh animation
             c.animFunc();
         });
     });
     
-    window.addEventListener('resize', () => {
-         Object.values(conceptCanvases).forEach(c => resizeCanvas(c.ctx.canvas));
-    });
+    window.addEventListener('resize', resizeAllCanvases);
+    resizeAllCanvases(); // Initial draw of placeholders and active canvas if any
 
-    let frame = 0;
     function animateLatentSpace() {
-        frame++;
+        globalFrame++;
         const ctx = conceptCanvases.latent.ctx;
         const w = ctx.canvas.width;
         const h = ctx.canvas.height;
         ctx.clearRect(0, 0, w, h);
         
-        ctx.fillStyle = 'rgba(79, 70, 229, 0.1)';
+        ctx.fillStyle = 'rgba(79, 70, 229, 0.05)'; // Lighter
         ctx.beginPath();
-        ctx.ellipse(w/2, h/2, w*0.4, h*0.3, 0, 0, 2*Math.PI);
+        ctx.ellipse(w/2, h/2, w*0.4, h*0.3, Math.sin(globalFrame*0.005)*0.1, 0, 2*Math.PI);
         ctx.fill();
 
-        const x = w/2 + Math.cos(frame * 0.02) * w * 0.3;
-        const y = h/2 + Math.sin(frame * 0.02) * h * 0.2;
+        const x = w/2 + Math.cos(globalFrame * 0.025) * w * 0.3;
+        const y = h/2 + Math.sin(globalFrame * 0.03) * h * 0.2;
+        const size = 6 + Math.sin(globalFrame * 0.05) * 2;
 
         ctx.fillStyle = '#4f46e5';
         ctx.beginPath();
-        ctx.arc(x, y, 8, 0, 2 * Math.PI);
+        ctx.arc(x, y, size, 0, 2 * Math.PI);
         ctx.fill();
+        
+        ctx.shadowColor = 'rgba(79, 70, 229, 0.5)';
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
 
-        ctx.font = '12px Inter';
-        ctx.fillStyle = '#292524';
-        ctx.textAlign = 'center';
-        ctx.fillText('Point = Image', x, y + 20);
 
-        if (activeCanvas.id === 1) {
-            activeCanvas.animationFrame = requestAnimationFrame(animateLatentSpace);
+        if (activeConcept && activeConcept.id === 1) {
+            activeConcept.animationFrame = requestAnimationFrame(animateLatentSpace);
         }
     }
 
     function animatePathIntegral() {
-        frame++;
+        globalFrame++;
         const ctx = conceptCanvases.path.ctx;
         const w = ctx.canvas.width;
         const h = ctx.canvas.height;
@@ -507,75 +627,78 @@ document.addEventListener('DOMContentLoaded', () => {
         const start = { x: w * 0.1, y: h * 0.5 };
         const end = { x: w * 0.9, y: h * 0.5 };
 
-        // Draw multiple paths
-        ctx.strokeStyle = 'rgba(167, 139, 250, 0.4)';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1.5;
         for (let i = 0; i < 5; i++) {
             ctx.beginPath();
             ctx.moveTo(start.x, start.y);
-            const cp1x = w * 0.3 + Math.sin(frame * 0.01 + i) * 10;
-            const cp1y = h * 0.2 + Math.cos(frame * 0.02 + i*2) * (h * 0.2 * i);
-            const cp2x = w * 0.7 + Math.cos(frame * 0.01 + i) * 10;
-            const cp2y = h * 0.8 - Math.sin(frame * 0.02 + i*2) * (h * 0.2 * i);
+            const sway = Math.sin(globalFrame * 0.01 + i * 0.5) * (h * 0.15);
+            const cp1x = w * 0.3 + Math.sin(globalFrame * 0.015 + i) * 15;
+            const cp1y = h * 0.5 - h*0.25 + sway * (i%2 === 0 ? 1 : -1) * (0.5 + i*0.1);
+            const cp2x = w * 0.7 + Math.cos(globalFrame * 0.015 + i) * 15;
+            const cp2y = h * 0.5 + h*0.25 - sway * (i%2 === 0 ? 1 : -1) * (0.5 + i*0.1);
+            ctx.strokeStyle = `rgba(167, 139, 250, ${0.2 + i*0.08})`;
             ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, end.x, end.y);
             ctx.stroke();
         }
 
-        // Draw integrated path
         ctx.strokeStyle = '#4f46e5';
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(start.x, start.y);
-        ctx.bezierCurveTo(w * 0.3, h * 0.5 - 20, w * 0.7, h * 0.5 + 20, end.x, end.y);
+        const mainSway = Math.sin(globalFrame * 0.02) * (h*0.05);
+        ctx.bezierCurveTo(w * 0.35, h * 0.5 - h*0.1 + mainSway, w * 0.65, h * 0.5 + h*0.1 - mainSway, end.x, end.y);
         ctx.stroke();
+        
+        ctx.shadowColor = 'rgba(79, 70, 229, 0.5)';
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
 
         ctx.fillStyle = '#4f46e5';
-        ctx.beginPath();
-        ctx.arc(start.x, start.y, 6, 0, 2 * Math.PI);
-        ctx.arc(end.x, end.y, 6, 0, 2 * Math.PI);
-        ctx.fill();
+        [start, end].forEach(p => {
+            ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, 2 * Math.PI); ctx.fill();
+        });
 
-        if (activeCanvas.id === 2) {
-            activeCanvas.animationFrame = requestAnimationFrame(animatePathIntegral);
+        if (activeConcept && activeConcept.id === 2) {
+            activeConcept.animationFrame = requestAnimationFrame(animatePathIntegral);
         }
     }
 
     let videoFrames = [];
+    const maxVideoFrames = 8;
     function animateVideoSynthesis() {
-        frame++;
+        globalFrame++;
         const ctx = conceptCanvases.video.ctx;
         const w = ctx.canvas.width;
         const h = ctx.canvas.height;
         ctx.clearRect(0, 0, w, h);
         
-        const numFrames = 10;
-        const frameWidth = w / (numFrames + 2);
+        const frameWidth = Math.min(40, w / (maxVideoFrames + 3));
+        const frameHeight = frameWidth * 1.5;
         
-        if (frame % 15 === 0 && videoFrames.length < numFrames) {
+        if (globalFrame % 20 === 0) {
+            if (videoFrames.length >= maxVideoFrames) videoFrames.shift();
             videoFrames.push({
-                hue: Math.random() * 60 + 220, // blues and purples
-                y: Math.random() * h * 0.2 + h * 0.4
+                hue: 220 + Math.random() * 60,
+                alpha: 0,
+                yOffset: (Math.random() - 0.5) * (h*0.1)
             });
         }
-        if (videoFrames.length > numFrames) {
-            videoFrames = [];
-        }
 
-        ctx.strokeStyle = '#a78bfa';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, h/2);
-        
         videoFrames.forEach((f, i) => {
-            const x = (i + 1) * (w / (numFrames + 1));
-            ctx.fillStyle = `hsl(${f.hue}, 70%, 60%)`;
-            ctx.fillRect(x - frameWidth/2, h/2 - 20, frameWidth, 40);
-            ctx.lineTo(x, f.y);
+            if (f.alpha < 1) f.alpha += 0.05;
+            const x = (w / (videoFrames.length + 1)) * (i + 1);
+            ctx.fillStyle = `hsla(${f.hue}, 70%, 60%, ${f.alpha})`;
+            ctx.strokeStyle = `hsla(${f.hue}, 70%, 40%, ${f.alpha})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(x - frameWidth/2, h/2 - frameHeight/2 + f.yOffset, frameWidth, frameHeight, 4);
+            ctx.fill();
+            ctx.stroke();
         });
-        ctx.stroke();
         
-        if (activeCanvas.id === 3) {
-            activeCanvas.animationFrame = requestAnimationFrame(animateVideoSynthesis);
+        if (activeConcept && activeConcept.id === 3) {
+            activeConcept.animationFrame = requestAnimationFrame(animateVideoSynthesis);
         }
     }
 });
