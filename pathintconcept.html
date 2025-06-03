@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Explainer: Path Integral Latent Video Synthesis</title>
+    <title>Interactive Explainer: Path Integral Latent Video Synthesis (Detailed)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     
     <!-- Chosen Palette: Warm Stone & Indigo -->
-    <!-- Application Structure Plan: The application is designed as a guided, non-linear journey. It starts with a high-level vision, then uses interactive cards to explain core concepts. The main 3-phase framework is presented in a tabbed interface to prevent overwhelming the user. A key feature is the interactive HTML/CSS workflow diagram where each step is clickable, revealing more information. This structure was chosen to transform a dense technical document into an explorable experience, allowing users to choose their own depth of exploration from a guided path, enhancing usability and comprehension over a simple linear page. -->
+    <!-- Application Structure Plan: Enhanced guided journey. Core concepts remain interactive. Framework tabs now include illustrative pseudocode snippets for key algorithms, revealed on interaction. Workflow modals also contain more technical detail and conceptual code. This deepens understanding by connecting abstract phases to concrete computational steps, maintaining usability via progressive disclosure of complexity. -->
     <!-- Visualization & Content Choices: 
-        - Report Info: Core Concepts (Sec 2) -> Goal: Make abstract ideas tangible -> Viz/Method: Interactive cards with simple canvas animations and icons -> Interaction: Click to activate animation, visual feedback on active card -> Justification: Visual metaphors and icons enhance intuitive understanding.
-        - Report Info: Action Function Components (Sec 3.3) -> Goal: Demonstrate trade-offs in path weighting -> Viz/Method: Bar chart (Chart.js) paired with styled sliders -> Interaction: User adjusts sliders to see chart and descriptions update in real-time -> Justification: Turns a static formula into a hands-on, dynamic control panel with better visual appeal.
-        - Report Info: Workflow Diagram (Sec 6) -> Goal: Explain the end-to-end process interactively -> Viz/Method: HTML/CSS flexbox diagram with enhanced hover/active states -> Interaction: Clicking a node opens a modal with details -> Justification: Replaces a static diagram with a layered information experience, reducing initial cognitive load and improving visual feedback.
-        - Report Info: Challenges & Future Directions (Sec 5, 7) -> Goal: Present pros and cons scannably -> Viz/Method: Two-column layout with enhanced hover-reveal cards with icons -> Interaction: Hover to see details, subtle lift effect -> Justification: Encourages quick exploration and comparison with clearer visual distinction.
+        - Report Info: Path Parameterization (Sec 3.1) -> Goal: Show LERP code -> Viz/Method: Styled code block (HTML/CSS) within Phase 1 Tab -> Interaction: Static display, copy button -> Justification: Direct illustration of a core algorithm.
+        - Report Info: Action Function Components (Sec 3.3) -> Goal: Connect sliders to formula and code -> Viz/Method: Display formula `Action = w_S * S_smooth - w_sem * S_sem`. Sliders update chart AND a conceptual code snippet showing `calculate_total_action` -> Interaction: Sliders drive multiple UI updates -> Justification: Makes the abstract formula and its parameters concrete and interactive.
+        - Report Info: Path Integration (Sec 3.2, Phase 2) -> Goal: Explain weighting and averaging -> Viz/Method: Pseudocode for `get_path_weights` and `integrate_paths`. Simple canvas animation showing paths converging based on weights. -> Interaction: Code display, animation synced with explanation -> Justification: Visual and code-based explanation of a complex step.
+        - Report Info: Workflow Modals (Sec 6) -> Goal: Add technical depth to each step -> Viz/Method: Modals now include a "Technical Snapshot" with key operations or pseudocode for that stage -> Interaction: Click node to open enhanced modal -> Justification: Layered information for users wanting more detail.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
@@ -76,11 +76,11 @@
             border-radius: 3px;
         }
         .workflow-arrow::after {
-            content: '▶'; /* Using a unicode arrow */
+            content: '▶'; 
             font-size: 16px;
             color: #a5b4fc;
             position: absolute;
-            right: -10px; /* Adjust for new arrow */
+            right: -10px; 
             top: 50%;
             transform: translateY(-50%);
         }
@@ -103,59 +103,90 @@
             border-radius: 0.5rem;
             box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
         }
-        @media (max-width: 768px) {
-            .chart-container {
-                height: 300px;
-            }
+        @media (max-width: 768px) { .chart-container { height: 300px; } }
+        
+        input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; width: 100%; }
+        input[type="range"]::-webkit-slider-runnable-track { background: #e5e7eb; height: 0.5rem; border-radius: 0.25rem; }
+        input[type="range"]::-moz-range-track { background: #e5e7eb; height: 0.5rem; border-radius: 0.25rem; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; margin-top: -0.25rem; background-color: #4f46e5; height: 1rem; width: 1rem; border-radius: 9999px; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        input[type="range"]::-moz-range-thumb { background-color: #4f46e5; height: 1rem; width: 1rem; border-radius: 9999px; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        
+        .challenge-future-card { transition: transform 0.2s ease-out, box-shadow 0.2s ease-out; }
+        .challenge-future-card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px -3px rgb(0 0 0 / 0.1), 0 3px 5px -3px rgb(0 0 0 / 0.1); }
+        .section-icon { font-size: 1.5em; margin-right: 0.5rem; color: #818cf8; /* indigo-400 */ }
+
+        .code-block {
+            font-family: 'Fira Code', monospace;
+            background-color: #282c34; /* Dark editor background */
+            color: #abb2bf; /* Light text */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875em;
+            line-height: 1.6;
+            overflow-x: auto;
+            margin-top: 0.75rem;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
         }
-        /* Custom slider styles */
-        input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            background: transparent;
+        .code-block .keyword { color: #c678dd; } /* Purple for keywords */
+        .code-block .function { color: #61afef; } /* Blue for functions */
+        .code-block .comment { color: #5c6370; font-style: italic; } /* Gray for comments */
+        .code-block .string { color: #98c379; } /* Green for strings */
+        .code-block .number { color: #d19a66; } /* Orange for numbers */
+        .code-block .variable { color: #e06c75; } /* Red for variables/parameters */
+        .code-block .class { color: #e5c07b; } /* Yellow for class/type like names */
+        .copy-code-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: #4a5568;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 0.25rem;
             cursor: pointer;
-            width: 100%;
+            transition: background-color 0.2s;
         }
-        input[type="range"]::-webkit-slider-runnable-track {
-            background: #e5e7eb; /* gray-200 */
-            height: 0.5rem;
-            border-radius: 0.25rem;
+        .copy-code-btn:hover { background-color: #2d3748; }
+        .formula {
+            font-family: 'Fira Code', monospace;
+            background-color: #e0e7ff; /* indigo-100 */
+            color: #3730a3; /* indigo-800 */
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            text-align: center;
+            font-size: 0.95em;
+            margin: 1rem auto;
+            display: inline-block;
+            border: 1px solid #c7d2fe; /* indigo-200 */
         }
-        input[type="range"]::-moz-range-track {
-            background: #e5e7eb; /* gray-200 */
-            height: 0.5rem;
-            border-radius: 0.25rem;
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
         }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            margin-top: -0.25rem; /* (track-height - thumb-height) / 2 */
-            background-color: #4f46e5; /* indigo-600 */
-            height: 1rem;
-            width: 1rem;
-            border-radius: 9999px;
-            border: 2px solid white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: #292524; /* stone-800 */
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            line-height: 1.4;
         }
-        input[type="range"]::-moz-range-thumb {
-            background-color: #4f46e5; /* indigo-600 */
-            height: 1rem;
-            width: 1rem;
-            border-radius: 9999px;
-            border: 2px solid white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .challenge-future-card {
-            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-        }
-        .challenge-future-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 16px -3px rgb(0 0 0 / 0.1), 0 3px 5px -3px rgb(0 0 0 / 0.1);
-        }
-        .section-icon {
-            font-size: 1.5em;
-            margin-right: 0.5rem;
-            color: #818cf8; /* indigo-400 */
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
         }
     </style>
 </head>
@@ -185,7 +216,7 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         <section id="vision" class="text-center py-16 md:py-24">
-            <h2 class="text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl lg:text-6xl leading-tight">
+             <h2 class="text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl lg:text-6xl leading-tight">
                 A <span class="text-indigo-600">New Spin</span> on Latent Diffusion
             </h2>
             <p class="mt-8 max-w-3xl mx-auto text-lg leading-8 text-stone-600">
@@ -201,17 +232,17 @@
             <div class="grid md:grid-cols-3 gap-8">
                 <div id="concept-card-1" class="concept-card bg-white p-6 rounded-xl shadow-lg cursor-pointer">
                     <h3 class="text-xl font-semibold mb-3 text-indigo-700 flex items-center"><span class="mr-2 text-2xl">🧊</span>1. Latent Space</h3>
-                    <p class="text-stone-600 mb-4 text-sm">A compressed realm where complex data (like images) is elegantly represented. Smooth voyages here translate to fluid visual shifts. Each point is a world of potential imagery.</p>
+                    <p class="text-stone-600 mb-4 text-sm">A compressed realm where complex data (like images) is elegantly represented. Actual Stable Diffusion latents are typically 4-channel tensors (e.g., `[1, 4, H/8, W/8]`). Smooth voyages here translate to fluid visual shifts.</p>
                     <canvas id="canvas-latent" class="w-full h-48 bg-stone-100 rounded-lg border border-stone-200"></canvas>
                 </div>
                 <div id="concept-card-2" class="concept-card bg-white p-6 rounded-xl shadow-lg cursor-pointer">
                     <h3 class="text-xl font-semibold mb-3 text-indigo-700 flex items-center"><span class="mr-2 text-2xl">🌿</span>2. Path Integral Adaptation</h3>
-                    <p class="text-stone-600 mb-4 text-sm">Instead of one rigid path, we explore countless possibilities from start to end. Each is "weighted" by its elegance (e.g., smoothness). The final video is a harmonious blend of these journeys.</p>
+                    <p class="text-stone-600 mb-4 text-sm">Instead of one rigid path, we explore countless possibilities from start to end. Each "path" is a sequence of latent vectors, e.g., `[z_0, z_1, ..., z_N-1]`. The final video is a harmonious blend of these journeys, weighted by their "Action".</p>
                     <canvas id="canvas-path" class="w-full h-48 bg-stone-100 rounded-lg border border-stone-200"></canvas>
                 </div>
                 <div id="concept-card-3" class="concept-card bg-white p-6 rounded-xl shadow-lg cursor-pointer">
                     <h3 class="text-xl font-semibold mb-3 text-indigo-700 flex items-center"><span class="mr-2 text-2xl">🎞️</span>3. Video Synthesis</h3>
-                    <p class="text-stone-600 mb-4 text-sm">A video unfolds frame by frame. The essence (latent vector) for each frame is distilled from the "integrated" path, generating a sequence of images that form a coherent and dynamic visual narrative.</p>
+                    <p class="text-stone-600 mb-4 text-sm">A video unfolds frame by frame. The essence (latent vector `Z_j`) for each frame is distilled from the "integrated" path, then decoded by the VAE. This generates a sequence of images forming a coherent visual narrative.</p>
                     <canvas id="canvas-video" class="w-full h-48 bg-stone-100 rounded-lg border border-stone-200"></canvas>
                 </div>
             </div>
@@ -220,7 +251,7 @@
         <section id="framework" class="py-16">
             <div class="text-center mb-16">
                 <h2 class="text-3xl font-bold tracking-tight text-stone-900 flex items-center justify-center"><span class="section-icon">🏗️</span>The 3-Phase Implementation Framework</h2>
-                <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">This structured approach deconstructs the complex task into clear, manageable phases, from charting potential paths to crafting the final video.</p>
+                <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">This structured approach deconstructs the complex task into clear, manageable phases. Explore each phase to see illustrative code and understand the core mechanics.</p>
             </div>
             <div class="mb-6 flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-2 p-1 bg-stone-200 rounded-lg shadow-inner">
                 <button class="tab-button w-full sm:w-auto px-5 py-3 text-sm font-semibold rounded-md active" data-tab="phase1">Phase 1: Defining & Sampling</button>
@@ -228,51 +259,132 @@
                 <button class="tab-button w-full sm:w-auto px-5 py-3 text-sm font-semibold rounded-md" data-tab="phase3">Phase 3: Control & Refinement</button>
             </div>
             <div class="bg-white p-8 md:p-10 rounded-xl shadow-xl">
+                <!-- Phase 1 Content -->
                 <div id="phase1" class="tab-content">
-                    <h3 class="text-2xl font-semibold mb-5 text-stone-800">Phase 1: Defining and Sampling Paths</h3>
-                    <p class="text-stone-600 mb-8 text-base leading-relaxed">This is the exploratory heart of the process. The system charts a universe of potential evolutionary paths within the latent space, connecting start and end points. The diversity and inherent quality of these paths are the bedrock of the final video's depth and richness.</p>
-                    <div class="grid md:grid-cols-2 gap-6 mb-8">
-                        <div class="bg-stone-50 p-5 rounded-lg border border-stone-200">
-                            <h4 class="font-semibold text-indigo-700 text-lg mb-2">Path Generation Strategies</h4>
-                            <p class="text-sm text-stone-600">Paths are woven using diverse methods: subtle perturbations on a baseline trajectory, sophisticated stochastic processes (like Brownian Bridges), or intelligently guided sampling towards intermediate conceptual anchors.</p>
-                        </div>
-                        <div class="bg-stone-50 p-5 rounded-lg border border-stone-200">
-                            <h4 class="font-semibold text-indigo-700 text-lg mb-2">The "Action" Function</h4>
-                            <p class="text-sm text-stone-600">Each path is evaluated and assigned a score or "Action" reflecting its desirable qualities. This function is the core of creative control. Experiment with the sliders below to intuitively grasp how different factors can be weighted.</p>
-                        </div>
+                    <h3 class="text-2xl font-semibold mb-3 text-stone-800">Phase 1: Defining and Sampling Paths</h3>
+                    <p class="text-stone-600 mb-6 text-base leading-relaxed">This phase is about exploration: generating diverse trajectories (paths) in latent space. A path is a sequence of latent vectors, `[z_0, z_1, ..., z_N-1]`. We start with methods to create these paths.</p>
+                    
+                    <h4 class="font-semibold text-indigo-700 text-lg mt-6 mb-2">Path Parameterization: LERP Example</h4>
+                    <p class="text-sm text-stone-600 mb-2">Linear Interpolation (LERP) is a basic way to create a path between a start (`z_start`) and end (`z_end`) latent vector.</p>
+                    <div class="code-block">
+                        <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-python"><span class="keyword">def</span> <span class="function">linear_interpolation_path</span>(<span class="variable">z_start</span>, <span class="variable">z_end</span>, <span class="variable">num_frames</span>):
+    <span class="comment"># Generates a path by linearly interpolating.</span>
+    <span class="variable">latents</span> = []
+    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="function">range</span>(<span class="variable">num_frames</span>):
+        alpha = i / (<span class="variable">num_frames</span> - <span class="number">1</span>) <span class="keyword">if</span> <span class="variable">num_frames</span> > <span class="number">1</span> <span class="keyword">else</span> <span class="number">0.0</span>
+        interpolated_latent = (<span class="number">1</span> - alpha) * <span class="variable">z_start</span> + alpha * <span class="variable">z_end</span>
+        <span class="variable">latents</span>.append(interpolated_latent)
+    <span class="keyword">return</span> torch.stack(<span class="variable">latents</span>)</code></pre>
                     </div>
-                    <div class="mt-8">
+                    <p class="text-sm text-stone-600 mt-2 mb-4">More advanced methods like <span class="tooltip">Splines<span class="tooltiptext">Splines (e.g., Catmull-Rom) create smoother paths by ensuring continuity of derivatives, leading to less jerky motion in the video.</span></span> can produce visually smoother transitions.</p>
+
+                    <h4 class="font-semibold text-indigo-700 text-lg mt-6 mb-2">Path Generation: Perturbative Approach</h4>
+                    <p class="text-sm text-stone-600 mb-2">We can create variations by adding noise to a baseline path (like LERP), keeping start/end points fixed.</p>
+                     <div class="code-block">
+                        <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-python"><span class="keyword">def</span> <span class="function">perturb_path</span>(<span class="variable">base_path</span>, <span class="variable">noise_level</span>=<span class="number">0.1</span>):
+    <span class="comment"># Adds random noise to intermediate frames of a base path.</span>
+    <span class="variable">perturbed_path</span> = <span class="variable">base_path</span>.clone()
+    <span class="keyword">if</span> <span class="variable">base_path</span>.shape[<span class="number">0</span>] > <span class="number">2</span>:
+        noise = torch.randn_like(<span class="variable">base_path</span>[<span class="number">1</span>:-<span class="number">1</span>]) * <span class="variable">noise_level</span>
+        <span class="variable">perturbed_path</span>[<span class="number">1</span>:-<span class="number">1</span>] += noise
+    <span class="keyword">return</span> <span class="variable">perturbed_path</span></code></pre>
+                    </div>
+
+                    <h4 class="font-semibold text-indigo-700 text-lg mt-8 mb-2">The "Action" Function: Guiding Path Selection</h4>
+                    <p class="text-sm text-stone-600 mb-1">Each path is scored by an "Action" function. A lower action value is generally "better". The formula is key:</p>
+                    <div class="text-center my-3">
+                        <p class="formula">Action = w<sub>smooth</sub> * S<sub>smooth</sub> - w<sub>semantic</sub> * S<sub>semantic</sub> + ...</p>
+                    </div>
+                    <p class="text-sm text-stone-600 mb-4">Here, `S_smooth` penalizes jerky paths (high "kinetic energy"), and `S_semantic` rewards paths aligning with textual prompts (e.g., via <span class="tooltip">CLIP scores<span class="tooltiptext">CLIP (Contrastive Language–Image Pre-training) measures similarity between an image and a text description. Higher scores mean better alignment.</span></span>). The weights `w_smooth`, `w_semantic` allow creative control. Adjust them below!</p>
+                    
+                    <div class="mt-6">
                         <div class="chart-container">
                             <canvas id="actionChart"></canvas>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 mt-8 max-w-2xl mx-auto">
                             <div>
-                                <label for="smoothness" class="block text-sm font-medium text-stone-700 mb-1">Smoothness <span class="text-xs text-stone-500">(Fluidity)</span></label>
+                                <label for="smoothness" class="block text-sm font-medium text-stone-700 mb-1">w<sub>smooth</sub> (Smoothness Weight)</label>
                                 <input id="smoothness" type="range" min="0" max="100" value="70" class="w-full">
                             </div>
                             <div>
-                                <label for="semantic" class="block text-sm font-medium text-stone-700 mb-1">Semantic Coherence <span class="text-xs text-stone-500">(Meaning)</span></label>
+                                <label for="semantic" class="block text-sm font-medium text-stone-700 mb-1">w<sub>semantic</sub> (Semantic Weight)</label>
                                 <input id="semantic" type="range" min="0" max="100" value="85" class="w-full">
                             </div>
                             <div>
-                                <label for="constraint" class="block text-sm font-medium text-stone-700 mb-1">Constraint Adherence <span class="text-xs text-stone-500">(Guidance)</span></label>
+                                <label for="constraint" class="block text-sm font-medium text-stone-700 mb-1">w<sub>constraint</sub> (Constraint Adherence)</label>
                                 <input id="constraint" type="range" min="0" max="100" value="50" class="w-full">
                             </div>
                             <div>
-                                <label for="novelty" class="block text-sm font-medium text-stone-700 mb-1">Novelty/Exploration <span class="text-xs text-stone-500">(Surprise)</span></label>
+                                <label for="novelty" class="block text-sm font-medium text-stone-700 mb-1">w<sub>novelty</sub> (Novelty/Exploration)</label>
                                 <input id="novelty" type="range" min="0" max="100" value="40" class="w-full">
                             </div>
                         </div>
                         <p id="action-explainer" class="text-center mt-6 text-stone-600 text-sm max-w-xl mx-auto bg-indigo-50 p-3 rounded-md border border-indigo-200"></p>
                     </div>
+                    <div id="action_code_container" class="mt-4">
+                        <p class="text-sm text-stone-600 mb-2">Conceptual code for `calculate_total_action`:</p>
+                        <div class="code-block">
+                            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+                            <pre><code id="action_code_snippet" class="language-python"><span class="keyword">def</span> <span class="function">calculate_total_action</span>(<span class="variable">path</span>, <span class="variable">w_smooth</span>, <span class="variable">w_semantic</span>, ...):
+    <span class="variable">s_smooth</span> = <span class="function">calculate_smoothness_action</span>(<span class="variable">path</span>)
+    <span class="variable">s_semantic</span> = <span class="function">calculate_semantic_action</span>(<span class="variable">path</span>, ...)
+    
+    <span class="comment"># Lower action is better</span>
+    <span class="variable">total_action</span> = <span class="variable">w_smooth</span> * <span class="variable">s_smooth</span> - <span class="variable">w_semantic</span> * <span class="variable">s_semantic</span> 
+    <span class="keyword">return</span> <span class="variable">total_action</span></code></pre>
+                        </div>
+                    </div>
                 </div>
+                <!-- Phase 2 Content -->
                 <div id="phase2" class="tab-content hidden">
-                     <h3 class="text-2xl font-semibold mb-5 text-stone-800">Phase 2: Integrating Over Paths</h3>
-                    <p class="text-stone-600 text-base leading-relaxed">In this crucial phase, we synthesize the wisdom of all sampled paths. For every frame of the upcoming video, the definitive latent state is meticulously calculated as a weighted average of states from all paths at that precise moment in time. Paths that scored higher on the "Action" function contribute more significantly, steering the final video towards the artistically desired characteristics and ensuring a harmonious outcome.</p>
+                    <h3 class="text-2xl font-semibold mb-3 text-stone-800">Phase 2: Integrating Over Paths</h3>
+                    <p class="text-stone-600 mb-6 text-base leading-relaxed">After sampling many potential paths and calculating their "Action" scores, this phase combines their contributions to determine the final video trajectory. The core idea is a weighted average, where "better" paths (lower action) have more influence.</p>
+
+                    <h4 class="font-semibold text-indigo-700 text-lg mt-6 mb-2">Path Weighting</h4>
+                    <p class="text-sm text-stone-600 mb-2">The weight of each path is typically calculated as `exp(-Action / T)`, where `T` is a "temperature" parameter. Lower action or higher temperature gives higher weight.</p>
+                    <div class="code-block">
+                        <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-python"><span class="keyword">def</span> <span class="function">get_path_weights</span>(<span class="variable">list_of_paths</span>, <span class="variable">temperature</span>=<span class="number">1.0</span>, ...):
+    <span class="variable">actions</span> = [ <span class="function">calculate_total_action</span>(p, ...) <span class="keyword">for</span> p <span class="keyword">in</span> <span class="variable">list_of_paths</span> ]
+    <span class="variable">actions_tensor</span> = torch.tensor(<span class="variable">actions</span>)
+    
+    <span class="comment"># Temperature T controls sensitivity to action differences</span>
+    <span class="variable">weights</span> = torch.exp(-<span class="variable">actions_tensor</span> / <span class="variable">temperature</span>)
+    
+    <span class="keyword">return</span> <span class="variable">weights</span> / torch.sum(<span class="variable">weights</span>) <span class="comment"># Normalize</span></code></pre>
+                    </div>
+
+                    <h4 class="font-semibold text-indigo-700 text-lg mt-6 mb-2">Path Integration</h4>
+                    <p class="text-sm text-stone-600 mb-2">The final latent vector `Z_j` for each frame `j` is the weighted average of the j-th latent vectors from all sampled paths: `Z_j = sum_k (weight_k * path_k_j) / sum_k (weight_k)`.</p>
+                     <div class="code-block">
+                        <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code class="language-python"><span class="keyword">def</span> <span class="function">integrate_paths</span>(<span class="variable">list_of_paths</span>, <span class="variable">path_weights</span>):
+    <span class="variable">stacked_paths</span> = torch.stack(<span class="variable">list_of_paths</span>) <span class="comment"># (num_paths, num_frames, latent_dim)</span>
+    <span class="variable">weights_reshaped</span> = <span class="variable">path_weights</span>.view(-<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>) <span class="comment"># For broadcasting</span>
+    
+    <span class="variable">integrated_path</span> = torch.sum(<span class="variable">stacked_paths</span> * <span class="variable">weights_reshaped</span>, dim=<span class="number">0</span>)
+    <span class="keyword">return</span> <span class="variable">integrated_path</span></code></pre>
+                    </div>
+                    <div class="mt-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                        <h5 class="font-medium text-indigo-600 mb-2">Visualizing Integration:</h5>
+                        <p class="text-xs text-stone-500 mb-2">Imagine many faint paths (light gray). The path integral (dark blue) is their weighted average, pulled stronger towards paths with higher weights (lower action).</p>
+                        <canvas id="pathIntegrationCanvas" class="w-full h-48 bg-white rounded border border-indigo-300"></canvas>
+                    </div>
                 </div>
+                <!-- Phase 3 Content -->
                 <div id="phase3" class="tab-content hidden">
-                     <h3 class="text-2xl font-semibold mb-5 text-stone-800">Phase 3: Control and Refinement</h3>
-                    <p class="text-stone-600 text-base leading-relaxed">This phase empowers the creator with nuanced control and iterative refinement. By adjusting textual prompts, defining key visual waypoints, and fine-tuning the weights within the action function, the user can sculpt the creative direction of the video. The system is architected for a dynamic feedback loop, fostering a collaborative dance between human intuition and algorithmic generation.</p>
+                     <h3 class="text-2xl font-semibold mb-3 text-stone-800">Phase 3: Control and Refinement</h3>
+                    <p class="text-stone-600 mb-6 text-base leading-relaxed">This phase empowers the creator. By adjusting prompts, setting waypoints, and fine-tuning action function parameters (like `w_smooth`, `w_semantic`, and `temperature`), the user sculpts the video's creative direction. The system is designed for an iterative feedback loop.</p>
+                    <p class="text-stone-600 mb-4 text-base leading-relaxed">Key control levers include:</p>
+                    <ul class="list-disc list-inside space-y-2 text-stone-600 mb-4">
+                        <li><strong>Start/End Prompts/Images:</strong> Define the video's boundaries.</li>
+                        <li><strong>Intermediate Prompts:</strong> Guide the narrative through specific concepts.</li>
+                        <li><strong>Action Function Weights (w<sub>i</sub>):</strong> Prioritize smoothness, semantic adherence, novelty, etc. (as seen in Phase 1).</li>
+                        <li><strong>Temperature (T):</strong> Controls the "strictness" of path selection in Phase 2. Low T = sharp selection of best paths; High T = broader averaging.</li>
+                    </ul>
+                    <p class="text-stone-600 text-base leading-relaxed">The goal is a collaborative process where human intuition and algorithmic exploration work together to achieve the desired visual output. The code examples in previous phases show how these parameters directly influence calculations.</p>
                 </div>
             </div>
         </section>
@@ -280,7 +392,7 @@
         <section id="workflow" class="py-16">
             <div class="text-center mb-16">
                 <h2 class="text-3xl font-bold tracking-tight text-stone-900 flex items-center justify-center"><span class="section-icon">🔄</span>Interactive Workflow</h2>
-                <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">This diagram visualizes the end-to-end journey. Click any step to unveil a detailed explanation of its role in the grand synthesis.</p>
+                <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">This diagram visualizes the end-to-end journey. Click any step to unveil a detailed explanation and a technical snapshot of its role.</p>
             </div>
             <div class="w-full overflow-x-auto pb-6">
                 <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center space-y-4 md:space-y-0 md:space-x-2 min-w-[900px] px-4">
@@ -298,7 +410,7 @@
         </section>
         
         <section id="challenges" class="py-16">
-            <div class="text-center mb-16">
+           <div class="text-center mb-16">
                 <h2 class="text-3xl font-bold tracking-tight text-stone-900 flex items-center justify-center"><span class="section-icon">🎯</span>Challenges & The Road Ahead</h2>
                 <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">This ambitious voyage presents fascinating problems to solve and exciting frontiers to explore. Here's a glimpse of the key hurdles and future horizons.</p>
             </div>
@@ -339,16 +451,19 @@
                 </div>
             </div>
         </section>
-
     </main>
 
     <div id="workflow-modal" class="modal-overlay fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] hidden opacity-0">
-        <div class="modal-content bg-white rounded-xl shadow-2xl max-w-md w-full p-6 md:p-8 transform scale-95 opacity-0">
+        <div class="modal-content bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 md:p-8 transform scale-95 opacity-0">
             <div class="flex justify-between items-center mb-4">
                 <h3 id="modal-title" class="text-xl font-semibold text-indigo-700"></h3>
                 <button id="modal-close" class="text-stone-400 hover:text-indigo-600 text-2xl leading-none">&times;</button>
             </div>
-            <p id="modal-body" class="text-stone-600 leading-relaxed"></p>
+            <p id="modal-body" class="text-stone-600 leading-relaxed mb-4"></p>
+            <div id="modal-tech-snapshot" class="mt-4 pt-4 border-t border-stone-200">
+                <h4 class="text-sm font-semibold text-stone-500 mb-2">Technical Snapshot:</h4>
+                <div id="modal-code-block" class="code-block text-xs"></div>
+            </div>
         </div>
     </div>
     
@@ -359,13 +474,47 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-
     const workflowDetails = {
-        1: { title: 'Step 1: User Input', body: 'The process begins with user-provided parameters: start/end prompts or images, video duration, quality settings, and weights for the action function. These inputs define the creative boundaries for the video generation.' },
-        2: { title: 'Step 2: Path Sampling Loop', body: 'The system generates a large number of candidate paths between the start and end points. Each path is a unique potential video evolution. The action for each path is evaluated and stored, creating a pool of weighted possibilities.' },
-        3: { title: 'Step 3: Path Integration', body: 'For each frame of the final video, the system calculates a weighted average of the latent vectors from all sampled paths. Paths with a better "action" score contribute more heavily to this average, ensuring the final result is guided by the desired characteristics.' },
-        4: { title: 'Step 4: Frame Generation', body: 'The integrated latent vector for each frame is passed to the Stable Diffusion decoder. This converts the abstract latent representation into a concrete pixel image, one frame at a time.' },
-        5: { title: 'Step 5: Output Video', body: 'All the generated frames are assembled in sequence into a final video file. The user can then review the output and optionally refine the input parameters for another iteration.' },
+        1: { 
+            title: 'Step 1: User Input', 
+            body: 'The process begins with user-provided parameters: start/end prompts or images, video duration, quality settings, and weights for the action function. These inputs define the creative boundaries for the video generation.',
+            code: `<span class="comment"># User defines:</span>
+<span class="variable">start_prompt</span> = <span class="string">"Impressionist painting of a cat"</span>
+<span class="variable">end_prompt</span> = <span class="string">"Cyberpunk cityscape with a cat"</span>
+<span class="variable">num_frames</span> = <span class="number">100</span>
+<span class="variable">action_weights</span> = { <span class="string">'smooth'</span>: <span class="number">1.0</span>, <span class="string">'semantic'</span>: <span class="number">0.5</span> }`
+        },
+        2: { 
+            title: 'Step 2: Path Sampling Loop', 
+            body: 'The system generates many candidate paths (sequences of latent vectors) between start/end points. Each path is a unique potential video evolution. Its "Action" is calculated and stored.',
+            code: `<span class="keyword">for</span> i <span class="keyword">in</span> <span class="function">range</span>(<span class="variable">num_sample_paths</span>):
+    <span class="variable">candidate_path</span> = <span class="function">generate_perturbed_path</span>(<span class="variable">base_path</span>)
+    <span class="variable">path_action</span> = <span class="function">calculate_total_action</span>(<span class="variable">candidate_path</span>, ...)
+    <span class="variable">sampled_paths</span>.append((<span class="variable">candidate_path</span>, <span class="variable">path_action</span>))`
+        },
+        3: { 
+            title: 'Step 3: Path Integration', 
+            body: 'For each video frame, the system calculates a weighted average of latent vectors from all sampled paths. Paths with better "action" scores contribute more heavily.',
+            code: `<span class="variable">path_weights</span> = <span class="function">get_path_weights</span>(<span class="variable">sampled_paths</span>, <span class="variable">temperature</span>)
+<span class="variable">final_latent_sequence</span> = <span class="function">integrate_paths</span>(
+    [p[<span class="number">0</span>] <span class="keyword">for</span> p <span class="keyword">in</span> <span class="variable">sampled_paths</span>], <span class="comment"># just the paths</span>
+    <span class="variable">path_weights</span>
+)`
+        },
+        4: { 
+            title: 'Step 4: Frame Generation', 
+            body: 'The integrated latent vector for each frame is passed to the Stable Diffusion VAE decoder. This converts the abstract latent representation into a concrete pixel image, one frame at a time.',
+            code: `<span class="keyword">for</span> latent_z <span class="keyword">in</span> <span class="variable">final_latent_sequence</span>:
+    <span class="comment"># Reshape latent_z to match VAE input (e.g., 1, 4, H/8, W/8)</span>
+    <span class="variable">image_frame</span> = <span class="variable">vae_decoder</span>.<span class="function">decode</span>(<span class="variable">latent_z</span>.unsqueeze(<span class="number">0</span>)).sample
+    <span class="variable">video_frames</span>.append(<span class="variable">image_frame</span>)`
+        },
+        5: { 
+            title: 'Step 5: Output Video', 
+            body: 'All generated image frames are assembled in sequence into a final video file (e.g., MP4). The user can then review and optionally refine parameters for another iteration.',
+            code: `<span class="function">assemble_video</span>(<span class="variable">video_frames</span>, <span class="variable">fps</span>=<span class="number">24</span>, <span class="variable">output_path</span>=<span class="string">'final_video.mp4'</span>)
+<span class="comment"># User reviews, potentially adjusts inputs, and re-runs.</span>`
+        },
     };
 
     const tabButtons = document.querySelectorAll('.tab-button');
@@ -378,6 +527,29 @@ document.addEventListener('DOMContentLoaded', () => {
             tabContents.forEach(content => {
                 content.classList.toggle('hidden', content.id !== tabId);
             });
+             if (tabId === 'phase2') { // Specific animation for phase 2
+                if (activeConcept && activeConcept.id === 'pathIntegrationCanvas') { // Already active
+                    cancelAnimationFrame(activeConcept.animationFrame);
+                }
+                const canvasEl = document.getElementById('pathIntegrationCanvas');
+                if (canvasEl) {
+                     activeConcept = { 
+                        ctx: canvasEl.getContext('2d'), 
+                        id: 'pathIntegrationCanvas', 
+                        animFunc: animatePathIntegrationCanvas,
+                        card: null // Not a concept card
+                    };
+                    resizeCanvas(activeConcept.ctx.canvas);
+                    activeConcept.animFunc();
+                }
+            } else { // Stop phase 2 animation if switching away
+                if (activeConcept && activeConcept.id === 'pathIntegrationCanvas') {
+                    cancelAnimationFrame(activeConcept.animationFrame);
+                    const ctxToClear = document.getElementById('pathIntegrationCanvas')?.getContext('2d');
+                    if(ctxToClear) ctxToClear.clearRect(0,0,ctxToClear.canvas.width, ctxToClear.canvas.height);
+                    activeConcept = null; 
+                }
+            }
         });
     });
 
@@ -388,109 +560,76 @@ document.addEventListener('DOMContentLoaded', () => {
         novelty: document.getElementById('novelty'),
     };
     const actionExplainer = document.getElementById('action-explainer');
+    const actionCodeSnippet = document.getElementById('action_code_snippet');
     const ctxAction = document.getElementById('actionChart').getContext('2d');
     const actionChart = new Chart(ctxAction, {
         type: 'bar',
         data: {
             labels: ['Smoothness', 'Semantics', 'Constraints', 'Novelty'],
             datasets: [{
-                label: 'Weighting',
-                data: [70, 85, 50, 40],
-                backgroundColor: [
-                    'rgba(79, 70, 229, 0.7)',  // indigo-600
-                    'rgba(129, 140, 248, 0.7)', // indigo-400
-                    'rgba(167, 139, 250, 0.7)', // violet-400
-                    'rgba(196, 181, 253, 0.7)', // violet-300
-                ],
-                borderColor: [
-                    '#4f46e5',
-                    '#818cf8',
-                    '#a78bfa',
-                    '#c4b5fd',
-                ],
-                borderWidth: 2,
-                borderRadius: 4,
-                borderSkipped: false,
+                label: 'Weighting', data: [70, 85, 50, 40],
+                backgroundColor: ['rgba(79, 70, 229, 0.7)','rgba(129, 140, 248, 0.7)','rgba(167, 139, 250, 0.7)','rgba(196, 181, 253, 0.7)'],
+                borderColor: ['#4f46e5','#818cf8','#a78bfa','#c4b5fd'],
+                borderWidth: 2, borderRadius: 4, borderSkipped: false,
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            indexAxis: 'y',
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    max: 100,
-                    grid: { display: false },
-                    ticks: { font: { size: 10 } }
-                },
-                y: {
-                    grid: { display: false },
-                    ticks: { font: { size: 12 } }
-                }
-            },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    enabled: true,
-                    backgroundColor: '#292524', // stone-800
-                    titleFont: { weight: 'bold' },
-                    bodyFont: { size: 12 },
-                    padding: 10,
-                    cornerRadius: 4,
-                    callbacks: {
-                        label: function(context) { return `Current Weight: ${context.raw}`; }
-                    }
-                }
-            },
-            animation: {
-                duration: 500,
-                easing: 'easeInOutQuart',
-            }
+            responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+            scales: { x: { beginAtZero: true, max: 100, grid: { display: false }, ticks: { font: { size: 10 } } }, y: { grid: { display: false }, ticks: { font: { size: 12 } } } },
+            plugins: { legend: { display: false }, tooltip: { enabled: true, backgroundColor: '#292524', titleFont: { weight: 'bold' }, bodyFont: { size: 12 }, padding: 10, cornerRadius: 4, callbacks: { label: (ctx) => `Current Weight: ${ctx.raw}` } } },
+            animation: { duration: 500, easing: 'easeInOutQuart' }
         }
     });
 
-    function updateActionChart() {
-        const values = [
-            parseInt(actionSliders.smoothness.value),
-            parseInt(actionSliders.semantic.value),
-            parseInt(actionSliders.constraint.value),
-            parseInt(actionSliders.novelty.value)
-        ];
-        actionChart.data.datasets[0].data = values;
+    function updateActionFramework() {
+        const ws = parseInt(actionSliders.smoothness.value);
+        const wsem = parseInt(actionSliders.semantic.value);
+        const wc = parseInt(actionSliders.constraint.value); // Assuming you might use this in the formula
+        const wn = parseInt(actionSliders.novelty.value);   // Assuming you might use this
+
+        actionChart.data.datasets[0].data = [ws, wsem, wc, wn];
         actionChart.update();
 
+        const values = [ws, wsem, wc, wn];
+        const labels = actionChart.data.labels;
         const maxVal = Math.max(...values);
-        const dominantFactors = values.map((val, index) => val === maxVal ? actionChart.data.labels[index] : null).filter(Boolean);
-        let explainerText = 'Current focus is on ';
-        if (dominantFactors.length > 1) {
-            explainerText += dominantFactors.slice(0, -1).join(', ') + ' and ' + dominantFactors.slice(-1);
-        } else {
-            explainerText += dominantFactors[0];
-        }
-        actionExplainer.innerHTML = `💡 ${explainerText}, guiding path generation towards associated qualities.`;
+        const dominantFactors = values.map((val, index) => val === maxVal ? labels[index] : null).filter(Boolean);
+        let explainerText = 'Current focus: ';
+        explainerText += dominantFactors.length > 1 ? dominantFactors.slice(0, -1).join(', ') + ' & ' + dominantFactors.slice(-1) : dominantFactors[0];
+        actionExplainer.innerHTML = `💡 ${explainerText}, guiding path generation.`;
+
+        actionCodeSnippet.innerHTML = `<span class="keyword">def</span> <span class="function">calculate_total_action</span>(<span class="variable">path</span>, <span class="variable">w_smooth</span>, <span class="variable">w_semantic</span>, ...):
+    <span class="variable">s_smooth</span> = <span class="function">calculate_smoothness_action</span>(<span class="variable">path</span>)
+    <span class="variable">s_semantic</span> = <span class="function">calculate_semantic_action</span>(<span class="variable">path</span>, ...)
+    <span class="comment"># Other terms for constraints, novelty etc. would be here</span>
+    <span class="variable">total_action</span> = (<span class="number">${(ws/100).toFixed(2)}</span> * <span class="variable">s_smooth</span>) 
+                   - (<span class="number">${(wsem/100).toFixed(2)}</span> * <span class="variable">s_semantic</span>) 
+                   <span class="comment"># + w_constraint * s_constraint ...</span>
+    <span class="keyword">return</span> <span class="variable">total_action</span>`;
     }
 
-    Object.values(actionSliders).forEach(slider => slider.addEventListener('input', updateActionChart));
-    updateActionChart();
+    Object.values(actionSliders).forEach(slider => slider.addEventListener('input', updateActionFramework));
+    updateActionFramework();
 
     const modal = document.getElementById('workflow-modal');
     const modalClose = document.getElementById('modal-close');
     const modalTitle = document.getElementById('modal-title');
     const modalBody = document.getElementById('modal-body');
+    const modalCodeBlock = document.getElementById('modal-code-block');
     const workflowNodes = document.querySelectorAll('.workflow-node');
-    let activeNode = null;
+    let activeWfNode = null;
     
     workflowNodes.forEach(node => {
         node.addEventListener('click', () => {
             const step = node.dataset.step;
             modalTitle.textContent = workflowDetails[step].title;
             modalBody.textContent = workflowDetails[step].body;
+            modalCodeBlock.innerHTML = workflowDetails[step].code;
             modal.classList.remove('hidden');
             
-            if(activeNode) activeNode.classList.remove('active-node');
+            if(activeWfNode) activeWfNode.classList.remove('active-node');
             node.classList.add('active-node');
-            activeNode = node;
+            activeWfNode = node;
 
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
@@ -502,206 +641,237 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeModal() {
         modal.classList.add('opacity-0');
         modal.querySelector('.modal-content').classList.add('scale-95', 'opacity-0');
-        if(activeNode) activeNode.classList.remove('active-node');
-        activeNode = null;
+        if(activeWfNode) activeWfNode.classList.remove('active-node');
+        activeWfNode = null;
         setTimeout(() => modal.classList.add('hidden'), 300);
     }
     
     modalClose.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-    });
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
     const conceptCanvases = {
         latent: { ctx: document.getElementById('canvas-latent').getContext('2d'), id: 1, animFunc: animateLatentSpace, card: document.getElementById('concept-card-1') },
-        path: { ctx: document.getElementById('canvas-path').getContext('2d'), id: 2, animFunc: animatePathIntegral, card: document.getElementById('concept-card-2') },
+        path: { ctx: document.getElementById('canvas-path').getContext('2d'), id: 2, animFunc: animatePathConceptCanvas, card: document.getElementById('concept-card-2') },
         video: { ctx: document.getElementById('canvas-video').getContext('2d'), id: 3, animFunc: animateVideoSynthesis, card: document.getElementById('concept-card-3') },
     };
-    let activeConcept = null;
+    let activeConcept = null; 
     let globalFrame = 0;
+
+    function resizeCanvas(canvas) {
+        if (!canvas) return;
+        const parent = canvas.parentElement;
+        if (!parent) return;
+        const rect = parent.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+    }
 
     function resizeAllCanvases() {
         Object.values(conceptCanvases).forEach(c => {
-            const canvas = c.ctx.canvas;
-            const rect = canvas.parentElement.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-            if (activeConcept && activeConcept.id === c.id) {
-                 // If it's the active canvas, restart its animation to adapt to new size
-                cancelAnimationFrame(activeConcept.animationFrame);
-                c.animFunc();
-            } else {
-                // Draw a static placeholder for inactive canvases
-                drawStaticPlaceholder(c.ctx, c.id);
-            }
+            if (c.ctx && c.ctx.canvas) resizeCanvas(c.ctx.canvas);
         });
+        const pathIntegCanvas = document.getElementById('pathIntegrationCanvas');
+        if (pathIntegCanvas) resizeCanvas(pathIntegCanvas);
+
+        if (activeConcept) { // Redraw active animation
+            cancelAnimationFrame(activeConcept.animationFrame);
+            if (activeConcept.animFunc) activeConcept.animFunc();
+        } else { // Redraw static placeholders for concept cards if none active
+             Object.values(conceptCanvases).forEach(c => {
+                if (c.ctx && c.ctx.canvas && (!activeConcept || activeConcept.id !== c.id)) {
+                     drawStaticPlaceholder(c.ctx, c.id);
+                }
+            });
+        }
     }
     
     function drawStaticPlaceholder(ctx, id) {
+        if (!ctx || !ctx.canvas) return;
         const w = ctx.canvas.width;
         const h = ctx.canvas.height;
         ctx.clearRect(0,0,w,h);
-        ctx.fillStyle = '#A8A29E'; // stone-400
+        ctx.fillStyle = '#A8A29E'; 
         ctx.textAlign = 'center';
-        ctx.font = 'bold 14px Inter';
+        ctx.font = 'bold 13px Inter';
         
-        if (id === 1) { // Latent Space
-            ctx.beginPath();
-            ctx.ellipse(w/2, h/2, w*0.35, h*0.25, 0, 0, 2*Math.PI);
-            ctx.strokeStyle = '#A8A29E';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.fillText('Explore Latent Space', w/2, h/2 + 5);
-        } else if (id === 2) { // Path Integral
-            ctx.beginPath();
-            ctx.moveTo(w*0.15, h*0.5);
+        if (id === 1) { 
+            ctx.beginPath(); ctx.ellipse(w/2, h/2, w*0.35, h*0.25, 0, 0, 2*Math.PI);
+            ctx.strokeStyle = '#A8A29E'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillText('Latent Space', w/2, h/2 + 5);
+        } else if (id === 2) { 
+            ctx.beginPath(); ctx.moveTo(w*0.15, h*0.5);
             ctx.bezierCurveTo(w*0.3, h*0.2, w*0.7, h*0.8, w*0.85, h*0.5);
-            ctx.strokeStyle = '#A8A29E';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.fillText('Discover Paths', w/2, h/2+5);
-        } else { // Video Synthesis
-            for(let i=0; i<3; i++) {
-                ctx.strokeRect(w/2 - 45 + i*30, h/2 - 20, 25, 40);
-            }
-            ctx.fillText('Synthesize Video', w/2, h/2+5);
+            ctx.strokeStyle = '#A8A29E'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillText('Path Concept', w/2, h/2+5);
+        } else if (id === 3) { 
+            for(let i=0; i<3; i++) { ctx.strokeRect(w/2 - 45 + i*30, h/2 - 20, 25, 40); }
+            ctx.fillText('Video Frames', w/2, h/2+5);
         }
     }
 
     Object.values(conceptCanvases).forEach(c => {
+        if (!c.card) return;
         c.card.addEventListener('click', () => {
-            if (activeConcept) {
+            if (activeConcept && activeConcept.card) {
                 activeConcept.card.classList.remove('active-concept');
                 cancelAnimationFrame(activeConcept.animationFrame);
-                drawStaticPlaceholder(activeConcept.ctx, activeConcept.id); // Redraw static for previous
+                if (activeConcept.id !== 'pathIntegrationCanvas') drawStaticPlaceholder(activeConcept.ctx, activeConcept.id);
             }
+            
+            // Stop path integration animation if it's running
+            if (activeConcept && activeConcept.id === 'pathIntegrationCanvas') {
+                 cancelAnimationFrame(activeConcept.animationFrame);
+                 const ctxToClear = document.getElementById('pathIntegrationCanvas')?.getContext('2d');
+                 if(ctxToClear) ctxToClear.clearRect(0,0,ctxToClear.canvas.width, ctxToClear.canvas.height);
+            }
+
             activeConcept = c;
             c.card.classList.add('active-concept');
-            globalFrame = 0; // Reset global frame for fresh animation
+            globalFrame = 0; 
+            resizeCanvas(c.ctx.canvas); // Ensure canvas is sized before drawing
             c.animFunc();
         });
     });
     
     window.addEventListener('resize', resizeAllCanvases);
-    resizeAllCanvases(); // Initial draw of placeholders and active canvas if any
+    resizeAllCanvases(); 
 
     function animateLatentSpace() {
         globalFrame++;
-        const ctx = conceptCanvases.latent.ctx;
-        const w = ctx.canvas.width;
-        const h = ctx.canvas.height;
+        if (!activeConcept || activeConcept.id !== 1 || !activeConcept.ctx) return;
+        const ctx = activeConcept.ctx;
+        const w = ctx.canvas.width; const h = ctx.canvas.height;
         ctx.clearRect(0, 0, w, h);
-        
-        ctx.fillStyle = 'rgba(79, 70, 229, 0.05)'; // Lighter
-        ctx.beginPath();
-        ctx.ellipse(w/2, h/2, w*0.4, h*0.3, Math.sin(globalFrame*0.005)*0.1, 0, 2*Math.PI);
-        ctx.fill();
-
+        ctx.fillStyle = 'rgba(79, 70, 229, 0.05)'; 
+        ctx.beginPath(); ctx.ellipse(w/2, h/2, w*0.4, h*0.3, Math.sin(globalFrame*0.005)*0.1, 0, 2*Math.PI); ctx.fill();
         const x = w/2 + Math.cos(globalFrame * 0.025) * w * 0.3;
         const y = h/2 + Math.sin(globalFrame * 0.03) * h * 0.2;
         const size = 6 + Math.sin(globalFrame * 0.05) * 2;
-
-        ctx.fillStyle = '#4f46e5';
-        ctx.beginPath();
-        ctx.arc(x, y, size, 0, 2 * Math.PI);
-        ctx.fill();
-        
-        ctx.shadowColor = 'rgba(79, 70, 229, 0.5)';
-        ctx.shadowBlur = 8;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-
-
-        if (activeConcept && activeConcept.id === 1) {
-            activeConcept.animationFrame = requestAnimationFrame(animateLatentSpace);
-        }
+        ctx.fillStyle = '#4f46e5'; ctx.beginPath(); ctx.arc(x, y, size, 0, 2 * Math.PI);
+        ctx.shadowColor = 'rgba(79, 70, 229, 0.5)'; ctx.shadowBlur = 8; ctx.fill(); ctx.shadowBlur = 0;
+        activeConcept.animationFrame = requestAnimationFrame(animateLatentSpace);
     }
 
-    function animatePathIntegral() {
+    function animatePathConceptCanvas() {
         globalFrame++;
-        const ctx = conceptCanvases.path.ctx;
-        const w = ctx.canvas.width;
-        const h = ctx.canvas.height;
+        if (!activeConcept || activeConcept.id !== 2 || !activeConcept.ctx) return;
+        const ctx = activeConcept.ctx;
+        const w = ctx.canvas.width; const h = ctx.canvas.height;
         ctx.clearRect(0, 0, w, h);
-
-        const start = { x: w * 0.1, y: h * 0.5 };
-        const end = { x: w * 0.9, y: h * 0.5 };
-
+        const start = { x: w * 0.1, y: h * 0.5 }; const end = { x: w * 0.9, y: h * 0.5 };
         ctx.lineWidth = 1.5;
         for (let i = 0; i < 5; i++) {
-            ctx.beginPath();
-            ctx.moveTo(start.x, start.y);
+            ctx.beginPath(); ctx.moveTo(start.x, start.y);
             const sway = Math.sin(globalFrame * 0.01 + i * 0.5) * (h * 0.15);
             const cp1x = w * 0.3 + Math.sin(globalFrame * 0.015 + i) * 15;
             const cp1y = h * 0.5 - h*0.25 + sway * (i%2 === 0 ? 1 : -1) * (0.5 + i*0.1);
             const cp2x = w * 0.7 + Math.cos(globalFrame * 0.015 + i) * 15;
             const cp2y = h * 0.5 + h*0.25 - sway * (i%2 === 0 ? 1 : -1) * (0.5 + i*0.1);
             ctx.strokeStyle = `rgba(167, 139, 250, ${0.2 + i*0.08})`;
-            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, end.x, end.y);
-            ctx.stroke();
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, end.x, end.y); ctx.stroke();
         }
-
-        ctx.strokeStyle = '#4f46e5';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(start.x, start.y);
+        ctx.strokeStyle = '#4f46e5'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(start.x, start.y);
         const mainSway = Math.sin(globalFrame * 0.02) * (h*0.05);
         ctx.bezierCurveTo(w * 0.35, h * 0.5 - h*0.1 + mainSway, w * 0.65, h * 0.5 + h*0.1 - mainSway, end.x, end.y);
-        ctx.stroke();
-        
-        ctx.shadowColor = 'rgba(79, 70, 229, 0.5)';
-        ctx.shadowBlur = 10;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        ctx.fillStyle = '#4f46e5';
-        [start, end].forEach(p => {
-            ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, 2 * Math.PI); ctx.fill();
-        });
-
-        if (activeConcept && activeConcept.id === 2) {
-            activeConcept.animationFrame = requestAnimationFrame(animatePathIntegral);
-        }
+        ctx.shadowColor = 'rgba(79, 70, 229, 0.5)'; ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
+        ctx.fillStyle = '#4f46e5'; [start, end].forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, 2 * Math.PI); ctx.fill(); });
+        activeConcept.animationFrame = requestAnimationFrame(animatePathConceptCanvas);
     }
-
-    let videoFrames = [];
-    const maxVideoFrames = 8;
+    
+    let videoConceptFrames = []; const maxVideoConceptFrames = 8;
     function animateVideoSynthesis() {
         globalFrame++;
-        const ctx = conceptCanvases.video.ctx;
-        const w = ctx.canvas.width;
-        const h = ctx.canvas.height;
+        if (!activeConcept || activeConcept.id !== 3 || !activeConcept.ctx) return;
+        const ctx = activeConcept.ctx;
+        const w = ctx.canvas.width; const h = ctx.canvas.height;
         ctx.clearRect(0, 0, w, h);
-        
-        const frameWidth = Math.min(40, w / (maxVideoFrames + 3));
-        const frameHeight = frameWidth * 1.5;
-        
+        const frameWidth = Math.min(40, w / (maxVideoConceptFrames + 3)); const frameHeight = frameWidth * 1.5;
         if (globalFrame % 20 === 0) {
-            if (videoFrames.length >= maxVideoFrames) videoFrames.shift();
-            videoFrames.push({
-                hue: 220 + Math.random() * 60,
-                alpha: 0,
-                yOffset: (Math.random() - 0.5) * (h*0.1)
-            });
+            if (videoConceptFrames.length >= maxVideoConceptFrames) videoConceptFrames.shift();
+            videoConceptFrames.push({ hue: 220 + Math.random() * 60, alpha: 0, yOffset: (Math.random() - 0.5) * (h*0.1) });
         }
-
-        videoFrames.forEach((f, i) => {
+        videoConceptFrames.forEach((f, i) => {
             if (f.alpha < 1) f.alpha += 0.05;
-            const x = (w / (videoFrames.length + 1)) * (i + 1);
-            ctx.fillStyle = `hsla(${f.hue}, 70%, 60%, ${f.alpha})`;
-            ctx.strokeStyle = `hsla(${f.hue}, 70%, 40%, ${f.alpha})`;
-            ctx.lineWidth = 2;
+            const x = (w / (videoConceptFrames.length + 1)) * (i + 1);
+            ctx.fillStyle = `hsla(${f.hue}, 70%, 60%, ${f.alpha})`; ctx.strokeStyle = `hsla(${f.hue}, 70%, 40%, ${f.alpha})`;
+            ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(x - frameWidth/2, h/2 - frameHeight/2 + f.yOffset, frameWidth, frameHeight, 4);
+            ctx.fill(); ctx.stroke();
+        });
+        activeConcept.animationFrame = requestAnimationFrame(animateVideoSynthesis);
+    }
+
+    let pathIntegrationAnimFrame;
+    function animatePathIntegrationCanvas() {
+        if (!activeConcept || activeConcept.id !== 'pathIntegrationCanvas' || !activeConcept.ctx) return;
+        const ctx = activeConcept.ctx;
+        const w = ctx.canvas.width; const h = ctx.canvas.height;
+        globalFrame++;
+        ctx.clearRect(0,0,w,h);
+
+        const start = {x: w * 0.1, y: h * 0.5};
+        const end = {x: w * 0.9, y: h * 0.5};
+
+        const numPaths = 7;
+        const pathsData = [];
+
+        for(let i=0; i<numPaths; i++) {
+            const weight = Math.pow(Math.sin( (i / numPaths) * Math.PI + globalFrame * 0.01), 2); // Weight pulsates
+            const amplitude = (h * 0.3) * (1 - weight * 0.7); // Higher weight = less deviation for main path
+            const cp1y = start.y - amplitude * Math.sin( (i / numPaths) * Math.PI * 2 + globalFrame * 0.02);
+            const cp2y = end.y + amplitude * Math.cos( (i / numPaths) * Math.PI * 2 + globalFrame * 0.02);
+            pathsData.push({cp1y, cp2y, weight});
+        }
+        
+        // Draw faint paths
+        ctx.lineWidth = 1;
+        pathsData.forEach(p => {
+            ctx.strokeStyle = `rgba(167, 139, 250, ${0.1 + p.weight * 0.3})`; // Fainter, slightly influenced by weight
             ctx.beginPath();
-            ctx.roundRect(x - frameWidth/2, h/2 - frameHeight/2 + f.yOffset, frameWidth, frameHeight, 4);
-            ctx.fill();
+            ctx.moveTo(start.x, start.y);
+            ctx.bezierCurveTo(w * 0.3, p.cp1y, w * 0.7, p.cp2y, end.x, end.y);
             ctx.stroke();
         });
+
+        // Calculate weighted average control points for the main "integrated" path
+        let weightedCp1ySum = 0;
+        let weightedCp2ySum = 0;
+        let totalWeightSum = 0;
+        pathsData.forEach(p => {
+            weightedCp1ySum += p.cp1y * p.weight;
+            weightedCp2ySum += p.cp2y * p.weight;
+            totalWeightSum += p.weight;
+        });
+
+        const avgCp1y = totalWeightSum > 0 ? weightedCp1ySum / totalWeightSum : h * 0.5;
+        const avgCp2y = totalWeightSum > 0 ? weightedCp2ySum / totalWeightSum : h * 0.5;
+
+        // Draw main integrated path
+        ctx.lineWidth = 3 + Math.sin(globalFrame * 0.03) * 1.5; // Pulsating width
+        ctx.strokeStyle = '#4f46e5';
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        ctx.bezierCurveTo(w * 0.3, avgCp1y, w * 0.7, avgCp2y, end.x, end.y);
+        ctx.shadowColor = 'rgba(79, 70, 229, 0.5)'; ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
+
+        ctx.fillStyle = '#4f46e5';
+        [start,end].forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, 2 * Math.PI); ctx.fill(); });
         
-        if (activeConcept && activeConcept.id === 3) {
-            activeConcept.animationFrame = requestAnimationFrame(animateVideoSynthesis);
-        }
+        activeConcept.animationFrame = requestAnimationFrame(animatePathIntegrationCanvas);
     }
 });
+
+function copyCode(button) {
+    const codeElement = button.nextElementSibling.querySelector('code');
+    const textToCopy = codeElement.innerText;
+    const tempTextArea = document.createElement('textarea');
+    tempTextArea.value = textToCopy;
+    document.body.appendChild(tempTextArea);
+    tempTextArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(tempTextArea);
+    button.innerText = 'Copied!';
+    setTimeout(() => { button.innerText = 'Copy'; }, 2000);
+}
 </script>
 
 </body>
