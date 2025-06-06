@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPG to PDF Converter [v1.0]</title>
+    <!-- jsPDF library for creating PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* * RETRO TERMINAL STYLES (CIRCA 1987)
+         * ------------------------------------
+         * This style block replaces modern CSS frameworks to achieve
+         * a classic, monochrome computer interface look.
+        */
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        body {
+            background-color: #0D0D0D;
+            color: #00FF41;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            padding: 20px;
+        }
+
+        .container {
+            border: 2px solid #00FF41;
+            padding: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 24px;
+            text-align: center;
+            text-transform: uppercase;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        h1::after {
+            content: '_';
+            animation: blink 1s step-end infinite;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        p {
+            text-align: center;
+            margin: 0 0 20px 0;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .retro-button {
+            background-color: #00FF41;
+            color: #0D0D0D;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            display: inline-block;
+        }
+        
+        .retro-button:hover {
+            background-color: #000;
+            color: #00FF41;
+            outline: 2px solid #00FF41;
+        }
+        
+        .retro-button.hidden, .loader.hidden {
+            display: none;
+        }
+        
+        #file-input {
+            display: none;
+        }
+
+        .status-area {
+            border: 1px dashed #00FF41;
+            padding: 15px;
+            margin-bottom: 20px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .loader {
+            font-weight: bold;
+        }
+
+        .image-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            border-top: 2px solid #00FF41;
+            padding-top: 20px;
+        }
+
+        .image-preview-item {
+            border: 1px solid #00FF41;
+            padding: 5px;
+            background-color: #000;
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header Section -->
+        <h1>JPG-2-PDF Utility</h1>
+        <p>> C:\SYSTEM\UTILS\JPG2PDF.EXE</p>
+        <p>Combine multiple .JPG files into a single .PDF document.</p>
+
+        <!-- File Input Section -->
+        <div class="button-container">
+            <label for="file-input" class="retro-button">
+                [LOAD FILES]
+            </label>
+            <input id="file-input" type="file" multiple accept="image/jpeg, image/jpg">
+        </div>
+
+        <!-- Status & Action Area -->
+        <div class="status-area">
+            <p id="status-text">STATUS: Awaiting file selection...</p>
+            <div id="loader" class="loader hidden">PROCESSING... PLEASE WAIT.</div>
+            <button id="generate-pdf-btn" class="retro-button hidden" style="margin-top: 10px;">
+                [EXECUTE CONVERSION]
+            </button>
+        </div>
+
+        <!-- Image Preview Section -->
+        <div id="image-preview-container" class="image-preview-grid">
+            <!-- Image previews will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // Get references to the DOM elements
+        const fileInput = document.getElementById('file-input');
+        const generatePdfBtn = document.getElementById('generate-pdf-btn');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const statusText = document.getElementById('status-text');
+        const loader = document.getElementById('loader');
+
+        // This array will hold the base64 data of the selected images
+        let selectedImages = [];
+
+        // Blinking text interval for loader
+        let loaderInterval;
+
+        // Event listener for the file input
+        fileInput.addEventListener('change', (event) => {
+            // Reset everything when new files are selected
+            imagePreviewContainer.innerHTML = '';
+            selectedImages = [];
+            statusText.textContent = 'STATUS: Reading file data...';
+            statusText.classList.remove('hidden');
+            generatePdfBtn.classList.add('hidden');
+            loader.classList.add('hidden');
+
+            const files = event.target.files;
+            if (files.length === 0) {
+                statusText.textContent = 'STATUS: No files selected. Awaiting command.';
+                return;
+            }
+
+            let filesLoaded = 0;
+            
+            // Process each selected file
+            Array.from(files).forEach(file => {
+                // Ensure the file is a JPG/JPEG
+                if (file.type !== 'image/jpeg' && file.type !== 'image/jpg') {
+                    console.warn(`File format not supported. Skipping: ${file.name}`);
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imageDataUrl = e.target.result;
+                    selectedImages.push({
+                        url: imageDataUrl,
+                        name: file.name
+                    });
+
+                    // Create a preview element for the image
+                    const previewElement = document.createElement('div');
+                    previewElement.classList.add('image-preview-item');
+                    previewElement.innerHTML = `<img src="${imageDataUrl}" alt="${file.name}">`;
+                    imagePreviewContainer.appendChild(previewElement);
+                    
+                    filesLoaded++;
+                    
+                    // Once all files are loaded, update the UI
+                    if (filesLoaded === files.length) {
+                        statusText.textContent = `STATUS: ${selectedImages.length} file(s) loaded and ready.`;
+                        if (selectedImages.length > 0) {
+                           generatePdfBtn.classList.remove('hidden');
+                        } else {
+                           statusText.textContent = 'ERROR: No valid .JPG files were found.';
+                        }
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // Event listener for the "Generate PDF" button
+        generatePdfBtn.addEventListener('click', async () => {
+            if (selectedImages.length === 0) {
+                statusText.textContent = 'ERROR: No files to convert.';
+                return;
+            }
+
+            // Update UI to show processing state
+            statusText.classList.add('hidden');
+            generatePdfBtn.classList.add('hidden');
+            loader.classList.remove('hidden');
+
+            // Start blinking effect for loader
+            let dots = 0;
+            loaderInterval = setInterval(() => {
+                dots = (dots + 1) % 4;
+                loader.textContent = 'PROCESSING' + '.'.repeat(dots);
+            }, 500);
+
+
+            try {
+                // Lazily load jsPDF if it's not already loaded
+                const { jsPDF } = window.jspdf;
+                
+                // A4 page dimensions in mm: 210 x 297
+                const A4_PAGE_WIDTH = 210;
+                const A4_PAGE_HEIGHT = 297;
+                const PAGE_MARGIN = 10;
+                
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                // Process each image and add it to the PDF
+                for (let i = 0; i < selectedImages.length; i++) {
+                    const imgData = selectedImages[i];
+                    const img = new Image();
+                    img.src = imgData.url;
+
+                    // We need to wait for the image to load to get its dimensions
+                    await new Promise(resolve => {
+                       img.onload = () => {
+                           const imgWidth = img.width;
+                           const imgHeight = img.height;
+                           const imgAspectRatio = imgWidth / imgHeight;
+
+                           // Calculate the dimensions to fit the page while maintaining aspect ratio
+                           let pdfImgWidth = A4_PAGE_WIDTH - (PAGE_MARGIN * 2);
+                           let pdfImgHeight = pdfImgWidth / imgAspectRatio;
+                           
+                           if (pdfImgHeight > A4_PAGE_HEIGHT - (PAGE_MARGIN * 2)) {
+                               pdfImgHeight = A4_PAGE_HEIGHT - (PAGE_MARGIN * 2);
+                               pdfImgWidth = pdfImgHeight * imgAspectRatio;
+                           }
+                           
+                           // Center the image on the page
+                           const x = (A4_PAGE_WIDTH - pdfImgWidth) / 2;
+                           const y = (A4_PAGE_HEIGHT - pdfImgHeight) / 2;
+
+                           // Add a new page for each image except the first one
+                           if (i > 0) {
+                               pdf.addPage();
+                           }
+                           
+                           pdf.addImage(imgData.url, 'JPEG', x, y, pdfImgWidth, pdfImgHeight);
+                           resolve();
+                       }
+                    });
+                }
+                
+                // Save the generated PDF
+                pdf.save('OUTPUT.PDF');
+                
+                // Set final status message after a short delay to feel more authentic
+                setTimeout(() => {
+                    statusText.textContent = 'TASK COMPLETE. OUTPUT.PDF saved successfully.';
+                }, 500);
+
+            } catch (error) {
+                console.error('CRITICAL ERROR:', error);
+                statusText.textContent = 'ERROR: A fatal error occurred during conversion. System halted.';
+            } finally {
+                // Reset the UI state
+                clearInterval(loaderInterval);
+                loader.classList.add('hidden');
+                statusText.classList.remove('hidden');
+                // The generate button remains hidden until new files are selected.
+            }
+        });
+
+    </script>
+</body>
+</html>
