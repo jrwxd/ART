@@ -454,7 +454,10 @@
             }
 
             static calculateDerivatives(currentState, t, state) {
+                const { P, H, C, CO2_atm, O2_atm, N2_atm, AN_pool, C_detritus, N_detritus } = currentState;
+                const { compiledDEs, simParams: params, effectiveRates: effective_rates, globalTemp: temp } = state;
                 const results = {};
+                
                 Object.keys(compiledDEs).forEach(varName => {
                     try {
                         const key = varName.replace('d', '').replace('_dt', '');
@@ -742,7 +745,7 @@
                     nutrientFlowCanvas: document.getElementById('nutrientFlowCanvas'),
                     temperatureCanvas: document.getElementById('temperatureCanvas'),
                     nitrogenCanvas: document.getElementById('nitrogenCanvas'),
-                    // Add other elements as needed
+                    pieCanvas: document.getElementById('pieCanvas')
                 };
             }
             
@@ -772,7 +775,16 @@
             }
             
             resizeCanvases() {
-                // Implement canvas resizing logic if needed
+                Object.values(this.elements).forEach(canvas => {
+                    if (canvas) {
+                        const rect = canvas.getBoundingClientRect();
+                        const dpr = window.devicePixelRatio || 1;
+                        canvas.width = rect.width * dpr;
+                        canvas.height = rect.height * dpr;
+                        const ctx = canvas.getContext('2d');
+                        ctx.scale(dpr, dpr);
+                    }
+                });
             }
             
             updateStats(state) {
@@ -798,7 +810,292 @@
             }
         }
         
-        // ... (Full implementations of other classes)
+        class ParameterManager {
+            constructor(simulation) {
+                this.simulation = simulation;
+                this.createParameterUI();
+            }
+            
+            createParameterUI() {
+                const tray = document.getElementById('parameterTray');
+                tray.innerHTML = `
+                    <h2>⚙️ Simulation Parameters</h2>
+                    <div class="param-section">
+                        <h3>Initial Conditions</h3>
+                        <div class="param-grid">
+                            ${this.createParamInput('initialP', 'Plants', 'Initial plant population')}
+                            ${this.createParamInput('initialH', 'Herbivores', 'Initial herbivore population')}
+                            ${this.createParamInput('initialC', 'Carnivores', 'Initial carnivore population')}
+                            ${this.createParamInput('initialCO2_atm', 'CO₂', 'Initial atmospheric CO₂')}
+                            ${this.createParamInput('initialO2_atm', 'O₂', 'Initial atmospheric O₂')}
+                            ${this.createParamInput('initialN2_atm', 'N₂', 'Initial atmospheric N₂')}
+                        </div>
+                    </div>
+                    <div class="param-section">
+                        <h3>Growth & Mortality Rates</h3>
+                        <div class="param-grid">
+                            ${this.createParamInput('rP_base', 'Plant Growth Rate', 'Base plant reproduction rate')}
+                            ${this.createParamInput('m_P_base', 'Plant Mortality', 'Base plant mortality rate')}
+                            ${this.createParamInput('m_H_base', 'Herbivore Mortality', 'Base herbivore mortality rate')}
+                            ${this.createParamInput('m_C_base', 'Carnivore Mortality', 'Base carnivore mortality rate')}
+                        </div>
+                    </div>
+                `;
+                this.bindParameterEvents();
+            }
+            
+            createParamInput(paramKey, label, title) {
+                const value = this.simulation.state.simParams[paramKey];
+                return `
+                    <div class="param-item">
+                        <label title="${title}">${label}</label>
+                        <input type="number" 
+                               data-param="${paramKey}" 
+                               value="${value}" 
+                               step="0.001"
+                               min="0">
+                    </div>
+                `;
+            }
+            
+            bindParameterEvents() {
+                const inputs = document.querySelectorAll('[data-param]');
+                inputs.forEach(input => {
+                    input.addEventListener('change', (e) => {
+                        const paramKey = e.target.dataset.param;
+                        const value = parseFloat(e.target.value);
+                        if (!isNaN(value) && value >= 0) {
+                            this.simulation.state.simParams[paramKey] = value;
+                            this.simulation.ui.showMessage(`Updated ${paramKey} to ${value}`);
+                        }
+                    });
+                });
+            }
+        }
+
+        class DEManager {
+            constructor(simulation) {
+                this.simulation = simulation;
+                this.createDEUI();
+                this.compileDefaultEquations();
+            }
+            
+            createDEUI() {
+                const container = document.getElementById('de-editor-container');
+                const equations = Object.keys(DEFAULT_DES);
+                
+                container.innerHTML = equations.map(eqName => `
+                    <div class="de-equation">
+                        <label>d${eqName.replace('d', '').replace('_dt', '')}/dt =</label>
+                        <textarea id="${eqName}" data-equation="${eqName}">${DEFAULT_DES[eqName]}</textarea>
+                        <div id="error-${eqName}" class="de-error" style="display: none;"></div>
+                    </div>
+                `).join('');
+                
+                this.bindDEEvents();
+            }
+            
+            bindDEEvents() {
+                document.getElementById('testDEButton').addEventListener('click', () => this.compileAndTest());
+                document.getElementById('resetDEButton').addEventListener('click', () => this.resetToDefault());
+            }
+            
+            compileAndTest() {
+                try {
+                    const equations = this.gatherEquations();
+                    this.compileEquations(equations);
+                    this.simulation.ui.showMessage('✅ Equations compiled successfully!');
+                } catch (error) {
+                    this.simulation.ui.showMessage(`❌ Compilation failed: ${error.message}`, 5000);
+                }
+            }
+            
+            gatherEquations() {
+                const equations = {};
+                const textareas = document.querySelectorAll('[data-equation]');
+                textareas.forEach(textarea => {
+                    equations[textarea.dataset.equation] = textarea.value;
+                });
+                return equations;
+            }
+            
+            compileEquations(equations) {
+                const compiled = {};
+                Object.keys(equations).forEach(eqName => {
+                    try {
+                        const funcBody = equations[eqName];
+                        compiled[eqName] = new Function(
+                            'P', 'H', 'C', 'CO2_atm', 'O2_atm', 'N2_atm', 'AN_pool', 'C_detritus', 'N_detritus',
+                            't', 'Math', 'params', 'effective_rates', 'temp',
+                            funcBody
+                        );
+                        this.hideError(eqName);
+                    } catch (error) {
+                        this.showError(eqName, error.message);
+                        throw new Error(`Error in ${eqName}: ${error.message}`);
+                    }
+                });
+                
+                this.simulation.state.compiledDEs = compiled;
+                this.simulation.state.customDEs = equations;
+            }
+            
+            compileDefaultEquations() {
+                this.compileEquations(DEFAULT_DES);
+            }
+            
+            resetToDefault() {
+                Object.keys(DEFAULT_DES).forEach(eqName => {
+                    const textarea = document.getElementById(eqName);
+                    if (textarea) {
+                        textarea.value = DEFAULT_DES[eqName];
+                    }
+                });
+                this.compileDefaultEquations();
+                this.simulation.ui.showMessage('🔄 Reset to default equations');
+            }
+            
+            showError(eqName, message) {
+                const errorDiv = document.getElementById(`error-${eqName}`);
+                if (errorDiv) {
+                    errorDiv.textContent = message;
+                    errorDiv.style.display = 'block';
+                }
+            }
+            
+            hideError(eqName) {
+                const errorDiv = document.getElementById(`error-${eqName}`);
+                if (errorDiv) {
+                    errorDiv.style.display = 'none';
+                }
+            }
+        }
+
+        class Simulation {
+            constructor() {
+                this.state = new SimulationState();
+                this.ui = new UIManager(this);
+                this.paramManager = new ParameterManager(this);
+                this.deManager = new DEManager(this);
+                this.graphManager = new GraphManager(this.ui);
+            }
+            
+            initialize() {
+                this.state.systemState = {
+                    P: this.state.simParams.initialP,
+                    H: this.state.simParams.initialH,
+                    C: this.state.simParams.initialC,
+                    CO2_atm: this.state.simParams.initialCO2_atm,
+                    O2_atm: this.state.simParams.initialO2_atm,
+                    N2_atm: this.state.simParams.initialN2_atm,
+                    AN_pool: this.state.simParams.initialAN_pool,
+                    C_detritus: this.state.simParams.initialC_detritus,
+                    N_detritus: this.state.simParams.initialN_detritus
+                };
+                
+                PhysicsEngine.updateGlobalTemp(this.state);
+                this.addToHistory();
+            }
+            
+            start() {
+                if (this.state.simulationRunning) return;
+                this.state.simulationRunning = true;
+                this.state.lastFrameTime = performance.now();
+                this.animate();
+            }
+            
+            stop() {
+                this.state.simulationRunning = false;
+                if (this.state.animationFrameId) {
+                    cancelAnimationFrame(this.state.animationFrameId);
+                }
+            }
+            
+            tick() {
+                this.updateSimulation();
+                this.graphManager.renderAll(this.state);
+                this.ui.updateStats(this.state);
+            }
+            
+            reset() {
+                this.stop();
+                this.state.reset();
+                this.initialize();
+                this.graphManager.renderAll(this.state);
+                this.ui.updateStats(this.state);
+                this.ui.showMessage('🔄 Simulation reset');
+            }
+            
+            animate() {
+                if (!this.state.simulationRunning) return;
+                
+                const currentTime = performance.now();
+                if (currentTime - this.state.lastFrameTime >= 1000 / CONFIG.ANIMATION.FPS) {
+                    this.updateSimulation();
+                    this.graphManager.renderAll(this.state);
+                    this.ui.updateStats(this.state);
+                    this.state.lastFrameTime = currentTime;
+                }
+                
+                this.state.animationFrameId = requestAnimationFrame(() => this.animate());
+            }
+            
+            updateSimulation() {
+                // Calculate effective rates
+                this.state.effectiveRates = PhysicsEngine.calculateEffectiveRates(
+                    this.state.systemState, 
+                    this.state.simParams, 
+                    this.state.globalTemp
+                );
+                
+                // Perform RK4 integration step
+                const newState = PhysicsEngine.rk4Step(
+                    this.state.systemState,
+                    CONFIG.ANIMATION.TIME_STEP,
+                    this.state.currentTime,
+                    this.state
+                );
+                
+                // Update state
+                this.state.systemState = newState;
+                this.state.currentTime += CONFIG.ANIMATION.TIME_STEP;
+                
+                // Validate and update temperature
+                this.state.validate();
+                PhysicsEngine.updateGlobalTemp(this.state);
+                
+                // Add to history
+                this.addToHistory();
+            }
+            
+            addToHistory() {
+                const historyPoint = {
+                    time: this.state.currentTime,
+                    GT: this.state.globalTemp,
+                    ...this.state.systemState
+                };
+                
+                this.state.history.push(historyPoint);
+                if (this.state.history.length > CONFIG.ANIMATION.MAX_HISTORY) {
+                    this.state.history.shift();
+                }
+            }
+            
+            addOrganism(type, amount) {
+                switch(type) {
+                    case 'plant':
+                        this.state.systemState.P += amount;
+                        break;
+                    case 'herbivore':
+                        this.state.systemState.H += amount;
+                        break;
+                    case 'carnivore':
+                        this.state.systemState.C += amount;
+                        break;
+                }
+                this.ui.showMessage(`Added ${amount} ${type}s`);
+            }
+        }
         
         // On load, create all manager instances and the main simulation controller
         document.addEventListener('DOMContentLoaded', () => {
