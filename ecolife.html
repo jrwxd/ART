@@ -454,8 +454,6 @@
             }
 
             static calculateDerivatives(currentState, t, state) {
-                const { P, H, C, CO2_atm, O2_atm, N2_atm, AN_pool, C_detritus, N_detritus } = currentState;
-                const { compiledDEs, simParams: params, effectiveRates: effective_rates, globalTemp: temp } = state;
                 const results = {};
                 Object.keys(compiledDEs).forEach(varName => {
                     try {
@@ -463,6 +461,7 @@
                         const derivative = compiledDEs[varName](P, H, C, CO2_atm, O2_atm, N2_atm, AN_pool, C_detritus, N_detritus, t, Math, params, effective_rates, temp);
                         results[key] = isFinite(derivative) ? derivative : 0;
                     } catch (e) {
+                        console.error(`Error in ${varName}:`, e);
                         results[varName.replace('d', '').replace('_dt', '')] = 0;
                     }
                 });
@@ -729,15 +728,74 @@
             }
         }
         
-        // --- Full UIManager, ParameterManager, DEManager, and Simulation classes follow ---
         class UIManager {
              constructor(simulation) {
                 this.simulation = simulation;
-                this.elements = {};
-                this.initializeElements();
+                this.elements = this.initializeElements();
                 this.setupEventListeners();
             }
-            // ... (Full implementation of UIManager methods as designed in the HTML)
+            
+            initializeElements() {
+                return {
+                    ecoCanvas: document.getElementById('ecosystemCanvas'),
+                    atmCanvas: document.getElementById('atmosphereCanvas'),
+                    nutrientFlowCanvas: document.getElementById('nutrientFlowCanvas'),
+                    temperatureCanvas: document.getElementById('temperatureCanvas'),
+                    nitrogenCanvas: document.getElementById('nitrogenCanvas'),
+                    // Add other elements as needed
+                };
+            }
+            
+            setupEventListeners() {
+                document.getElementById('startButton').addEventListener('click', () => this.simulation.start());
+                document.getElementById('stopButton').addEventListener('click', () => this.simulation.stop());
+                document.getElementById('tickButton').addEventListener('click', () => this.simulation.tick());
+                document.getElementById('resetButton').addEventListener('click', () => this.simulation.reset());
+                
+                document.getElementById('addPlantButton').addEventListener('click', () => this.simulation.addOrganism('plant', 10));
+                document.getElementById('addHerbivoreButton').addEventListener('click', () => this.simulation.addOrganism('herbivore', 5));
+                document.getElementById('addCarnivoreButton').addEventListener('click', () => this.simulation.addOrganism('carnivore', 2));
+                
+                document.getElementById('toggleDEButton').addEventListener('click', () => this.toggleDEEditor());
+                document.getElementById('toggleParamsButton').addEventListener('click', () => this.toggleParameters());
+            }
+            
+            toggleDEEditor() {
+                const tray = document.getElementById('deEditorTray');
+                tray.classList.toggle('open');
+                this.simulation.graphManager.renderAll(this.simulation.state); // Re-render to update any changes
+            }
+            
+            toggleParameters() {
+                const tray = document.getElementById('parameterTray');
+                tray.classList.toggle('open');
+            }
+            
+            resizeCanvases() {
+                // Implement canvas resizing logic if needed
+            }
+            
+            updateStats(state) {
+                // Update stats display based on the current state
+                document.getElementById('plantCount').innerText = `🌱 P: ${state.systemState.P.toFixed(2)}`;
+                document.getElementById('herbivoreCount').innerText = `🐰 H: ${state.systemState.H.toFixed(2)}`;
+                document.getElementById('carnivoreCount').innerText = `🦁 C: ${state.systemState.C.toFixed(2)}`;
+                document.getElementById('co2Count').innerText = `CO₂: ${state.systemState.CO2_atm.toFixed(2)}`;
+                document.getElementById('o2Count').innerText = `O₂: ${state.systemState.O2_atm.toFixed(2)}`;
+                document.getElementById('n2Count').innerText = `N₂: ${state.systemState.N2_atm.toFixed(2)}`;
+                document.getElementById('anCount').innerText = `💧 AN: ${state.systemState.AN_pool.toFixed(2)}`;
+                document.getElementById('tempCount').innerText = `🌡️ Temp: ${state.globalTemp.toFixed(2)}°C`;
+                document.getElementById('timeCount').innerText = `⏰ Time: ${state.currentTime.toFixed(2)}`;
+                document.getElementById('detritusC').innerText = `🍂 C Detritus: ${state.systemState.C_detritus.toFixed(2)}`;
+                document.getElementById('detritusN').innerText = `🍂 N Detritus: ${state.systemState.N_detritus.toFixed(2)}`;
+            }
+            
+            showMessage(message, duration = 3000) {
+                const msgBox = document.getElementById('messageBox');
+                msgBox.innerText = message;
+                msgBox.style.display = 'block';
+                setTimeout(() => { msgBox.style.display = 'none'; }, duration);
+            }
         }
         
         // ... (Full implementations of other classes)
