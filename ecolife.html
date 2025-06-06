@@ -1,4 +1,4 @@
-```html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,16 +15,24 @@
         .container {
             background-color: white; padding: 1.5rem; border-radius: 0.75rem;
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-            width: 100%; max-width: 1200px; 
+            width: 100%; max-width: 1400px; 
         }
         .canvas-container { margin-bottom: 1rem; }
+        .canvas-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
         canvas {
             display: block; background-color: #e2e8f0; border-radius: 0.5rem;
             width: 100%; cursor: default;
         }
         #ecosystemCanvas { height: 280px; }
         #atmosphereCanvas { height: 220px; } 
-        #nitrogenCanvas { height: 180px; }  
+        #nitrogenCanvas { height: 180px; }
+        #temperatureCanvas { height: 180px; }
+        #pieCanvas { height: 220px; }
 
         .controls, .stats-container {
             margin-top: 1rem; display: flex; flex-wrap: wrap;
@@ -167,6 +175,12 @@
         .de-buttons .reset-btn:hover {
             background-color: #dc2626;
         }
+
+        @media (max-width: 768px) {
+            .canvas-row {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -179,15 +193,31 @@
                 <span class="plant">Plants</span> <span class="herbivore">Herbivores</span> <span class="carnivore">Carnivores</span>
             </div>
         </div>
-        <div class="canvas-container">
-            <canvas id="atmosphereCanvas"></canvas>
-            <div class="legend">
-                <span class="co2">CO2</span> <span class="o2">O2</span> <span class="n2">N2</span> <span class="temp">Global Temp</span>
+
+        <div class="canvas-row">
+            <div class="canvas-container">
+                <canvas id="atmosphereCanvas"></canvas>
+                <div class="legend">
+                    <span class="co2">CO2</span> <span class="o2">O2</span> <span class="n2">N2</span>
+                </div>
+            </div>
+            <div class="canvas-container">
+                <canvas id="pieCanvas"></canvas>
+                <div class="legend" style="justify-content: center;">
+                    <span style="font-weight: 600;">Atmospheric Composition</span>
+                </div>
             </div>
         </div>
-        <div class="canvas-container">
-            <canvas id="nitrogenCanvas"></canvas>
-            <div class="legend"><span class="an">Available Nitrogen</span></div>
+
+        <div class="canvas-row">
+            <div class="canvas-container">
+                <canvas id="nitrogenCanvas"></canvas>
+                <div class="legend"><span class="an">Available Nitrogen</span></div>
+            </div>
+            <div class="canvas-container">
+                <canvas id="temperatureCanvas"></canvas>
+                <div class="legend"><span class="temp">Global Temperature</span></div>
+            </div>
         </div>
 
         <div class="controls">
@@ -281,11 +311,11 @@
                     <div class="param-item"><label for="param_initialP">Initial P</label><input type="number" id="param_initialP" step="1"></div>
                     <div class="param-item"><label for="param_initialH">Initial H</label><input type="number" id="param_initialH" step="1"></div>
                     <div class="param-item"><label for="param_initialC">Initial C</label><input type="number" id="param_initialC" step="1"></div>
-                    <div class="param-item"><label for="param_initialCO2_atm">Initial CO2</label><input type="number" id="param_initialCO2_atm" step="1"></div>
-                    <div class="param-item"><label for="param_initialO2_atm">Initial O2</label><input type="number" id="param_initialO2_atm" step="1"></div>
-                    <div class="param-item"><label for="param_initialN2_atm">Initial N2</label><input type="number" id="param_initialN2_atm" step="1"></div>
+                    <div class="param-item"><label for="param_initialCO2_atm">Initial CO2 (ppm)</label><input type="number" id="param_initialCO2_atm" step="1"></div>
+                    <div class="param-item"><label for="param_initialO2_atm">Initial O2 (ppm)</label><input type="number" id="param_initialO2_atm" step="1000"></div>
+                    <div class="param-item"><label for="param_initialN2_atm">Initial N2 (ppm)</label><input type="number" id="param_initialN2_atm" step="1000"></div>
                     <div class="param-item"><label for="param_initialAN_pool">Initial AN</label><input type="number" id="param_initialAN_pool" step="1"></div>
-                    <div class="param-item"><label for="param_initialGT">Initial Temp</label><input type="number" id="param_initialGT" step="0.1"></div>
+                    <div class="param-item"><label for="param_initialGT">Initial Temp (°C)</label><input type="number" id="param_initialGT" step="0.1"></div>
                 </div>
             </div>
         </div>
@@ -318,6 +348,8 @@
         const ecoCanvas = document.getElementById('ecosystemCanvas'); const ecoCtx = ecoCanvas.getContext('2d');
         const atmCanvas = document.getElementById('atmosphereCanvas'); const atmCtx = atmCanvas.getContext('2d');
         const nitroCanvas = document.getElementById('nitrogenCanvas'); const nitroCtx = nitroCanvas.getContext('2d');
+        const tempCanvas = document.getElementById('temperatureCanvas'); const tempCtx = tempCanvas.getContext('2d');
+        const pieCanvas = document.getElementById('pieCanvas'); const pieCtx = pieCanvas.getContext('2d');
         
         let animationFrameId; let simulationRunning = false; let currentTime = 0;
 
@@ -550,7 +582,7 @@
         }
 
         function resizeCanvases() {
-            [ecoCanvas, atmCanvas, nitroCanvas].forEach(canvas => {
+            [ecoCanvas, atmCanvas, nitroCanvas, tempCanvas, pieCanvas].forEach(canvas => {
                 const rect = canvas.getBoundingClientRect();
                 canvas.width = rect.width * window.devicePixelRatio;
                 canvas.height = rect.height * window.devicePixelRatio;
@@ -659,7 +691,8 @@
                 if (yScale === 'log') {
                     labelValue = Math.exp(labelValue);
                 }
-                ctx.fillText(labelValue.toFixed(1), padding.left - 5, y + 3);
+                let formatted = labelValue >= 1000 ? `${(labelValue/1000).toFixed(0)}k` : labelValue.toFixed(1);
+                ctx.fillText(formatted, padding.left - 5, y + 3);
             }
             
             ctx.save();
@@ -669,6 +702,81 @@
             ctx.textAlign = 'center';
             ctx.fillText(yAxisLabel, 0, 0);
             ctx.restore();
+        }
+
+        function drawPieChart(canvas, ctx, data) {
+            const rect = canvas.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            if (data.length === 0) return;
+            
+            const latest = data[data.length - 1];
+            const total = latest.CO2_atm + latest.O2_atm + latest.N2_atm;
+            
+            if (total <= 0) return;
+            
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(width, height) / 2 - 40;
+            
+            const slices = [
+                { name: 'N₂', value: latest.N2_atm, color: N2_COLOR_GRAPH },
+                { name: 'O₂', value: latest.O2_atm, color: O2_COLOR_GRAPH },
+                { name: 'CO₂', value: latest.CO2_atm, color: CO2_COLOR_GRAPH }
+            ];
+            
+            let currentAngle = -Math.PI / 2; // Start at top
+            
+            slices.forEach(slice => {
+                const sliceAngle = (slice.value / total) * 2 * Math.PI;
+                
+                // Draw slice
+                ctx.fillStyle = slice.color;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Draw slice border
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw labels
+                const labelAngle = currentAngle + sliceAngle / 2;
+                const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
+                const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+                
+                const percentage = ((slice.value / total) * 100).toFixed(1);
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 12px Inter';
+                ctx.textAlign = 'center';
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 3;
+                ctx.strokeText(`${slice.name}`, labelX, labelY - 5);
+                ctx.fillText(`${slice.name}`, labelX, labelY - 5);
+                
+                ctx.font = '10px Inter';
+                ctx.strokeText(`${percentage}%`, labelX, labelY + 8);
+                ctx.fillText(`${percentage}%`, labelX, labelY + 8);
+                
+                currentAngle += sliceAngle;
+            });
+            
+            // Draw title
+            ctx.fillStyle = '#1f2937';
+            ctx.font = '14px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('Atmospheric Composition', centerX, 20);
+            
+            // Draw total concentration
+            ctx.font = '10px Inter';
+            ctx.fillText(`Total: ${(total/1000).toFixed(0)}k ppm`, centerX, height - 10);
         }
 
         function renderGraphs() {
@@ -681,9 +789,9 @@
             
             drawTimeSeriesGraph(
                 atmCanvas, atmCtx, history,
-                ['CO2_atm', 'O2_atm', 'N2_atm', 'globalTemp'],
-                [CO2_COLOR_GRAPH, O2_COLOR_GRAPH, N2_COLOR_GRAPH, TEMP_COLOR_GRAPH],
-                'Atmospheric Composition & Temperature', 'Concentration / Temperature'
+                ['CO2_atm', 'O2_atm', 'N2_atm'],
+                [CO2_COLOR_GRAPH, O2_COLOR_GRAPH, N2_COLOR_GRAPH],
+                'Atmospheric Gases', 'Concentration (ppm)'
             );
             
             drawTimeSeriesGraph(
@@ -692,15 +800,24 @@
                 [AN_COLOR_GRAPH],
                 'Nitrogen Cycle', 'Available Nitrogen'
             );
+            
+            drawTimeSeriesGraph(
+                tempCanvas, tempCtx, history,
+                ['globalTemp'],
+                [TEMP_COLOR_GRAPH],
+                'Global Temperature', 'Temperature (°C)'
+            );
+            
+            drawPieChart(pieCanvas, pieCtx, history);
         }
 
         function updateUI() {
             ui.plantCount.textContent = `P: ${Math.round(systemState.P)}`;
             ui.herbivoreCount.textContent = `H: ${Math.round(systemState.H)}`;
             ui.carnivoreCount.textContent = `C: ${Math.round(systemState.C)}`;
-            ui.co2Count.textContent = `CO2: ${Math.round(systemState.CO2_atm)}`;
-            ui.o2Count.textContent = `O2: ${Math.round(systemState.O2_atm)}`;
-            ui.n2Count.textContent = `N2: ${Math.round(systemState.N2_atm)}`;
+            ui.co2Count.textContent = `CO2: ${Math.round(systemState.CO2_atm)} ppm`;
+            ui.o2Count.textContent = `O2: ${(systemState.O2_atm/1000).toFixed(0)}k ppm`;
+            ui.n2Count.textContent = `N2: ${(systemState.N2_atm/1000).toFixed(0)}k ppm`;
             ui.anCount.textContent = `AN: ${Math.round(systemState.AN_pool)}`;
             ui.tempCount.textContent = `Temp: ${globalTemp.toFixed(1)}°C`;
             ui.timeCount.textContent = `Time: ${currentTime.toFixed(1)}`;
