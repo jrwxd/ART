@@ -448,7 +448,7 @@
         function testDEs() {
             const testState = { P: 50, H: 15, C: 5, CO2_atm: 400, O2_atm: 210000, N2_atm: 780000, AN_pool: 100 };
             const testTime = 1.0;
-            
+
             const errors = compileDEs();
             if (errors) {
                 showMessage('DE compilation errors found. Check error messages below.', 3000, true);
