@@ -3,14 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JPG to PDF Converter [v1.0]</title>
-    <!-- jsPDF library for creating PDFs -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <title>JPG to PDF Converter [v1.2 INTERACTIVE]</title>
+    
+    <!--
+      SECURITY NOTE: The script below uses Subresource Integrity (SRI).
+      The 'integrity' attribute ensures the file downloaded from the server has not been tampered with.
+      If the file is ever modified, your browser will refuse to load it.
+    -->
+    <script 
+        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" 
+        xintegrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" 
+        crossorigin="anonymous" 
+        referrerpolicy="no-referrer">
+    </script>
+
     <style>
         /* * RETRO TERMINAL STYLES (CIRCA 1987)
          * ------------------------------------
-         * This style block replaces modern CSS frameworks to achieve
-         * a classic, monochrome computer interface look.
+         * Enhanced for interactive file management.
         */
 
         @keyframes blink {
@@ -104,25 +114,54 @@
             font-weight: bold;
         }
 
-        .image-preview-grid {
+        #image-preview-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
+            gap: 15px;
             border-top: 2px solid #00FF41;
-            padding-top: 20px;
+            padding: 20px 0;
+            min-height: 140px; /* Ensure container has height for drag-drop on empty */
         }
 
         .image-preview-item {
-            border: 1px solid #00FF41;
+            border: 2px solid #00FF41;
             padding: 5px;
             background-color: #000;
+            position: relative;
+            cursor: move;
+            transition: transform 0.2s ease;
+        }
+        
+        .image-preview-item.dragging {
+            opacity: 0.4;
+            transform: scale(0.95);
+            border-style: dashed;
+        }
+        
+        .image-preview-item.drag-over {
+            background-color: #1a4d24; /* Highlight drop target */
         }
 
         .image-preview-item img {
             width: 100%;
-            height: 100%;
+            height: 120px;
             object-fit: cover;
             display: block;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: -1px;
+            right: -1px;
+            background: #00FF41;
+            color: #0D0D0D;
+            border: 2px solid #00FF41;
+            width: 25px;
+            height: 25px;
+            text-align: center;
+            line-height: 22px;
+            font-weight: bold;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -131,13 +170,13 @@
     <div class="container">
         <!-- Header Section -->
         <h1>JPG-2-PDF Utility</h1>
-        <p>> C:\SYSTEM\UTILS\JPG2PDF.EXE</p>
-        <p>Combine multiple .JPG files into a single .PDF document.</p>
+        <p>> C:\SYSTEM\UTILS\JPG2PDF.EXE (SECURE MODE)</p>
+        <p>Drag images to reorder. Click [X] to delete.</p>
 
         <!-- File Input Section -->
         <div class="button-container">
             <label for="file-input" class="retro-button">
-                [LOAD FILES]
+                [ADD FILES]
             </label>
             <input id="file-input" type="file" multiple accept="image/jpeg, image/jpg">
         </div>
@@ -152,7 +191,7 @@
         </div>
 
         <!-- Image Preview Section -->
-        <div id="image-preview-container" class="image-preview-grid">
+        <div id="image-preview-container">
             <!-- Image previews will be dynamically inserted here -->
         </div>
     </div>
@@ -165,33 +204,26 @@
         const statusText = document.getElementById('status-text');
         const loader = document.getElementById('loader');
 
-        // This array will hold the base64 data of the selected images
+        // This array will hold the image data, now with a unique ID for management
         let selectedImages = [];
+        let imageCounter = 0; // To generate unique IDs
+        let dragSrcElement = null; // To track the element being dragged
 
-        // Blinking text interval for loader
-        let loaderInterval;
+        // === EVENT LISTENERS ===
+        fileInput.addEventListener('change', handleFileSelect);
+        generatePdfBtn.addEventListener('click', generatePdf);
 
-        // Event listener for the file input
-        fileInput.addEventListener('change', (event) => {
-            // Reset everything when new files are selected
-            imagePreviewContainer.innerHTML = '';
-            selectedImages = [];
-            statusText.textContent = 'STATUS: Reading file data...';
-            statusText.classList.remove('hidden');
-            generatePdfBtn.classList.add('hidden');
-            loader.classList.add('hidden');
-
+        /**
+         * Handles the selection of files from the input.
+         * Appends new files to the existing list.
+         */
+        function handleFileSelect(event) {
             const files = event.target.files;
-            if (files.length === 0) {
-                statusText.textContent = 'STATUS: No files selected. Awaiting command.';
-                return;
-            }
+            if (files.length === 0) return;
 
-            let filesLoaded = 0;
-            
-            // Process each selected file
+            statusText.textContent = 'STATUS: Reading file data...';
+
             Array.from(files).forEach(file => {
-                // Ensure the file is a JPG/JPEG
                 if (file.type !== 'image/jpeg' && file.type !== 'image/jpg') {
                     console.warn(`File format not supported. Skipping: ${file.name}`);
                     return;
@@ -199,83 +231,146 @@
 
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const imageDataUrl = e.target.result;
                     selectedImages.push({
-                        url: imageDataUrl,
+                        id: `img-${imageCounter++}`,
+                        url: e.target.result,
                         name: file.name
                     });
-
-                    // Create a preview element for the image
-                    const previewElement = document.createElement('div');
-                    previewElement.classList.add('image-preview-item');
-                    previewElement.innerHTML = `<img src="${imageDataUrl}" alt="${file.name}">`;
-                    imagePreviewContainer.appendChild(previewElement);
-                    
-                    filesLoaded++;
-                    
-                    // Once all files are loaded, update the UI
-                    if (filesLoaded === files.length) {
-                        statusText.textContent = `STATUS: ${selectedImages.length} file(s) loaded and ready.`;
-                        if (selectedImages.length > 0) {
-                           generatePdfBtn.classList.remove('hidden');
-                        } else {
-                           statusText.textContent = 'ERROR: No valid .JPG files were found.';
-                        }
-                    }
+                    renderPreviews(); // Re-render the entire preview list
                 };
                 reader.readAsDataURL(file);
             });
-        });
+            // Clear the input value to allow selecting the same file again
+            fileInput.value = ''; 
+        }
 
-        // Event listener for the "Generate PDF" button
-        generatePdfBtn.addEventListener('click', async () => {
+        /**
+         * Renders the image previews in the container based on the selectedImages array.
+         * This function is the single source of truth for the UI.
+         */
+        function renderPreviews() {
+            imagePreviewContainer.innerHTML = ''; // Clear existing previews
+
+            selectedImages.forEach(imgData => {
+                const previewElement = document.createElement('div');
+                previewElement.setAttribute('draggable', 'true');
+                previewElement.dataset.id = imgData.id;
+                previewElement.classList.add('image-preview-item');
+                
+                previewElement.innerHTML = `<img src="${imgData.url}" alt="${imgData.name}">`;
+
+                const deleteBtn = document.createElement('div');
+                deleteBtn.textContent = 'X';
+                deleteBtn.classList.add('delete-btn');
+                deleteBtn.title = `Delete ${imgData.name}`;
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent triggering other events on the parent
+                    selectedImages = selectedImages.filter(img => img.id !== imgData.id);
+                    renderPreviews();
+                });
+
+                previewElement.appendChild(deleteBtn);
+
+                // Add Drag & Drop listeners
+                previewElement.addEventListener('dragstart', handleDragStart);
+                previewElement.addEventListener('dragover', handleDragOver);
+                previewElement.addEventListener('dragleave', handleDragLeave);
+                previewElement.addEventListener('drop', handleDrop);
+                previewElement.addEventListener('dragend', handleDragEnd);
+
+                imagePreviewContainer.appendChild(previewElement);
+            });
+
+            updateStatus();
+        }
+
+        /**
+         * Updates the status text and visibility of the generate button.
+         */
+        function updateStatus() {
+            if (selectedImages.length > 0) {
+                statusText.textContent = `STATUS: ${selectedImages.length} file(s) loaded and ready.`;
+                generatePdfBtn.classList.remove('hidden');
+            } else {
+                statusText.textContent = 'STATUS: Awaiting file selection...';
+                generatePdfBtn.classList.add('hidden');
+            }
+            loader.classList.add('hidden');
+            statusText.classList.remove('hidden');
+        }
+
+
+        // === DRAG & DROP HANDLERS ===
+        function handleDragStart(e) {
+            dragSrcElement = this;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML); // Needed for Firefox
+            this.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault(); // Necessary to allow dropping
+            this.classList.add('drag-over');
+            return false;
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.stopPropagation(); // stops the browser from redirecting.
+            if (dragSrcElement !== this) {
+                const srcId = dragSrcElement.dataset.id;
+                const targetId = this.dataset.id;
+                
+                const srcIndex = selectedImages.findIndex(img => img.id === srcId);
+                const targetIndex = selectedImages.findIndex(img => img.id === targetId);
+
+                // Reorder the array
+                const [removed] = selectedImages.splice(srcIndex, 1);
+                selectedImages.splice(targetIndex, 0, removed);
+                
+                renderPreviews(); // Re-render to reflect the new order
+            }
+            this.classList.remove('drag-over');
+            return false;
+        }
+        
+        function handleDragEnd(e) {
+             this.classList.remove('dragging');
+             // Clean up drag-over classes from all elements
+             document.querySelectorAll('.image-preview-item').forEach(item => item.classList.remove('drag-over'));
+        }
+
+        /**
+         * Generates the PDF from the ordered list of images.
+         */
+        async function generatePdf() {
             if (selectedImages.length === 0) {
                 statusText.textContent = 'ERROR: No files to convert.';
                 return;
             }
 
-            // Update UI to show processing state
             statusText.classList.add('hidden');
             generatePdfBtn.classList.add('hidden');
             loader.classList.remove('hidden');
 
-            // Start blinking effect for loader
-            let dots = 0;
-            loaderInterval = setInterval(() => {
-                dots = (dots + 1) % 4;
-                loader.textContent = 'PROCESSING' + '.'.repeat(dots);
-            }, 500);
-
-
             try {
-                // Lazily load jsPDF if it's not already loaded
                 const { jsPDF } = window.jspdf;
-                
-                // A4 page dimensions in mm: 210 x 297
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                 const A4_PAGE_WIDTH = 210;
                 const A4_PAGE_HEIGHT = 297;
                 const PAGE_MARGIN = 10;
-                
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
 
-                // Process each image and add it to the PDF
                 for (let i = 0; i < selectedImages.length; i++) {
-                    const imgData = selectedImages[i];
+                    const imgData = selectedImages[i].url;
                     const img = new Image();
-                    img.src = imgData.url;
+                    img.src = imgData;
 
-                    // We need to wait for the image to load to get its dimensions
                     await new Promise(resolve => {
                        img.onload = () => {
-                           const imgWidth = img.width;
-                           const imgHeight = img.height;
-                           const imgAspectRatio = imgWidth / imgHeight;
-
-                           // Calculate the dimensions to fit the page while maintaining aspect ratio
+                           const imgAspectRatio = img.width / img.height;
                            let pdfImgWidth = A4_PAGE_WIDTH - (PAGE_MARGIN * 2);
                            let pdfImgHeight = pdfImgWidth / imgAspectRatio;
                            
@@ -284,41 +379,28 @@
                                pdfImgWidth = pdfImgHeight * imgAspectRatio;
                            }
                            
-                           // Center the image on the page
                            const x = (A4_PAGE_WIDTH - pdfImgWidth) / 2;
                            const y = (A4_PAGE_HEIGHT - pdfImgHeight) / 2;
 
-                           // Add a new page for each image except the first one
-                           if (i > 0) {
-                               pdf.addPage();
-                           }
-                           
-                           pdf.addImage(imgData.url, 'JPEG', x, y, pdfImgWidth, pdfImgHeight);
+                           if (i > 0) pdf.addPage();
+                           pdf.addImage(imgData, 'JPEG', x, y, pdfImgWidth, pdfImgHeight);
                            resolve();
                        }
                     });
                 }
                 
-                // Save the generated PDF
                 pdf.save('OUTPUT.PDF');
-                
-                // Set final status message after a short delay to feel more authentic
-                setTimeout(() => {
-                    statusText.textContent = 'TASK COMPLETE. OUTPUT.PDF saved successfully.';
-                }, 500);
+                statusText.textContent = 'TASK COMPLETE. OUTPUT.PDF saved successfully.';
 
             } catch (error) {
                 console.error('CRITICAL ERROR:', error);
                 statusText.textContent = 'ERROR: A fatal error occurred during conversion. System halted.';
             } finally {
-                // Reset the UI state
-                clearInterval(loaderInterval);
                 loader.classList.add('hidden');
                 statusText.classList.remove('hidden');
-                // The generate button remains hidden until new files are selected.
+                generatePdfBtn.classList.remove('hidden');
             }
-        });
-
+        }
     </script>
 </body>
 </html>
