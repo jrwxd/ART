@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -395,14 +394,6 @@
             dC_detritus_dt: `let fromDeadP = effective_rates.m_P * P * params.C_content_biomass;\nlet fromDeadH = effective_rates.m_H * H * params.C_content_biomass;\nlet fromDeadC = effective_rates.m_C * C * params.C_content_biomass;\nlet fromWasteH = params.a_PH * P * H * (1 - effective_rates.e_PH) * params.C_content_biomass;\nlet fromWasteC = params.a_HC * H * C * (1 - effective_rates.e_HC) * params.C_content_biomass;\nlet decomposition = params.decomposition_rate_C * C_detritus;\nreturn fromDeadP + fromDeadH + fromDeadC + fromWasteH + fromWasteC - decomposition;`,
             dN_detritus_dt: `let fromDeadP = effective_rates.m_P * P * params.N_content_biomass;\nlet fromDeadH = effective_rates.m_H * H * params.N_content_biomass;\nlet fromDeadC = effective_rates.m_C * C * params.N_content_biomass;\nlet fromWasteH = params.a_PH * P * H * (1 - effective_rates.e_PH) * params.N_content_biomass;\nlet fromWasteC = params.a_HC * H * C * (1 - effective_rates.e_HC) * params.N_content_biomass;\nlet decomposition = params.decomposition_rate_N * N_detritus;\nreturn fromDeadP + fromDeadH + fromDeadC + fromWasteH + fromWasteC - decomposition;`,
         };
-
-        class SimulationState { /* ... state management ... */ }
-        class UIManager { /* ... UI updates and event listeners ... */ }
-        class DEManager { /* ... handles DE compilation and editor UI ... */ }
-        class ParameterManager { /* ... handles parameter inputs ... */ }
-        class GraphManager { /* ... handles all canvas drawing, including Nutrient Flow ... */ }
-        class PhysicsEngine { /* ... handles RK4 and calculations ... */ }
-        class Simulation { /* ... main controller ... */ }
         
         // --- Full Class Implementations ---
         
