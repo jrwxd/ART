@@ -30,7 +30,7 @@
         }
         .main-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 2fr 1fr;
             gap: 1rem;
             margin-bottom: 1rem;
         }
@@ -134,7 +134,7 @@
             background: rgba(249, 250, 251, 0.95); 
             border: 1px solid rgba(229, 231, 235, 0.5);
             border-radius: 0.75rem; padding: 0; margin-top: 1rem;
-            max-height: 0; overflow: hidden;
+            max-height: 0; overflow-y: auto;
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(10px);
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -146,10 +146,6 @@
             border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;
         }
         .param-section, .de-section { margin-bottom: 1rem; }
-        .param-section h3 {
-            font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem;
-            color: #4b5563; border-bottom: 1px solid #d1d5db; padding-bottom: 0.25rem;
-        }
         .param-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -247,38 +243,44 @@
         <h1>🌱 Advanced Ecosystem & Biogeochemical Cycle Simulation</h1>
 
         <div class="main-row">
-            <div class="canvas-container">
-                <canvas id="ecosystemCanvas"></canvas>
-                <div class="legend">
-                    <span class="plant">🌱 Plants</span> <span class="herbivore">🐰 Herbivores</span> <span class="carnivore">🦁 Carnivores</span>
+            <div class="flex flex-col gap-4">
+                 <div class="canvas-container">
+                    <canvas id="ecosystemCanvas"></canvas>
+                    <div class="legend">
+                        <span class="plant">🌱 Plants</span> <span class="herbivore">🐰 Herbivores</span> <span class="carnivore">🦁 Carnivores</span>
+                    </div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="nutrientFlowCanvas"></canvas>
+                    <div class="legend">
+                        <span class="co2">Carbon Flow</span> <span class="an">Nitrogen Flow</span>
+                    </div>
                 </div>
             </div>
-             <div class="canvas-container">
-                <canvas id="nutrientFlowCanvas"></canvas>
-                <div class="legend">
-                    <span class="co2">Carbon Flow</span> <span class="an">Nitrogen Flow</span>
+             <div class="flex flex-col gap-4">
+                 <div class="canvas-container">
+                    <canvas id="pieCanvas"></canvas>
+                     <div class="legend" style="justify-content: center;">
+                        <span style="font-weight: 700;">🌍 Atmospheric Composition</span>
+                    </div>
+                </div>
+                 <div class="canvas-container">
+                     <canvas id="temperatureCanvas"></canvas>
+                     <div class="legend"><span class="temp">🌡️ Global Temperature</span></div>
+                </div>
+                <div class="canvas-container">
+                     <canvas id="nitrogenCanvas"></canvas>
+                     <div class="legend"><span class="an">💧 Available Nitrogen</span> & <span class="detritus">🍂 Detritus</span></div>
                 </div>
             </div>
         </div>
 
-        <div class="main-row">
-            <div class="canvas-container">
-                <canvas id="atmosphereCanvas"></canvas>
-                <div class="legend">
-                    <span class="co2">CO₂</span> <span class="o2">O₂</span> <span class="n2">N₂</span>
-                </div>
-            </div>
-            <div class="canvas-container">
-                 <canvas id="temperatureCanvas"></canvas>
-                 <div class="legend"><span class="temp">🌡️ Global Temperature</span></div>
-            </div>
-        </div>
-        
         <div class="canvas-container">
-             <canvas id="nitrogenCanvas"></canvas>
-             <div class="legend"><span class="an">💧 Available Nitrogen</span> & <span class="detritus">🍂 Detritus</span></div>
+            <canvas id="atmosphereCanvas"></canvas>
+            <div class="legend">
+                <span class="co2">CO₂</span> <span class="o2">O₂</span> <span class="n2">N₂</span>
+            </div>
         </div>
-
 
         <div class="controls">
             <button id="startButton">▶️ Start</button> 
@@ -337,9 +339,7 @@
             COLORS: {
                 P: '#22c55e', H: '#a855f7', C: '#f97316',
                 CO2_atm: '#71717a', O2_atm: '#3b82f6', N2_atm: '#8b5cf6',
-                AN_pool: '#eab308', GT: '#ef4444', 
-                C_detritus: '#a3a3a3', N_detritus: '#737373',
-                Detritus: '#737373'
+                AN_pool: '#eab308', GT: '#ef4444', Detritus: '#a3a3a3'
             },
             ANIMATION: { TIME_STEP: 0.1, MAX_HISTORY: 500, FPS: 30 },
             VALIDATION: { MIN_VALUE: 0 }
@@ -363,7 +363,7 @@
             a_PH: 0.02, e_PH_base: 0.3, a_HC: 0.01, e_HC_base: 0.2,
             animal_optimal_O2_efficiency: 200000, animal_min_O2_efficiency: 50000,
 
-            // Mortality & Temp Response
+            // Base Mortality & Temp Response
             m_P_base: 0.01, plantTempSetpoint: 20.0, plantTempMortalitySensitivity: 0.005,
             m_H_base: 0.1, herbivoreTempSetpoint: 22.0, herbivoreTempMortalitySensitivity: 0.01,
             m_C_base: 0.05, carnivoreTempSetpoint: 24.0, carnivoreTempMortalitySensitivity: 0.008,
@@ -400,9 +400,7 @@
             dC_detritus_dt: `let fromDeadP = effective_rates.m_P * P * params.C_content_biomass;\nlet fromDeadH = effective_rates.m_H * H * params.C_content_biomass;\nlet fromDeadC = effective_rates.m_C * C * params.C_content_biomass;\nlet fromWasteH = params.a_PH * P * H * (1 - effective_rates.e_PH) * params.C_content_biomass;\nlet fromWasteC = params.a_HC * H * C * (1 - effective_rates.e_HC) * params.C_content_biomass;\nlet decomposition = params.decomposition_rate_C * C_detritus;\nreturn fromDeadP + fromDeadH + fromDeadC + fromWasteH + fromWasteC - decomposition;`,
             dN_detritus_dt: `let fromDeadP = effective_rates.m_P * P * params.N_content_biomass;\nlet fromDeadH = effective_rates.m_H * H * params.N_content_biomass;\nlet fromDeadC = effective_rates.m_C * C * params.N_content_biomass;\nlet fromWasteH = params.a_PH * P * H * (1 - effective_rates.e_PH) * params.N_content_biomass;\nlet fromWasteC = params.a_HC * H * C * (1 - effective_rates.e_HC) * params.N_content_biomass;\nlet decomposition = params.decomposition_rate_N * N_detritus;\nreturn fromDeadP + fromDeadH + fromDeadC + fromWasteH + fromWasteC - decomposition;`,
         };
-        
-        // --- Full Class Implementations ---
-        
+
         class SimulationState {
             constructor() { this.reset(); }
             reset() {
@@ -463,14 +461,12 @@
                 const { P, H, C, CO2_atm, O2_atm, N2_atm, AN_pool, C_detritus, N_detritus } = currentState;
                 const { compiledDEs, simParams: params, effectiveRates: effective_rates, globalTemp: temp } = state;
                 const results = {};
-                
                 Object.keys(compiledDEs).forEach(varName => {
                     try {
                         const key = varName.replace('d', '').replace('_dt', '');
                         const derivative = compiledDEs[varName](P, H, C, CO2_atm, O2_atm, N2_atm, AN_pool, C_detritus, N_detritus, t, Math, params, effective_rates, temp);
                         results[key] = isFinite(derivative) ? derivative : 0;
                     } catch (e) {
-                        console.error(`Error in ${varName}:`, e);
                         results[varName.replace('d', '').replace('_dt', '')] = 0;
                     }
                 });
@@ -479,7 +475,7 @@
             
             static rk4Step(currentState, dt, t, state) {
                 const k1 = this.calculateDerivatives(currentState, t, state);
-                state.flowRates = k1;
+                state.flowRates = k1; // Use first step for flow visualization
 
                 const y_k1 = {}; Object.keys(currentState).forEach(key => y_k1[key] = currentState[key] + k1[key] * dt / 2);
                 const k2 = this.calculateDerivatives(y_k1, t + dt / 2, state);
@@ -529,7 +525,7 @@
             }
 
             drawTimeSeriesGraph(canvas, ctx, data, variableNames, colors, title, yAxisLabel) {
-                if (!ctx || !canvas) return;
+                 if (!ctx || !canvas) return;
                 const dpr = window.devicePixelRatio || 1;
                 const rect = canvas.getBoundingClientRect();
                 canvas.width = rect.width * dpr;
@@ -560,7 +556,7 @@
                 variableNames.forEach(varName => data.forEach(point => {
                     if (point[varName] !== undefined && isFinite(point[varName])) allValues.push(point[varName]);
                 }));
-                if (allValues.length === 0) return;
+                if (allValues.length === 0) { allValues.push(0); }
                 
                 let minY = Math.min(...allValues); let maxY = Math.max(...allValues);
                 const yRange = maxY - minY;
@@ -620,21 +616,24 @@
                 ctx.clearRect(0, 0, width, height);
 
                 const { P, H, C, CO2_atm, N2_atm, AN_pool, C_detritus, N_detritus } = state.systemState;
-                const { C_content_biomass, N_content_biomass } = state.simParams;
+                const { C_content_biomass, N_content_biomass, a_PH, a_HC, photosynthesis_CO2_uptake_rate, 
+                        plant_O2_consumption_rate, herbivore_O2_consumption_rate, carnivore_O2_consumption_rate,
+                        N2_fixation_rate, decomposition_rate_N, decomposition_rate_C, denitrification_rate_from_AN } = state.simParams;
+                const { effectiveRates } = state;
 
                 const pools = {
-                    C_P: { x: width * 0.5, y: height * 0.65, value: P * C_content_biomass, color: CONFIG.COLORS.P, label: 'C in Plants' },
+                    C_P: { x: width * 0.5, y: height * 0.5, value: P * C_content_biomass, color: CONFIG.COLORS.P, label: 'C in Plants' },
                     C_H: { x: width * 0.25, y: height * 0.5, value: H * C_content_biomass, color: CONFIG.COLORS.H, label: 'C in Herbivores' },
                     C_C: { x: width * 0.75, y: height * 0.5, value: C * C_content_biomass, color: CONFIG.COLORS.C, label: 'C in Carnivores' },
                     C_atm: { x: width * 0.5, y: height * 0.15, value: CO2_atm, color: CONFIG.COLORS.CO2_atm, label: 'Atmospheric CO₂' },
-                    C_det: { x: width * 0.5, y: height * 0.9, value: C_detritus, color: CONFIG.COLORS.C_detritus, label: 'Carbon Detritus' },
+                    C_det: { x: width * 0.5, y: height * 0.85, value: C_detritus, color: CONFIG.COLORS.Detritus, label: 'Carbon Detritus' },
 
-                    N_P: { x: width * 0.5, y: height * 0.65, value: P * N_content_biomass, color: CONFIG.COLORS.P },
+                    N_P: { x: width * 0.5, y: height * 0.5, value: P * N_content_biomass, color: CONFIG.COLORS.P },
                     N_H: { x: width * 0.25, y: height * 0.5, value: H * N_content_biomass, color: CONFIG.COLORS.H },
                     N_C: { x: width * 0.75, y: height * 0.5, value: C * N_content_biomass, color: CONFIG.COLORS.C },
                     N_atm: { x: width * 0.15, y: height * 0.15, value: N2_atm, color: CONFIG.COLORS.N2_atm, label: 'Atmospheric N₂' },
                     N_an: { x: width * 0.85, y: height * 0.15, value: AN_pool, color: CONFIG.COLORS.AN_pool, label: 'Available N' },
-                    N_det: { x: width * 0.5, y: height * 0.9, value: N_detritus, color: CONFIG.COLORS.N_detritus, label: 'Nitrogen Detritus' }
+                    N_det: { x: width * 0.5, y: height * 0.85, value: N_detritus, color: CONFIG.COLORS.Detritus, label: 'Nitrogen Detritus' }
                 };
                 
                 const totalC = Object.values(pools).filter(p => p.label?.includes('C')).reduce((s,p) => s + p.value, 0);
@@ -643,7 +642,7 @@
                 Object.values(pools).forEach(pool => {
                     const isC = pool.label?.includes('C');
                     const total = isC ? totalC : totalN;
-                    pool.radius = total > 0 ? 10 + Math.sqrt(pool.value / total) * (Math.min(width, height) * 0.15) : 10;
+                    pool.radius = total > 0 ? 8 + Math.sqrt(pool.value / total) * (Math.min(width, height) * 0.18) : 8;
                 });
                 
                 // Draw nodes and labels
@@ -659,524 +658,470 @@
                         ctx.stroke();
                         ctx.fillStyle = '#333';
                         ctx.font = 'bold 10px Inter';
-                        ctx.fillText(pool.label, pool.x, pool.y - pool.radius - 12);
+                        ctx.fillText(pool.label, pool.x, pool.y - pool.radius - 10);
                         ctx.font = '9px Inter';
                         ctx.fillText(pool.value.toFixed(0), pool.x, pool.y);
                     }
                 });
 
-                // Create and animate flow particles
-                if (state.flowRates) {
-                    const maxFlowRate = Math.max(1, ...Object.values(state.flowRates).map(r => Math.abs(r)));
+                const flowDefs = {
+                    photosynthesis: { from: pools.C_atm, to: pools.C_P, rate: Math.abs(state.flowRates.CO2_atm || 0), type: 'C' },
+                    respirationP: { from: pools.C_P, to: pools.C_atm, rate: plant_O2_consumption_rate * P, type: 'C' },
+                    respirationH: { from: pools.C_H, to: pools.C_atm, rate: herbivore_O2_consumption_rate * H, type: 'C' },
+                    respirationC: { from: pools.C_C, to: pools.C_atm, rate: carnivore_O2_consumption_rate * C, type: 'C' },
+                    consumptionPH: { from: pools.C_P, to: pools.C_H, rate: a_PH * P * H, type: 'C' },
+                    consumptionHC: { from: pools.C_H, to: pools.C_C, rate: a_HC * H * C, type: 'C' },
+                    decompositionC: { from: pools.C_det, to: pools.C_atm, rate: decomposition_rate_C * C_detritus, type: 'C' },
                     
-                    const flowDefs = [
-                        { from: pools.C_atm, to: pools.C_P, rate: -state.flowRates.CO2_atm || 0, color: CONFIG.COLORS.CO2_atm },
-                        { from: pools.N_an, to: pools.N_P, rate: -state.flowRates.AN_pool || 0, color: CONFIG.COLORS.AN_pool },
-                        { from: pools.N_atm, to: pools.N_an, rate: -state.flowRates.N2_atm || 0, color: CONFIG.COLORS.N2_atm }
-                    ];
-
-                    flowDefs.forEach(flow => {
-                        if (Math.abs(flow.rate) > 0.01) {
-                            const numParticles = Math.min(3, Math.floor(Math.abs(flow.rate) / maxFlowRate * 15));
-                            for (let i = 0; i < numParticles; i++) {
-                                if (Math.random() < 0.05) {
-                                    this.flowParticles.push({
-                                        x: flow.from.x, y: flow.from.y,
-                                        tx: flow.to.x, ty: flow.to.y,
-                                        color: flow.color,
-                                        life: 60
-                                    });
-                                }
-                            }
-                        }
-                    });
-                }
+                    fixation: { from: pools.N_atm, to: pools.N_an, rate: N2_fixation_rate, type: 'N' },
+                    plantUptakeN: { from: pools.N_an, to: pools.N_P, rate: Math.abs(state.flowRates.AN_pool || 0), type: 'N' },
+                    decompositionN: { from: pools.N_det, to: pools.N_an, rate: decomposition_rate_N * N_detritus, type: 'N' },
+                    denitrification: { from: pools.N_an, to: pools.N_atm, rate: denitrification_rate_from_AN * AN_pool, type: 'N' },
+                    
+                    p_to_det_C: { from: pools.C_P, to: pools.C_det, rate: effectiveRates.m_P * P, type: 'C' },
+                    h_to_det_C: { from: pools.C_H, to: pools.C_det, rate: effectiveRates.m_H * H, type: 'C' },
+                    c_to_det_C: { from: pools.C_C, to: pools.C_det, rate: effectiveRates.m_C * C, type: 'C' },
+                    p_to_det_N: { from: pools.N_P, to: pools.N_det, rate: effectiveRates.m_P * P, type: 'N' },
+                    h_to_det_N: { from: pools.N_H, to: pools.N_det, rate: effectiveRates.m_H * H, type: 'N' },
+                    c_to_det_N: { from: pools.N_C, to: pools.N_det, rate: effectiveRates.m_C * C, type: 'N' },
+                };
                 
-                // Update and draw particles
-                this.flowParticles = this.flowParticles.filter(p => p.life > 0);
-                this.flowParticles.forEach(p => {
-                    const dx = p.tx - p.x; const dy = p.ty - p.y;
-                    p.x += dx * 0.08; p.y += dy * 0.08;
-                    p.life -= 1;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, 2, 0, 2 * Math.PI);
-                    ctx.fillStyle = p.color;
-                    ctx.fill();
+                const maxFlowRate = Math.max(1, ...Object.values(flowDefs).map(f => f.rate || 0));
+
+                Object.values(flowDefs).forEach(flow => {
+                    const numParticles = Math.min(50, Math.floor(Math.abs(flow.rate) / maxFlowRate * 30));
+                    for (let i = 0; i < numParticles; i++) {
+                        if (Math.random() < 0.25) { 
+                            this.flowParticles.push({
+                                x: flow.from.x, y: flow.from.y, tx: flow.to.x, ty: flow.to.y,
+                                color: flow.type === 'C' ? CONFIG.COLORS.CO2_atm : CONFIG.COLORS.AN_pool,
+                                life: 100
+                            });
+                        }
+                    }
                 });
                 
-                ctx.font = 'bold 14px Inter';
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#333';
+                this.flowParticles = this.flowParticles.filter(p => p.life > 0);
+                this.flowParticles.forEach(p => {
+                    p.x += (p.tx - p.x) * 0.05; p.y += (p.ty - p.y) * 0.05; p.life -= 2;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 2.5, 0, 2 * Math.PI);
+                    ctx.fillStyle = p.color; ctx.globalAlpha = p.life / 100; ctx.fill();
+                    ctx.globalAlpha = 1.0;
+                });
+
+                ctx.font = 'bold 14px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#333';
                 ctx.fillText('Nutrient & Carbon Flows', width / 2, 25);
+            }
+            
+            drawPieChart(canvas, ctx, data) {
+                 if (!ctx || !canvas || data.length === 0) return;
+                 const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+                ctx.scale(dpr, dpr);
+                const width = rect.width; const height = rect.height;
+
+                ctx.clearRect(0, 0, width, height);
+
+                const latest = data[data.length - 1];
+                const total = latest.CO2_atm + latest.O2_atm + latest.N2_atm;
+                if (total <= 0) return;
+                
+                const centerX = width / 2; const centerY = height / 2 + 10;
+                const radius = Math.min(width, height) / 2 - 40;
+                
+                const slices = [
+                    { name: 'N₂', value: latest.N2_atm, color: CONFIG.COLORS.N2_atm },
+                    { name: 'O₂', value: latest.O2_atm, color: CONFIG.COLORS.O2_atm },
+                    { name: 'CO₂', value: latest.CO2_atm, color: CONFIG.COLORS.CO2_atm }
+                ];
+                
+                let currentAngle = -Math.PI / 2;
+                slices.forEach(slice => {
+                    const sliceAngle = (slice.value / total) * 2 * Math.PI;
+                    ctx.fillStyle = slice.color; ctx.beginPath(); ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                    ctx.closePath(); ctx.fill();
+                    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+                    
+                    const percentage = (slice.value / total) * 100;
+                    if (percentage > 5) {
+                        const labelAngle = currentAngle + sliceAngle / 2;
+                        const labelRadius = radius * 0.7;
+                        const labelX = centerX + Math.cos(labelAngle) * labelRadius;
+                        const labelY = centerY + Math.sin(labelAngle) * labelRadius;
+                        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 12px Inter'; ctx.textAlign = 'center';
+                        ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 3;
+                        ctx.strokeText(slice.name, labelX, labelY); ctx.fillText(slice.name, labelX, labelY);
+                        ctx.font = '10px Inter';
+                        ctx.strokeText(`${percentage.toFixed(1)}%`, labelX, labelY + 14);
+                        ctx.fillText(`${percentage.toFixed(1)}%`, labelX, labelY + 14);
+                    }
+                    currentAngle += sliceAngle;
+                });
             }
 
             renderAll(state) {
-                this.drawTimeSeriesGraph(
-                    this.ui.elements.ecoCanvas, 
-                    this.ui.elements.ecoCanvas?.getContext('2d'), 
-                    state.history,
-                    ['P', 'H', 'C'], 
-                    [CONFIG.COLORS.P, CONFIG.COLORS.H, CONFIG.COLORS.C], 
-                    'Ecosystem Populations', 
-                    'Population Count'
-                );
+                this.drawTimeSeriesGraph(this.ui.elements.ecoCanvas, this.ui.elements.ecoCanvas.getContext('2d'), state.history,
+                    ['P', 'H', 'C'], [CONFIG.COLORS.P, CONFIG.COLORS.H, CONFIG.COLORS.C], 'Ecosystem Populations', 'Population Count');
                 
-                this.drawTimeSeriesGraph(
-                    this.ui.elements.atmCanvas, 
-                    this.ui.elements.atmCanvas?.getContext('2d'), 
-                    state.history,
-                    ['CO2_atm', 'O2_atm', 'N2_atm'], 
-                    [CONFIG.COLORS.CO2_atm, CONFIG.COLORS.O2_atm, CONFIG.COLORS.N2_atm], 
-                    'Atmospheric Gases', 
-                    'Amount'
-                );
+                this.drawTimeSeriesGraph(this.ui.elements.atmCanvas, this.ui.elements.atmCanvas.getContext('2d'), state.history,
+                    ['CO2_atm', 'O2_atm', 'N2_atm'], [CONFIG.COLORS.CO2_atm, CONFIG.COLORS.O2_atm, CONFIG.COLORS.N2_atm], 'Atmospheric Gases', 'Amount');
 
-                this.drawTimeSeriesGraph(
-                    this.ui.elements.nitroCanvas, 
-                    this.ui.elements.nitroCanvas?.getContext('2d'), 
-                    state.history,
-                    ['AN_pool', 'N_detritus'], 
-                    [CONFIG.COLORS.AN_pool, CONFIG.COLORS.N_detritus], 
-                    'Nitrogen Cycle Pools', 
-                    'Amount'
-                );
+                this.drawTimeSeriesGraph(this.ui.elements.nitroCanvas, this.ui.elements.nitroCanvas.getContext('2d'), state.history,
+                    ['AN_pool', 'N_detritus'], [CONFIG.COLORS.AN_pool, CONFIG.COLORS.Detritus], 'Nitrogen Cycle Pools', 'Amount');
 
-                this.drawTimeSeriesGraph(
-                    this.ui.elements.tempCanvas, 
-                    this.ui.elements.tempCanvas?.getContext('2d'), 
-                    state.history,
-                    ['GT'], 
-                    [CONFIG.COLORS.GT], 
-                    'Global Temperature', 
-                    'Temperature (°C)'
-                );
+                this.drawTimeSeriesGraph(this.ui.elements.tempCanvas, this.ui.elements.tempCanvas.getContext('2d'), state.history,
+                    ['GT'], [CONFIG.COLORS.GT], 'Global Temperature', 'Temperature (°C)');
 
-                this.drawNutrientFlowDiagram(
-                    this.ui.elements.nutrientFlowCanvas, 
-                    this.ui.elements.nutrientFlowCanvas?.getContext('2d'), 
-                    state
-                );
+                this.drawNutrientFlowDiagram(this.ui.elements.nutrientFlowCanvas, this.ui.elements.nutrientFlowCanvas.getContext('2d'), state);
+                this.drawPieChart(document.getElementById('pieCanvas'), document.getElementById('pieCanvas').getContext('2d'), state.history);
             }
         }
         
         class UIManager {
-            constructor(simulation) {
+             constructor(simulation) {
                 this.simulation = simulation;
-                this.elements = this.initializeElements();
+                this.elements = {};
+                this.initializeElements();
                 this.setupEventListeners();
             }
-            
             initializeElements() {
-                return {
+                this.elements = {
                     ecoCanvas: document.getElementById('ecosystemCanvas'),
-                    atmCanvas: document.getElementById('atmosphereCanvas'),
                     nutrientFlowCanvas: document.getElementById('nutrientFlowCanvas'),
-                    tempCanvas: document.getElementById('temperatureCanvas'),
+                    atmCanvas: document.getElementById('atmosphereCanvas'),
                     nitroCanvas: document.getElementById('nitrogenCanvas'),
-                    pieCanvas: document.getElementById('pieCanvas')
+                    tempCanvas: document.getElementById('temperatureCanvas'),
+                    pieCanvas: document.getElementById('pieCanvas'),
+                    startButton: document.getElementById('startButton'),
+                    stopButton: document.getElementById('stopButton'),
+                    tickButton: document.getElementById('tickButton'),
+                    resetButton: document.getElementById('resetButton'),
+                    addPlant: document.getElementById('addPlantButton'),
+                    addHerbivore: document.getElementById('addHerbivoreButton'),
+                    addCarnivore: document.getElementById('addCarnivoreButton'),
+                    toggleParams: document.getElementById('toggleParamsButton'),
+                    toggleDE: document.getElementById('toggleDEButton'),
+                    paramTray: document.getElementById('parameterTray'),
+                    deTray: document.getElementById('deEditorTray'),
+                    plantCount: document.getElementById('plantCount'),
+                    herbivoreCount: document.getElementById('herbivoreCount'),
+                    carnivoreCount: document.getElementById('carnivoreCount'),
+                    co2Count: document.getElementById('co2Count'),
+                    o2Count: document.getElementById('o2Count'),
+                    n2Count: document.getElementById('n2Count'),
+                    anCount: document.getElementById('anCount'),
+                    tempCount: document.getElementById('tempCount'),
+                    timeCount: document.getElementById('timeCount'),
+                    detritusC: document.getElementById('detritusC'),
+                    detritusN: document.getElementById('detritusN'),
+                    testDE: document.getElementById('testDEButton'),
+                    resetDE: document.getElementById('resetDEButton'),
+                    messageBox: document.getElementById('messageBox')
                 };
             }
-            
             setupEventListeners() {
-                document.getElementById('startButton')?.addEventListener('click', () => this.simulation.start());
-                document.getElementById('stopButton')?.addEventListener('click', () => this.simulation.stop());
-                document.getElementById('tickButton')?.addEventListener('click', () => this.simulation.tick());
-                document.getElementById('resetButton')?.addEventListener('click', () => this.simulation.reset());
-                
-                document.getElementById('addPlantButton')?.addEventListener('click', () => this.simulation.addOrganism('plant', 10));
-                document.getElementById('addHerbivoreButton')?.addEventListener('click', () => this.simulation.addOrganism('herbivore', 5));
-                document.getElementById('addCarnivoreButton')?.addEventListener('click', () => this.simulation.addOrganism('carnivore', 2));
-                
-                document.getElementById('toggleDEButton')?.addEventListener('click', () => this.toggleDEEditor());
-                document.getElementById('toggleParamsButton')?.addEventListener('click', () => this.toggleParameters());
-                
-                // Handle window resize
-                window.addEventListener('resize', () => this.resizeCanvases());
+                this.elements.startButton.addEventListener('click', () => this.simulation.start());
+                this.elements.stopButton.addEventListener('click', () => this.simulation.stop());
+                this.elements.tickButton.addEventListener('click', () => this.simulation.tick());
+                this.elements.resetButton.addEventListener('click', () => this.simulation.reset());
+                this.elements.addPlant.addEventListener('click', () => this.simulation.addOrganism('P', 10));
+                this.elements.addHerbivore.addEventListener('click', () => this.simulation.addOrganism('H', 5));
+                this.elements.addCarnivore.addEventListener('click', () => this.simulation.addOrganism('C', 2));
+                this.elements.toggleParams.addEventListener('click', () => this.togglePanel(this.elements.paramTray));
+                this.elements.toggleDE.addEventListener('click', () => this.togglePanel(this.elements.deTray));
+                this.elements.testDE.addEventListener('click', () => this.simulation.deManager.test());
+                this.elements.resetDE.addEventListener('click', () => this.simulation.deManager.resetToDefault());
+                window.addEventListener('resize', () => {
+                    this.resizeCanvases();
+                    this.simulation.graphManager.renderAll(this.simulation.state);
+                });
             }
-            
-            toggleDEEditor() {
-                const tray = document.getElementById('deEditorTray');
-                if (tray) {
-                    tray.classList.toggle('open');
-                    setTimeout(() => this.simulation.graphManager.renderAll(this.simulation.state), 300);
-                }
+            togglePanel(panel) { panel.classList.toggle('open'); }
+            showMessage(text, duration = 2000, isError = false) {
+                const mb = this.elements.messageBox;
+                mb.textContent = text;
+                mb.className = `message-box ${isError ? 'error' : ''}`;
+                mb.style.display = 'block';
+                setTimeout(() => { mb.style.display = 'none'; }, duration);
             }
-            
-            toggleParameters() {
-                const tray = document.getElementById('parameterTray');
-                if (tray) {
-                    tray.classList.toggle('open');
-                }
+            updateStats(state) {
+                this.elements.plantCount.textContent = `🌱 P: ${state.systemState.P.toFixed(1)}`;
+                this.elements.herbivoreCount.textContent = `🐰 H: ${state.systemState.H.toFixed(1)}`;
+                this.elements.carnivoreCount.textContent = `🦁 C: ${state.systemState.C.toFixed(1)}`;
+                this.elements.co2Count.textContent = `CO₂: ${state.systemState.CO2_atm.toFixed(0)}`;
+                this.elements.o2Count.textContent = `O₂: ${state.systemState.O2_atm.toFixed(0)}`;
+                this.elements.n2Count.textContent = `N₂: ${state.systemState.N2_atm.toFixed(0)}`;
+                this.elements.anCount.textContent = `💧 AN: ${state.systemState.AN_pool.toFixed(1)}`;
+                this.elements.tempCount.textContent = `🌡️ Temp: ${state.globalTemp.toFixed(1)}°C`;
+                this.elements.timeCount.textContent = `⏰ Time: ${state.currentTime.toFixed(1)}`;
+                this.elements.detritusC.textContent = `🍂 C Detritus: ${state.systemState.C_detritus.toFixed(1)}`;
+                this.elements.detritusN.textContent = `🍂 N Detritus: ${state.systemState.N_detritus.toFixed(1)}`;
             }
-            
+            setSimulationControls(running) {
+                this.elements.startButton.disabled = running;
+                this.elements.stopButton.disabled = !running;
+                this.elements.tickButton.disabled = running;
+            }
             resizeCanvases() {
-                Object.values(this.elements).forEach(canvas => {
-                    if (canvas) {
-                        const rect = canvas.getBoundingClientRect();
-                        const dpr = window.devicePixelRatio || 1;
-                        canvas.width = rect.width * dpr;
-                        canvas.height = rect.height * dpr;
-                        const ctx = canvas.getContext('2d');
-                        if (ctx) {
-                            ctx.scale(dpr, dpr);
-                        }
+                Object.values(this.elements).forEach(el => {
+                    if (el instanceof HTMLCanvasElement) {
+                         const dpr = window.devicePixelRatio || 1;
+                         const rect = el.getBoundingClientRect();
+                         el.width = rect.width * dpr;
+                         el.height = rect.height * dpr;
+                         el.getContext('2d').scale(dpr, dpr);
                     }
                 });
-                
-                // Re-render after resize
-                if (this.simulation && this.simulation.graphManager) {
-                    this.simulation.graphManager.renderAll(this.simulation.state);
-                }
-            }
-            
-            updateStats(state) {
-                const updates = [
-                    ['plantCount', `🌱 P: ${state.systemState.P.toFixed(1)}`],
-                    ['herbivoreCount', `🐰 H: ${state.systemState.H.toFixed(1)}`],
-                    ['carnivoreCount', `🦁 C: ${state.systemState.C.toFixed(1)}`],
-                    ['co2Count', `CO₂: ${state.systemState.CO2_atm.toFixed(0)}`],
-                    ['o2Count', `O₂: ${(state.systemState.O2_atm/1000).toFixed(0)}k`],
-                    ['n2Count', `N₂: ${(state.systemState.N2_atm/1000).toFixed(0)}k`],
-                    ['anCount', `💧 AN: ${state.systemState.AN_pool.toFixed(1)}`],
-                    ['tempCount', `🌡️ Temp: ${state.globalTemp.toFixed(1)}°C`],
-                    ['timeCount', `⏰ Time: ${state.currentTime.toFixed(1)}`],
-                    ['detritusC', `🍂 C Det: ${state.systemState.C_detritus.toFixed(1)}`],
-                    ['detritusN', `🍂 N Det: ${state.systemState.N_detritus.toFixed(1)}`]
-                ];
-                
-                updates.forEach(([id, text]) => {
-                    const element = document.getElementById(id);
-                    if (element) element.textContent = text;
-                });
-            }
-            
-            showMessage(message, duration = 3000, isError = false) {
-                const msgBox = document.getElementById('messageBox');
-                if (msgBox) {
-                    msgBox.textContent = message;
-                    msgBox.className = isError ? 'message-box error' : 'message-box';
-                    msgBox.style.display = 'block';
-                    setTimeout(() => { msgBox.style.display = 'none'; }, duration);
-                }
             }
         }
         
         class ParameterManager {
-            constructor(simulation) {
-                this.simulation = simulation;
-                this.createParameterUI();
+             constructor(state, uiManager) {
+                this.state = state;
+                this.ui = uiManager;
+                this.inputs = {};
+                this.container = document.getElementById('parameterTray');
+                this.setupInputs();
             }
-            
-            createParameterUI() {
-                const tray = document.getElementById('parameterTray');
-                if (!tray) return;
-                
-                const paramSections = [
-                    {
-                        title: 'Initial Conditions',
-                        params: ['initialP', 'initialH', 'initialC', 'initialCO2_atm', 'initialO2_atm', 'initialN2_atm', 'initialAN_pool']
-                    },
-                    {
-                        title: 'Growth & Mortality',
-                        params: ['rP_base', 'm_P_base', 'm_H_base', 'm_C_base', 'a_PH', 'a_HC', 'e_PH_base', 'e_HC_base']
-                    },
-                    {
-                        title: 'Gas Exchange',
-                        params: ['photosynthesis_CO2_uptake_rate', 'plant_O2_consumption_rate', 'herbivore_O2_consumption_rate', 'carnivore_O2_consumption_rate']
-                    },
-                    {
-                        title: 'Temperature Response',
-                        params: ['plantTempSetpoint', 'herbivoreTempSetpoint', 'carnivoreTempSetpoint', 'tempSensitivityToCO2']
-                    }
-                ];
-                
-                tray.innerHTML = `
-                    <h2>⚙️ Simulation Parameters</h2>
-                    ${paramSections.map(section => `
-                        <div class="param-section">
-                            <h3>${section.title}</h3>
-                            <div class="param-grid">
-                                ${section.params.map(param => this.createParamInput(param)).join('')}
-                            </div>
-                        </div>
-                    `).join('')}
-                `;
-                
-                this.bindParameterEvents();
-            }
-            
-            createParamInput(paramKey) {
-                const value = this.simulation.state.simParams[paramKey];
-                const label = this.formatParamName(paramKey);
-                return `
-                    <div class="param-item">
-                        <label title="${paramKey}">${label}</label>
-                        <input type="number" 
-                               data-param="${paramKey}" 
-                               value="${value}" 
-                               step="0.001"
-                               min="0">
-                    </div>
-                `;
-            }
-            
-            formatParamName(key) {
-                return key.replace(/([A-Z])/g, ' $1')
-                         .replace(/^./, str => str.toUpperCase())
-                         .replace('_', ' ')
-                         .replace('base', 'Rate')
-                         .replace('initial', '');
-            }
-            
-            bindParameterEvents() {
-                const inputs = document.querySelectorAll('[data-param]');
-                inputs.forEach(input => {
-                    input.addEventListener('change', (e) => {
-                        const paramKey = e.target.dataset.param;
-                        const value = parseFloat(e.target.value);
-                        if (!isNaN(value) && value >= 0) {
-                            this.simulation.state.simParams[paramKey] = value;
-                            this.simulation.ui.showMessage(`Updated ${paramKey} to ${value}`);
-                        }
+
+            setupInputs() {
+                this.container.innerHTML = '';
+                const sections = {
+                    "Initial State": ['initialP', 'initialH', 'initialC', 'initialCO2_atm', 'initialO2_atm', 'initialN2_atm', 'initialAN_pool', 'initialC_detritus', 'initialN_detritus', 'initialGT'],
+                    "Biomass Composition": ['C_content_biomass', 'N_content_biomass'],
+                    "Plant Dynamics": ['rP_base', 'plant_min_CO2_for_rP', 'plant_optimal_CO2_for_rP', 'AN_half_saturation_for_rP', 'K_P_base', 'K_P_N2_atm_sensitivity', 'K_P_baseline_N2_atm', 'K_P_optimal_CO2_O2_ratio', 'K_P_CO2_O2_ratio_sensitivity'],
+                    "Animal Dynamics": ['a_PH', 'e_PH_base', 'a_HC', 'e_HC_base', 'animal_optimal_O2_efficiency', 'animal_min_O2_efficiency'],
+                    "Mortality & Temp Response": ['m_P_base', 'plantTempSetpoint', 'plantTempMortalitySensitivity', 'm_H_base', 'herbivoreTempSetpoint', 'herbivoreTempMortalitySensitivity', 'm_C_base', 'carnivoreTempSetpoint', 'carnivoreTempMortalitySensitivity'],
+                    "Atm. Gas Mortality Response": ['plant_CO2_mort_sens', 'plant_CO2_low_thresh_mort', 'plant_CO2_high_thresh_mort', 'plant_O2_mort_sens', 'plant_O2_low_thresh_mort', 'plant_O2_high_thresh_mort', 'animal_CO2_mort_sens', 'animal_CO2_high_thresh_mort', 'animal_O2_mort_sens', 'animal_O2_low_thresh_mort'],
+                    "Atmospheric Gas Exchange": ['photosynthesis_CO2_uptake_rate', 'O2_production_per_CO2_uptake', 'plant_O2_consumption_rate', 'herbivore_O2_consumption_rate', 'carnivore_O2_consumption_rate', 'CO2_production_per_O2_consumption'],
+                    "Nutrient Cycling": ['N2_fixation_rate', 'AN_uptake_by_P_rate_per_growth', 'decomposition_rate_C', 'decomposition_rate_N', 'denitrification_rate_from_AN'],
+                    "Global Temperature Model": ['tempSensitivityToCO2', 'baselineCO2_forTemp', 'tempSensitivityToAN', 'baselineAN_forTemp']
+                };
+
+                Object.entries(sections).forEach(([title, paramKeys]) => {
+                    const sectionDiv = document.createElement('div');
+                    sectionDiv.className = 'param-section';
+                    const h2 = document.createElement('h2');
+                    h2.textContent = title;
+                    sectionDiv.appendChild(h2);
+                    const gridDiv = document.createElement('div');
+                    gridDiv.className = 'param-grid';
+
+                    paramKeys.forEach(key => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'param-item';
+                        const label = document.createElement('label');
+                        label.htmlFor = `param_${key}`;
+                        label.textContent = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                        const input = document.createElement('input');
+                        input.type = 'number';
+                        input.id = `param_${key}`;
+                        input.value = DEFAULT_PARAMS[key];
+                        input.step = (DEFAULT_PARAMS[key] < 0.1 && DEFAULT_PARAMS[key] > 0) ? "0.001" : "1";
+                        this.inputs[key] = input;
+                        itemDiv.appendChild(label);
+                        itemDiv.appendChild(input);
+                        gridDiv.appendChild(itemDiv);
                     });
+                    sectionDiv.appendChild(gridDiv);
+                    this.container.appendChild(sectionDiv);
                 });
+            }
+
+            populateInputs() {
+                Object.keys(this.inputs).forEach(key => {
+                    this.inputs[key].value = this.state.simParams[key];
+                });
+            }
+
+            getParams() {
+                const params = {};
+                Object.keys(DEFAULT_PARAMS).forEach(key => {
+                    if (this.inputs[key]) {
+                        params[key] = parseFloat(this.inputs[key].value) || DEFAULT_PARAMS[key];
+                    } else {
+                        params[key] = DEFAULT_PARAMS[key];
+                    }
+                });
+                return params;
             }
         }
 
         class DEManager {
-            constructor(simulation) {
-                this.simulation = simulation;
-                this.createDEUI();
-                this.compileDefaultEquations();
+            constructor(state, uiManager) {
+                this.state = state;
+                this.ui = uiManager;
+                this.inputs = {};
+                this.container = document.getElementById('de-editor-container');
+                this.setupInputs();
             }
-            
-            createDEUI() {
-                const container = document.getElementById('de-editor-container');
-                const equations = Object.keys(DEFAULT_DES);
-                
-                container.innerHTML = equations.map(eqName => `
-                    <div class="de-equation">
-                        <label>d${eqName.replace('d', '').replace('_dt', '')}/dt =</label>
-                        <textarea id="${eqName}" data-equation="${eqName}">${DEFAULT_DES[eqName]}</textarea>
-                        <div id="error-${eqName}" class="de-error" style="display: none;"></div>
-                    </div>
-                `).join('');
-                
-                this.bindDEEvents();
-            }
-            
-            bindDEEvents() {
-                document.getElementById('testDEButton').addEventListener('click', () => this.compileAndTest());
-                document.getElementById('resetDEButton').addEventListener('click', () => this.resetToDefault());
-            }
-            
-            compileAndTest() {
-                try {
-                    const equations = this.gatherEquations();
-                    this.compileEquations(equations);
-                    this.simulation.ui.showMessage('✅ Equations compiled successfully!');
-                } catch (error) {
-                    this.simulation.ui.showMessage(`❌ Compilation failed: ${error.message}`, 5000);
-                }
-            }
-            
-            gatherEquations() {
-                const equations = {};
-                const textareas = document.querySelectorAll('[data-equation]');
-                textareas.forEach(textarea => {
-                    equations[textarea.dataset.equation] = textarea.value;
+
+            setupInputs() {
+                this.container.innerHTML = '';
+                Object.keys(DEFAULT_DES).forEach(key => {
+                    const deName = key.replace('_dt','').replace('d','');
+                    const equationDiv = document.createElement('div');
+                    equationDiv.className = 'de-equation';
+                    const label = document.createElement('label');
+                    label.htmlFor = key;
+                    label.textContent = `d${deName}/dt`;
+                    const textarea = document.createElement('textarea');
+                    textarea.id = key;
+                    textarea.value = this.state.customDEs[key] || DEFAULT_DES[key];
+                    const errorDiv = document.createElement('div');
+                    errorDiv.id = `${key}_error`;
+                    errorDiv.className = 'de-error';
+                    errorDiv.style.display = 'none';
+                    equationDiv.appendChild(label);
+                    equationDiv.appendChild(textarea);
+                    equationDiv.appendChild(errorDiv);
+                    this.container.appendChild(equationDiv);
+                    this.inputs[key] = textarea;
                 });
-                return equations;
             }
-            
-            compileEquations(equations) {
-                const compiled = {};
-                Object.keys(equations).forEach(eqName => {
+
+            compile() {
+                let hasErrors = false;
+                Object.keys(this.inputs).forEach(key => {
+                    const code = this.inputs[key].value;
+                    this.state.customDEs[key] = code;
+                    const errorDiv = document.getElementById(`${key}_error`);
+                    if(errorDiv) errorDiv.style.display = 'none';
                     try {
-                        const funcBody = equations[eqName];
-                        compiled[eqName] = new Function(
+                        this.state.compiledDEs[key] = new Function(
                             'P', 'H', 'C', 'CO2_atm', 'O2_atm', 'N2_atm', 'AN_pool', 'C_detritus', 'N_detritus',
                             't', 'Math', 'params', 'effective_rates', 'temp',
-                            funcBody
+                            `try { return (function(){${code}}()); } catch(e) { throw e; }`
                         );
-                        this.hideError(eqName);
-                    } catch (error) {
-                        this.showError(eqName, error.message);
-                        throw new Error(`Error in ${eqName}: ${error.message}`);
+                        this.state.compiledDEs[key](1,1,1,1,1,1,1,1,1, 1, Math, this.state.simParams, {}, 15);
+                    } catch (e) {
+                        hasErrors = true;
+                        if(errorDiv) {
+                            errorDiv.textContent = e.message;
+                            errorDiv.style.display = 'block';
+                        }
+                        this.state.compiledDEs[key] = () => 0; 
                     }
                 });
-                
-                this.simulation.state.compiledDEs = compiled;
-                this.simulation.state.customDEs = equations;
+                return !hasErrors;
             }
             
-            compileDefaultEquations() {
-                this.compileEquations(DEFAULT_DES);
+            test() {
+                if(this.compile()) {
+                    this.ui.showMessage("✅ Equations compiled successfully!", 2000);
+                } else {
+                    this.ui.showMessage("❌ Compilation failed. Check errors.", 3000, true);
+                }
             }
             
             resetToDefault() {
-                Object.keys(DEFAULT_DES).forEach(eqName => {
-                    const textarea = document.getElementById(eqName);
-                    if (textarea) {
-                        textarea.value = DEFAULT_DES[eqName];
-                    }
+                 Object.keys(DEFAULT_DES).forEach(key => {
+                    if (this.inputs[key]) this.inputs[key].value = DEFAULT_DES[key];
                 });
-                this.compileDefaultEquations();
-                this.simulation.ui.showMessage('🔄 Reset to default equations');
-            }
-            
-            showError(eqName, message) {
-                const errorDiv = document.getElementById(`error-${eqName}`);
-                if (errorDiv) {
-                    errorDiv.textContent = message;
-                    errorDiv.style.display = 'block';
-                }
-            }
-            
-            hideError(eqName) {
-                const errorDiv = document.getElementById(`error-${eqName}`);
-                if (errorDiv) {
-                    errorDiv.style.display = 'none';
-                }
-            }
-        }
-
-        class Simulation {
-            constructor() {
-                this.state = new SimulationState();
-                this.ui = new UIManager(this);
-                this.paramManager = new ParameterManager(this);
-                this.deManager = new DEManager(this);
-                this.graphManager = new GraphManager(this.ui);
-            }
-            
-            initialize() {
-                this.state.systemState = {
-                    P: this.state.simParams.initialP,
-                    H: this.state.simParams.initialH,
-                    C: this.state.simParams.initialC,
-                    CO2_atm: this.state.simParams.initialCO2_atm,
-                    O2_atm: this.state.simParams.initialO2_atm,
-                    N2_atm: this.state.simParams.initialN2_atm,
-                    AN_pool: this.state.simParams.initialAN_pool,
-                    C_detritus: this.state.simParams.initialC_detritus,
-                    N_detritus: this.state.simParams.initialN_detritus
-                };
-                
-                PhysicsEngine.updateGlobalTemp(this.state);
-                this.addToHistory();
-            }
-            
-            start() {
-                if (this.state.simulationRunning) return;
-                this.state.simulationRunning = true;
-                this.state.lastFrameTime = performance.now();
-                this.animate();
-            }
-            
-            stop() {
-                this.state.simulationRunning = false;
-                if (this.state.animationFrameId) {
-                    cancelAnimationFrame(this.state.animationFrameId);
-                }
-            }
-            
-            tick() {
-                this.updateSimulation();
-                this.graphManager.renderAll(this.state);
-                this.ui.updateStats(this.state);
-            }
-            
-            reset() {
-                this.stop();
-                this.state.reset();
-                this.initialize();
-                this.graphManager.renderAll(this.state);
-                this.ui.updateStats(this.state);
-                this.ui.showMessage('🔄 Simulation reset');
-            }
-            
-            animate() {
-                if (!this.state.simulationRunning) return;
-                
-                const currentTime = performance.now();
-                if (currentTime - this.state.lastFrameTime >= 1000 / CONFIG.ANIMATION.FPS) {
-                    this.updateSimulation();
-                    this.graphManager.renderAll(this.state);
-                    this.ui.updateStats(this.state);
-                    this.state.lastFrameTime = currentTime;
-                }
-                
-                this.state.animationFrameId = requestAnimationFrame(() => this.animate());
-            }
-            
-            updateSimulation() {
-                // Calculate effective rates
-                this.state.effectiveRates = PhysicsEngine.calculateEffectiveRates(
-                    this.state.systemState, 
-                    this.state.simParams, 
-                    this.state.globalTemp
-                );
-                
-                // Perform RK4 integration step
-                const newState = PhysicsEngine.rk4Step(
-                    this.state.systemState,
-                    CONFIG.ANIMATION.TIME_STEP,
-                    this.state.currentTime,
-                    this.state
-                );
-                
-                // Update state
-                this.state.systemState = newState;
-                this.state.currentTime += CONFIG.ANIMATION.TIME_STEP;
-                
-                // Validate and update temperature
-                this.state.validate();
-                PhysicsEngine.updateGlobalTemp(this.state);
-                
-                // Add to history
-                this.addToHistory();
-            }
-            
-            addToHistory() {
-                const historyPoint = {
-                    time: this.state.currentTime,
-                    GT: this.state.globalTemp,
-                    ...this.state.systemState
-                };
-                
-                this.state.history.push(historyPoint);
-                if (this.state.history.length > CONFIG.ANIMATION.MAX_HISTORY) {
-                    this.state.history.shift();
-                }
-            }
-            
-            addOrganism(type, amount) {
-                switch(type) {
-                    case 'plant':
-                        this.state.systemState.P += amount;
-                        break;
-                    case 'herbivore':
-                        this.state.systemState.H += amount;
-                        break;
-                    case 'carnivore':
-                        this.state.systemState.C += amount;
-                        break;
-                }
-                this.ui.showMessage(`Added ${amount} ${type}s`);
+                this.compile();
+                this.ui.showMessage('🔄 DEs reset to default');
             }
         }
         
-        // On load, create all manager instances and the main simulation controller
+        class Simulation {
+             constructor() {
+                this.state = new SimulationState();
+                this.ui = new UIManager(this);
+                this.paramManager = new ParameterManager(this.state, this.ui);
+                this.deManager = new DEManager(this.state, this.ui);
+                this.graphManager = new GraphManager(this.ui);
+             }
+             
+             initialize() {
+                this.state.reset();
+                this.paramManager.populateInputs();
+                this.deManager.setupInputs();
+                this.state.simParams = this.paramManager.getParams();
+                this.state.systemState = {
+                    P: this.state.simParams.initialP, H: this.state.simParams.initialH, C: this.state.simParams.initialC,
+                    CO2_atm: this.state.simParams.initialCO2_atm, O2_atm: this.state.simParams.initialO2_atm,
+                    N2_atm: this.state.simParams.initialN2_atm, AN_pool: this.state.simParams.initialAN_pool,
+                    C_detritus: this.state.simParams.initialC_detritus, N_detritus: this.state.simParams.initialN_detritus
+                };
+                PhysicsEngine.updateGlobalTemp(this.state);
+                this.addHistoryPoint();
+             }
+
+             addHistoryPoint() {
+                if (this.state.history.length >= CONFIG.ANIMATION.MAX_HISTORY) this.state.history.shift();
+                this.state.history.push({ time: this.state.currentTime, ...this.state.systemState, GT: this.state.globalTemp });
+             }
+
+             step() {
+                this.state.simParams = this.paramManager.getParams();
+                this.state.effectiveRates = PhysicsEngine.calculateEffectiveRates(this.state.systemState, this.state.simParams, this.state.globalTemp);
+                this.state.systemState = PhysicsEngine.rk4Step(this.state.systemState, CONFIG.ANIMATION.TIME_STEP, this.state.currentTime, this.state);
+                this.state.validate();
+                this.state.currentTime += CONFIG.ANIMATION.TIME_STEP;
+                PhysicsEngine.updateGlobalTemp(this.state);
+                this.addHistoryPoint();
+             }
+
+             gameLoop(currentTime) {
+                if (!this.state.simulationRunning) return;
+                if (currentTime - this.state.lastFrameTime >= 1000 / CONFIG.ANIMATION.FPS) {
+                    this.step();
+                    this.ui.updateStats(this.state);
+                    this.graphManager.renderAll(this.state);
+                    this.state.lastFrameTime = currentTime;
+                }
+                this.state.animationFrameId = requestAnimationFrame((time) => this.gameLoop(time));
+             }
+
+             start() {
+                if (this.state.simulationRunning) return;
+                if (!this.deManager.compile()) {
+                    this.ui.showMessage('❌ Cannot start: DE compilation errors.', 3000, true); return;
+                }
+                this.state.simulationRunning = true; this.ui.setSimulationControls(true);
+                this.state.lastFrameTime = performance.now();
+                this.gameLoop(this.state.lastFrameTime);
+                this.ui.showMessage('▶️ Simulation started');
+             }
+             
+             stop() {
+                this.state.simulationRunning = false; this.ui.setSimulationControls(false);
+                if (this.state.animationFrameId) cancelAnimationFrame(this.state.animationFrameId);
+                this.ui.showMessage('⏸️ Simulation stopped');
+             }
+
+             tick() {
+                if (this.state.simulationRunning) return;
+                if (!this.deManager.compile()) {
+                    this.ui.showMessage('❌ Cannot step: DE compilation errors.', 3000, true); return;
+                }
+                this.step(); this.ui.updateStats(this.state);
+                this.graphManager.renderAll(this.state); this.ui.showMessage('⏭️ Advanced one step');
+             }
+
+             reset() {
+                this.stop(); this.initialize(); this.deManager.compile();
+                this.ui.updateStats(this.state); this.graphManager.renderAll(this.state);
+                this.ui.showMessage('🔄 Simulation reset');
+             }
+
+             addOrganism(type, count) {
+                if (this.state.systemState.hasOwnProperty(type)) this.state.systemState[type] += count;
+                this.state.validate(); this.ui.updateStats(this.state);
+                this.ui.showMessage(`➕ Added ${count} ${type}(s)`);
+             }
+        }
+        
         document.addEventListener('DOMContentLoaded', () => {
-            const simulation = new Simulation(); // Simulation will internally create its managers
-            simulation.initialize(); // Sets up initial state, params, DEs
-            simulation.ui.resizeCanvases(); // Initial resize to set canvas dimensions
-            simulation.graphManager.renderAll(simulation.state); // Initial render
-            simulation.ui.updateStats(simulation.state); // Initial stat update
+            const simulation = new Simulation();
+            simulation.initialize();
+            simulation.ui.resizeCanvases(); 
+            simulation.graphManager.renderAll(simulation.state); 
+            simulation.ui.updateStats(simulation.state); 
             simulation.ui.showMessage('🌱 Ecosystem Simulation Ready!', 4000);
         });
-
     </script>
 </body>
 </html>
