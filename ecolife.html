@@ -146,6 +146,10 @@
             border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;
         }
         .param-section, .de-section { margin-bottom: 1rem; }
+        .param-section h3 {
+            font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem;
+            color: #4b5563; border-bottom: 1px solid #d1d5db; padding-bottom: 0.25rem;
+        }
         .param-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -333,7 +337,9 @@
             COLORS: {
                 P: '#22c55e', H: '#a855f7', C: '#f97316',
                 CO2_atm: '#71717a', O2_atm: '#3b82f6', N2_atm: '#8b5cf6',
-                AN_pool: '#eab308', GT: '#ef4444', C_detritus: '#a3a3a3', N_detritus: '#a3a3a3'
+                AN_pool: '#eab308', GT: '#ef4444', 
+                C_detritus: '#a3a3a3', N_detritus: '#737373',
+                Detritus: '#737373'
             },
             ANIMATION: { TIME_STEP: 0.1, MAX_HISTORY: 500, FPS: 30 },
             VALIDATION: { MIN_VALUE: 0 }
@@ -473,7 +479,7 @@
             
             static rk4Step(currentState, dt, t, state) {
                 const k1 = this.calculateDerivatives(currentState, t, state);
-                state.flowRates = k1; // Use first step's derivatives for flow visualization rates
+                state.flowRates = k1;
 
                 const y_k1 = {}; Object.keys(currentState).forEach(key => y_k1[key] = currentState[key] + k1[key] * dt / 2);
                 const k2 = this.calculateDerivatives(y_k1, t + dt / 2, state);
@@ -523,7 +529,7 @@
             }
 
             drawTimeSeriesGraph(canvas, ctx, data, variableNames, colors, title, yAxisLabel) {
-                 if (!ctx || !canvas) return;
+                if (!ctx || !canvas) return;
                 const dpr = window.devicePixelRatio || 1;
                 const rect = canvas.getBoundingClientRect();
                 canvas.width = rect.width * dpr;
@@ -621,14 +627,14 @@
                     C_H: { x: width * 0.25, y: height * 0.5, value: H * C_content_biomass, color: CONFIG.COLORS.H, label: 'C in Herbivores' },
                     C_C: { x: width * 0.75, y: height * 0.5, value: C * C_content_biomass, color: CONFIG.COLORS.C, label: 'C in Carnivores' },
                     C_atm: { x: width * 0.5, y: height * 0.15, value: CO2_atm, color: CONFIG.COLORS.CO2_atm, label: 'Atmospheric CO₂' },
-                    C_det: { x: width * 0.5, y: height * 0.9, value: C_detritus, color: CONFIG.COLORS.Detritus, label: 'Carbon Detritus' },
+                    C_det: { x: width * 0.5, y: height * 0.9, value: C_detritus, color: CONFIG.COLORS.C_detritus, label: 'Carbon Detritus' },
 
                     N_P: { x: width * 0.5, y: height * 0.65, value: P * N_content_biomass, color: CONFIG.COLORS.P },
                     N_H: { x: width * 0.25, y: height * 0.5, value: H * N_content_biomass, color: CONFIG.COLORS.H },
                     N_C: { x: width * 0.75, y: height * 0.5, value: C * N_content_biomass, color: CONFIG.COLORS.C },
                     N_atm: { x: width * 0.15, y: height * 0.15, value: N2_atm, color: CONFIG.COLORS.N2_atm, label: 'Atmospheric N₂' },
                     N_an: { x: width * 0.85, y: height * 0.15, value: AN_pool, color: CONFIG.COLORS.AN_pool, label: 'Available N' },
-                    N_det: { x: width * 0.5, y: height * 0.9, value: N_detritus, color: CONFIG.COLORS.Detritus, label: 'Nitrogen Detritus' }
+                    N_det: { x: width * 0.5, y: height * 0.9, value: N_detritus, color: CONFIG.COLORS.N_detritus, label: 'Nitrogen Detritus' }
                 };
                 
                 const totalC = Object.values(pools).filter(p => p.label?.includes('C')).reduce((s,p) => s + p.value, 0);
@@ -637,7 +643,7 @@
                 Object.values(pools).forEach(pool => {
                     const isC = pool.label?.includes('C');
                     const total = isC ? totalC : totalN;
-                    pool.radius = total > 0 ? 10 + Math.sqrt(pool.value / total) * (Math.min(width, height) * 0.2) : 10;
+                    pool.radius = total > 0 ? 10 + Math.sqrt(pool.value / total) * (Math.min(width, height) * 0.15) : 10;
                 });
                 
                 // Draw nodes and labels
@@ -646,68 +652,58 @@
                     if (pool.label) {
                         ctx.beginPath();
                         ctx.arc(pool.x, pool.y, pool.radius, 0, 2 * Math.PI);
-                        ctx.fillStyle = pool.color + '40'; // semi-transparent fill
+                        ctx.fillStyle = pool.color + '40';
                         ctx.fill();
                         ctx.strokeStyle = pool.color;
                         ctx.lineWidth = 2;
                         ctx.stroke();
                         ctx.fillStyle = '#333';
-                        ctx.font = 'bold 11px Inter';
+                        ctx.font = 'bold 10px Inter';
                         ctx.fillText(pool.label, pool.x, pool.y - pool.radius - 12);
-                        ctx.font = '10px Inter';
+                        ctx.font = '9px Inter';
                         ctx.fillText(pool.value.toFixed(0), pool.x, pool.y);
                     }
                 });
 
-                // Animate flows
-                const flowDefs = {
-                    C_atm_to_P: { from: pools.C_atm, to: pools.C_P, rate: state.flowRates.CO2_atm, color: CONFIG.COLORS.CO2_atm, type: 'C' },
-                    C_P_to_atm: { from: pools.C_P, to: pools.C_atm, rate: state.flowRates.CO2_atm, color: CONFIG.COLORS.CO2_atm, type: 'C' },
-                    C_H_to_atm: { from: pools.C_H, to: pools.C_atm, rate: state.flowRates.CO2_atm, color: CONFIG.COLORS.CO2_atm, type: 'C' },
-                    C_C_to_atm: { from: pools.C_C, to: pools.C_atm, rate: state.flowRates.CO2_atm, color: CONFIG.COLORS.CO2_atm, type: 'C' },
-                    C_P_to_H: { from: pools.C_P, to: pools.C_H, rate: state.flowRates.P, color: CONFIG.COLORS.P, type: 'C' },
-                    C_H_to_C: { from: pools.C_H, to: pools.C_C, rate: state.flowRates.H, color: CONFIG.COLORS.H, type: 'C' },
-                    C_P_to_det: { from: pools.C_P, to: pools.C_det, rate: state.flowRates.C_detritus, color: CONFIG.COLORS.Detritus, type: 'C' },
-                    C_H_to_det: { from: pools.C_H, to: pools.C_det, rate: state.flowRates.C_detritus, color: CONFIG.COLORS.Detritus, type: 'C' },
-                    C_C_to_det: { from: pools.C_C, to: pools.C_det, rate: state.flowRates.C_detritus, color: CONFIG.COLORS.Detritus, type: 'C' },
-                    C_det_to_atm: { from: pools.C_det, to: pools.C_atm, rate: state.flowRates.C_detritus, color: CONFIG.COLORS.Detritus, type: 'C' },
+                // Create and animate flow particles
+                if (state.flowRates) {
+                    const maxFlowRate = Math.max(1, ...Object.values(state.flowRates).map(r => Math.abs(r)));
                     
-                    N_atm_to_an: { from: pools.N_atm, to: pools.N_an, rate: state.flowRates.N2_atm, color: CONFIG.COLORS.N2_atm, type: 'N' },
-                    N_an_to_P: { from: pools.N_an, to: pools.N_P, rate: state.flowRates.AN_pool, color: CONFIG.COLORS.AN_pool, type: 'N' },
-                    N_P_to_det: { from: pools.N_P, to: pools.N_det, rate: state.flowRates.N_detritus, color: CONFIG.COLORS.Detritus, type: 'N' },
-                    N_H_to_det: { from: pools.N_H, to: pools.N_det, rate: state.flowRates.N_detritus, color: CONFIG.COLORS.Detritus, type: 'N' },
-                    N_C_to_det: { from: pools.N_C, to: pools.N_det, rate: state.flowRates.N_detritus, color: CONFIG.COLORS.Detritus, type: 'N' },
-                    N_det_to_an: { from: pools.N_det, to: pools.N_an, rate: state.flowRates.AN_pool, color: CONFIG.COLORS.Detritus, type: 'N' },
-                    N_an_to_atm: { from: pools.N_an, to: pools.N_atm, rate: state.flowRates.N2_atm, color: CONFIG.COLORS.AN_pool, type: 'N' }
-                };
+                    const flowDefs = [
+                        { from: pools.C_atm, to: pools.C_P, rate: -state.flowRates.CO2_atm || 0, color: CONFIG.COLORS.CO2_atm },
+                        { from: pools.N_an, to: pools.N_P, rate: -state.flowRates.AN_pool || 0, color: CONFIG.COLORS.AN_pool },
+                        { from: pools.N_atm, to: pools.N_an, rate: -state.flowRates.N2_atm || 0, color: CONFIG.COLORS.N2_atm }
+                    ];
 
-                const maxFlowRate = Math.max(1, ...Object.values(state.flowRates).map(r => Math.abs(r)));
-
-                Object.values(flowDefs).forEach(flow => {
-                    const numParticles = Math.floor(Math.abs(flow.rate) / maxFlowRate * 20);
-                    for (let i = 0; i < numParticles; i++) {
-                        if (Math.random() < 0.2) { // Add particles intermittently
-                            this.flowParticles.push({
-                                x: flow.from.x, y: flow.from.y,
-                                tx: flow.to.x, ty: flow.to.y,
-                                color: flow.color,
-                                life: 100
-                            });
+                    flowDefs.forEach(flow => {
+                        if (Math.abs(flow.rate) > 0.01) {
+                            const numParticles = Math.min(3, Math.floor(Math.abs(flow.rate) / maxFlowRate * 15));
+                            for (let i = 0; i < numParticles; i++) {
+                                if (Math.random() < 0.05) {
+                                    this.flowParticles.push({
+                                        x: flow.from.x, y: flow.from.y,
+                                        tx: flow.to.x, ty: flow.to.y,
+                                        color: flow.color,
+                                        life: 60
+                                    });
+                                }
+                            }
                         }
-                    }
-                });
+                    });
+                }
                 
                 // Update and draw particles
                 this.flowParticles = this.flowParticles.filter(p => p.life > 0);
                 this.flowParticles.forEach(p => {
                     const dx = p.tx - p.x; const dy = p.ty - p.y;
-                    p.x += dx * 0.05; p.y += dy * 0.05;
-                    p.life -= 2;
+                    p.x += dx * 0.08; p.y += dy * 0.08;
+                    p.life -= 1;
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, 2, 0, 2 * Math.PI);
                     ctx.fillStyle = p.color;
                     ctx.fill();
                 });
+                
                 ctx.font = 'bold 14px Inter';
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#333';
@@ -715,30 +711,56 @@
             }
 
             renderAll(state) {
-                if (this.ui.elements.ecoCanvas) {
-                    this.drawTimeSeriesGraph(this.ui.elements.ecoCanvas, this.ui.elements.ecoCanvas.getContext('2d'), state.history,
-                        ['P', 'H', 'C'], [CONFIG.COLORS.P, CONFIG.COLORS.H, CONFIG.COLORS.C], 'Ecosystem Populations', 'Population Count');
-                }
-                if (this.ui.elements.atmCanvas) {
-                    this.drawTimeSeriesGraph(this.ui.elements.atmCanvas, this.ui.elements.atmCanvas.getContext('2d'), state.history,
-                        ['CO2_atm', 'O2_atm', 'N2_atm'], [CONFIG.COLORS.CO2_atm, CONFIG.COLORS.O2_atm, CONFIG.COLORS.N2_atm], 'Atmospheric Gases', 'Amount');
-                }
-                if (this.ui.elements.nitrogenCanvas) {
-                    this.drawTimeSeriesGraph(this.ui.elements.nitrogenCanvas, this.ui.elements.nitrogenCanvas.getContext('2d'), state.history,
-                        ['AN_pool', 'N_detritus'], [CONFIG.COLORS.AN_pool, CONFIG.COLORS.Detritus], 'Nitrogen Cycle Pools', 'Amount');
-                }
-                if (this.ui.elements.temperatureCanvas) {
-                    this.drawTimeSeriesGraph(this.ui.elements.temperatureCanvas, this.ui.elements.temperatureCanvas.getContext('2d'), state.history,
-                        ['GT'], [CONFIG.COLORS.GT], 'Global Temperature', 'Temperature (°C)');
-                }
-                if (this.ui.elements.nutrientFlowCanvas) {
-                    this.drawNutrientFlowDiagram(this.ui.elements.nutrientFlowCanvas, this.ui.elements.nutrientFlowCanvas.getContext('2d'), state);
-                }
+                this.drawTimeSeriesGraph(
+                    this.ui.elements.ecoCanvas, 
+                    this.ui.elements.ecoCanvas?.getContext('2d'), 
+                    state.history,
+                    ['P', 'H', 'C'], 
+                    [CONFIG.COLORS.P, CONFIG.COLORS.H, CONFIG.COLORS.C], 
+                    'Ecosystem Populations', 
+                    'Population Count'
+                );
+                
+                this.drawTimeSeriesGraph(
+                    this.ui.elements.atmCanvas, 
+                    this.ui.elements.atmCanvas?.getContext('2d'), 
+                    state.history,
+                    ['CO2_atm', 'O2_atm', 'N2_atm'], 
+                    [CONFIG.COLORS.CO2_atm, CONFIG.COLORS.O2_atm, CONFIG.COLORS.N2_atm], 
+                    'Atmospheric Gases', 
+                    'Amount'
+                );
+
+                this.drawTimeSeriesGraph(
+                    this.ui.elements.nitroCanvas, 
+                    this.ui.elements.nitroCanvas?.getContext('2d'), 
+                    state.history,
+                    ['AN_pool', 'N_detritus'], 
+                    [CONFIG.COLORS.AN_pool, CONFIG.COLORS.N_detritus], 
+                    'Nitrogen Cycle Pools', 
+                    'Amount'
+                );
+
+                this.drawTimeSeriesGraph(
+                    this.ui.elements.tempCanvas, 
+                    this.ui.elements.tempCanvas?.getContext('2d'), 
+                    state.history,
+                    ['GT'], 
+                    [CONFIG.COLORS.GT], 
+                    'Global Temperature', 
+                    'Temperature (°C)'
+                );
+
+                this.drawNutrientFlowDiagram(
+                    this.ui.elements.nutrientFlowCanvas, 
+                    this.ui.elements.nutrientFlowCanvas?.getContext('2d'), 
+                    state
+                );
             }
         }
         
         class UIManager {
-             constructor(simulation) {
+            constructor(simulation) {
                 this.simulation = simulation;
                 this.elements = this.initializeElements();
                 this.setupEventListeners();
@@ -749,35 +771,42 @@
                     ecoCanvas: document.getElementById('ecosystemCanvas'),
                     atmCanvas: document.getElementById('atmosphereCanvas'),
                     nutrientFlowCanvas: document.getElementById('nutrientFlowCanvas'),
-                    temperatureCanvas: document.getElementById('temperatureCanvas'),
-                    nitrogenCanvas: document.getElementById('nitrogenCanvas'),
+                    tempCanvas: document.getElementById('temperatureCanvas'),
+                    nitroCanvas: document.getElementById('nitrogenCanvas'),
                     pieCanvas: document.getElementById('pieCanvas')
                 };
             }
             
             setupEventListeners() {
-                document.getElementById('startButton').addEventListener('click', () => this.simulation.start());
-                document.getElementById('stopButton').addEventListener('click', () => this.simulation.stop());
-                document.getElementById('tickButton').addEventListener('click', () => this.simulation.tick());
-                document.getElementById('resetButton').addEventListener('click', () => this.simulation.reset());
+                document.getElementById('startButton')?.addEventListener('click', () => this.simulation.start());
+                document.getElementById('stopButton')?.addEventListener('click', () => this.simulation.stop());
+                document.getElementById('tickButton')?.addEventListener('click', () => this.simulation.tick());
+                document.getElementById('resetButton')?.addEventListener('click', () => this.simulation.reset());
                 
-                document.getElementById('addPlantButton').addEventListener('click', () => this.simulation.addOrganism('plant', 10));
-                document.getElementById('addHerbivoreButton').addEventListener('click', () => this.simulation.addOrganism('herbivore', 5));
-                document.getElementById('addCarnivoreButton').addEventListener('click', () => this.simulation.addOrganism('carnivore', 2));
+                document.getElementById('addPlantButton')?.addEventListener('click', () => this.simulation.addOrganism('plant', 10));
+                document.getElementById('addHerbivoreButton')?.addEventListener('click', () => this.simulation.addOrganism('herbivore', 5));
+                document.getElementById('addCarnivoreButton')?.addEventListener('click', () => this.simulation.addOrganism('carnivore', 2));
                 
-                document.getElementById('toggleDEButton').addEventListener('click', () => this.toggleDEEditor());
-                document.getElementById('toggleParamsButton').addEventListener('click', () => this.toggleParameters());
+                document.getElementById('toggleDEButton')?.addEventListener('click', () => this.toggleDEEditor());
+                document.getElementById('toggleParamsButton')?.addEventListener('click', () => this.toggleParameters());
+                
+                // Handle window resize
+                window.addEventListener('resize', () => this.resizeCanvases());
             }
             
             toggleDEEditor() {
                 const tray = document.getElementById('deEditorTray');
-                tray.classList.toggle('open');
-                this.simulation.graphManager.renderAll(this.simulation.state); // Re-render to update any changes
+                if (tray) {
+                    tray.classList.toggle('open');
+                    setTimeout(() => this.simulation.graphManager.renderAll(this.simulation.state), 300);
+                }
             }
             
             toggleParameters() {
                 const tray = document.getElementById('parameterTray');
-                tray.classList.toggle('open');
+                if (tray) {
+                    tray.classList.toggle('open');
+                }
             }
             
             resizeCanvases() {
@@ -788,31 +817,47 @@
                         canvas.width = rect.width * dpr;
                         canvas.height = rect.height * dpr;
                         const ctx = canvas.getContext('2d');
-                        ctx.scale(dpr, dpr);
+                        if (ctx) {
+                            ctx.scale(dpr, dpr);
+                        }
                     }
                 });
+                
+                // Re-render after resize
+                if (this.simulation && this.simulation.graphManager) {
+                    this.simulation.graphManager.renderAll(this.simulation.state);
+                }
             }
             
             updateStats(state) {
-                // Update stats display based on the current state
-                document.getElementById('plantCount').innerText = `🌱 P: ${state.systemState.P.toFixed(2)}`;
-                document.getElementById('herbivoreCount').innerText = `🐰 H: ${state.systemState.H.toFixed(2)}`;
-                document.getElementById('carnivoreCount').innerText = `🦁 C: ${state.systemState.C.toFixed(2)}`;
-                document.getElementById('co2Count').innerText = `CO₂: ${state.systemState.CO2_atm.toFixed(2)}`;
-                document.getElementById('o2Count').innerText = `O₂: ${state.systemState.O2_atm.toFixed(2)}`;
-                document.getElementById('n2Count').innerText = `N₂: ${state.systemState.N2_atm.toFixed(2)}`;
-                document.getElementById('anCount').innerText = `💧 AN: ${state.systemState.AN_pool.toFixed(2)}`;
-                document.getElementById('tempCount').innerText = `🌡️ Temp: ${state.globalTemp.toFixed(2)}°C`;
-                document.getElementById('timeCount').innerText = `⏰ Time: ${state.currentTime.toFixed(2)}`;
-                document.getElementById('detritusC').innerText = `🍂 C Detritus: ${state.systemState.C_detritus.toFixed(2)}`;
-                document.getElementById('detritusN').innerText = `🍂 N Detritus: ${state.systemState.N_detritus.toFixed(2)}`;
+                const updates = [
+                    ['plantCount', `🌱 P: ${state.systemState.P.toFixed(1)}`],
+                    ['herbivoreCount', `🐰 H: ${state.systemState.H.toFixed(1)}`],
+                    ['carnivoreCount', `🦁 C: ${state.systemState.C.toFixed(1)}`],
+                    ['co2Count', `CO₂: ${state.systemState.CO2_atm.toFixed(0)}`],
+                    ['o2Count', `O₂: ${(state.systemState.O2_atm/1000).toFixed(0)}k`],
+                    ['n2Count', `N₂: ${(state.systemState.N2_atm/1000).toFixed(0)}k`],
+                    ['anCount', `💧 AN: ${state.systemState.AN_pool.toFixed(1)}`],
+                    ['tempCount', `🌡️ Temp: ${state.globalTemp.toFixed(1)}°C`],
+                    ['timeCount', `⏰ Time: ${state.currentTime.toFixed(1)}`],
+                    ['detritusC', `🍂 C Det: ${state.systemState.C_detritus.toFixed(1)}`],
+                    ['detritusN', `🍂 N Det: ${state.systemState.N_detritus.toFixed(1)}`]
+                ];
+                
+                updates.forEach(([id, text]) => {
+                    const element = document.getElementById(id);
+                    if (element) element.textContent = text;
+                });
             }
             
-            showMessage(message, duration = 3000) {
+            showMessage(message, duration = 3000, isError = false) {
                 const msgBox = document.getElementById('messageBox');
-                msgBox.innerText = message;
-                msgBox.style.display = 'block';
-                setTimeout(() => { msgBox.style.display = 'none'; }, duration);
+                if (msgBox) {
+                    msgBox.textContent = message;
+                    msgBox.className = isError ? 'message-box error' : 'message-box';
+                    msgBox.style.display = 'block';
+                    setTimeout(() => { msgBox.style.display = 'none'; }, duration);
+                }
             }
         }
         
@@ -824,37 +869,48 @@
             
             createParameterUI() {
                 const tray = document.getElementById('parameterTray');
+                if (!tray) return;
+                
+                const paramSections = [
+                    {
+                        title: 'Initial Conditions',
+                        params: ['initialP', 'initialH', 'initialC', 'initialCO2_atm', 'initialO2_atm', 'initialN2_atm', 'initialAN_pool']
+                    },
+                    {
+                        title: 'Growth & Mortality',
+                        params: ['rP_base', 'm_P_base', 'm_H_base', 'm_C_base', 'a_PH', 'a_HC', 'e_PH_base', 'e_HC_base']
+                    },
+                    {
+                        title: 'Gas Exchange',
+                        params: ['photosynthesis_CO2_uptake_rate', 'plant_O2_consumption_rate', 'herbivore_O2_consumption_rate', 'carnivore_O2_consumption_rate']
+                    },
+                    {
+                        title: 'Temperature Response',
+                        params: ['plantTempSetpoint', 'herbivoreTempSetpoint', 'carnivoreTempSetpoint', 'tempSensitivityToCO2']
+                    }
+                ];
+                
                 tray.innerHTML = `
                     <h2>⚙️ Simulation Parameters</h2>
-                    <div class="param-section">
-                        <h3>Initial Conditions</h3>
-                        <div class="param-grid">
-                            ${this.createParamInput('initialP', 'Plants', 'Initial plant population')}
-                            ${this.createParamInput('initialH', 'Herbivores', 'Initial herbivore population')}
-                            ${this.createParamInput('initialC', 'Carnivores', 'Initial carnivore population')}
-                            ${this.createParamInput('initialCO2_atm', 'CO₂', 'Initial atmospheric CO₂')}
-                            ${this.createParamInput('initialO2_atm', 'O₂', 'Initial atmospheric O₂')}
-                            ${this.createParamInput('initialN2_atm', 'N₂', 'Initial atmospheric N₂')}
+                    ${paramSections.map(section => `
+                        <div class="param-section">
+                            <h3>${section.title}</h3>
+                            <div class="param-grid">
+                                ${section.params.map(param => this.createParamInput(param)).join('')}
+                            </div>
                         </div>
-                    </div>
-                    <div class="param-section">
-                        <h3>Growth & Mortality Rates</h3>
-                        <div class="param-grid">
-                            ${this.createParamInput('rP_base', 'Plant Growth Rate', 'Base plant reproduction rate')}
-                            ${this.createParamInput('m_P_base', 'Plant Mortality', 'Base plant mortality rate')}
-                            ${this.createParamInput('m_H_base', 'Herbivore Mortality', 'Base herbivore mortality rate')}
-                            ${this.createParamInput('m_C_base', 'Carnivore Mortality', 'Base carnivore mortality rate')}
-                        </div>
-                    </div>
+                    `).join('')}
                 `;
+                
                 this.bindParameterEvents();
             }
             
-            createParamInput(paramKey, label, title) {
+            createParamInput(paramKey) {
                 const value = this.simulation.state.simParams[paramKey];
+                const label = this.formatParamName(paramKey);
                 return `
                     <div class="param-item">
-                        <label title="${title}">${label}</label>
+                        <label title="${paramKey}">${label}</label>
                         <input type="number" 
                                data-param="${paramKey}" 
                                value="${value}" 
@@ -862,6 +918,14 @@
                                min="0">
                     </div>
                 `;
+            }
+            
+            formatParamName(key) {
+                return key.replace(/([A-Z])/g, ' $1')
+                         .replace(/^./, str => str.toUpperCase())
+                         .replace('_', ' ')
+                         .replace('base', 'Rate')
+                         .replace('initial', '');
             }
             
             bindParameterEvents() {
