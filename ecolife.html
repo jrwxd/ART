@@ -715,19 +715,25 @@
             }
 
             renderAll(state) {
-                this.drawTimeSeriesGraph(this.ui.elements.ecoCanvas, this.ui.elements.ecoCanvas.getContext('2d'), state.history,
-                    ['P', 'H', 'C'], [CONFIG.COLORS.P, CONFIG.COLORS.H, CONFIG.COLORS.C], 'Ecosystem Populations', 'Population Count');
-                
-                this.drawTimeSeriesGraph(this.ui.elements.atmCanvas, this.ui.elements.atmCanvas.getContext('2d'), state.history,
-                    ['CO2_atm', 'O2_atm', 'N2_atm'], [CONFIG.COLORS.CO2_atm, CONFIG.COLORS.O2_atm, CONFIG.COLORS.N2_atm], 'Atmospheric Gases', 'Amount');
-
-                this.drawTimeSeriesGraph(this.ui.elements.nitrogenCanvas, this.ui.elements.nitrogenCanvas.getContext('2d'), state.history,
-                    ['AN_pool', 'N_detritus'], [CONFIG.COLORS.AN_pool, CONFIG.COLORS.Detritus], 'Nitrogen Cycle Pools', 'Amount');
-
-                this.drawTimeSeriesGraph(this.ui.elements.temperatureCanvas, this.ui.elements.temperatureCanvas.getContext('2d'), state.history,
-                    ['GT'], [CONFIG.COLORS.GT], 'Global Temperature', 'Temperature (°C)');
-
-                this.drawNutrientFlowDiagram(this.ui.elements.nutrientFlowCanvas, this.ui.elements.nutrientFlowCanvas.getContext('2d'), state);
+                if (this.ui.elements.ecoCanvas) {
+                    this.drawTimeSeriesGraph(this.ui.elements.ecoCanvas, this.ui.elements.ecoCanvas.getContext('2d'), state.history,
+                        ['P', 'H', 'C'], [CONFIG.COLORS.P, CONFIG.COLORS.H, CONFIG.COLORS.C], 'Ecosystem Populations', 'Population Count');
+                }
+                if (this.ui.elements.atmCanvas) {
+                    this.drawTimeSeriesGraph(this.ui.elements.atmCanvas, this.ui.elements.atmCanvas.getContext('2d'), state.history,
+                        ['CO2_atm', 'O2_atm', 'N2_atm'], [CONFIG.COLORS.CO2_atm, CONFIG.COLORS.O2_atm, CONFIG.COLORS.N2_atm], 'Atmospheric Gases', 'Amount');
+                }
+                if (this.ui.elements.nitrogenCanvas) {
+                    this.drawTimeSeriesGraph(this.ui.elements.nitrogenCanvas, this.ui.elements.nitrogenCanvas.getContext('2d'), state.history,
+                        ['AN_pool', 'N_detritus'], [CONFIG.COLORS.AN_pool, CONFIG.COLORS.Detritus], 'Nitrogen Cycle Pools', 'Amount');
+                }
+                if (this.ui.elements.temperatureCanvas) {
+                    this.drawTimeSeriesGraph(this.ui.elements.temperatureCanvas, this.ui.elements.temperatureCanvas.getContext('2d'), state.history,
+                        ['GT'], [CONFIG.COLORS.GT], 'Global Temperature', 'Temperature (°C)');
+                }
+                if (this.ui.elements.nutrientFlowCanvas) {
+                    this.drawNutrientFlowDiagram(this.ui.elements.nutrientFlowCanvas, this.ui.elements.nutrientFlowCanvas.getContext('2d'), state);
+                }
             }
         }
         
