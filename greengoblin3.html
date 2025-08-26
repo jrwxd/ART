@@ -1,9 +1,11 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mandarin Character Control (Keystroke Input)</title>
+    <title>Mandarin Character Control (Cycling Input)</title>
     <style>
         body, html {
             margin: 0;
@@ -63,7 +65,6 @@
             min-width: 40px;
             text-align: right;
         }
-        /* Style for the new char count display */
         #char-count-display {
             margin-top: 5px;
             padding-top: 5px;
@@ -99,13 +100,10 @@
     <script>
         const container = document.getElementById('character-container');
         const measureSpan = document.getElementById('measure-span');
-        // Start with a smaller base string
         let mandarinChars = "泠屮亇孑风上海市...-/|伤孑閹羪螜臱佈忇軅亇亇贔颗亇蛧砏汱宂彶泠屮噻蟣櫻鴈烪泠苶风亇泠厏蹗萺烪莟";
 
-        // --- Global variables for the pattern ---
         let A, C, D, E;
 
-        // --- DOM Elements ---
         const sliderA = document.getElementById('slider-a');
         const sliderC = document.getElementById('slider-c');
         const sliderD = document.getElementById('slider-d');
@@ -116,9 +114,7 @@
         const valueD = document.getElementById('value-d');
         const valueE = document.getElementById('value-e');
         
-        const charCountDisplay = document.getElementById('char-count'); // Get the new span
-
-        // --- Functions ---
+        const charCountDisplay = document.getElementById('char-count');
 
         function updateVariablesFromControls() {
             A = parseFloat(sliderA.value);
@@ -136,12 +132,12 @@
             charCountDisplay.textContent = mandarinChars.length;
         }
         
-        /** NEW: Handles key presses to add to the character string */
+        /** MODIFIED: Handles key presses to cycle the character string */
         function handleKeyPress(event) {
-            // Filter for single, printable characters. Ignores "Shift", "Enter", etc.
-            if (event.key.length === 1 && event.key !== ' ') { // also ignoring space for cleaner input
-                mandarinChars += event.key; // Append the new character
-                updateCharCount();          // Update the UI
+            // Filter for single, printable characters.
+            if (event.key.length === 1 && event.key !== ' ') {
+                // Prepend the new character and remove the last character.
+                mandarinChars = event.key + mandarinChars.slice(0, -1);
             }
         }
 
@@ -195,23 +191,17 @@
             container.textContent = content;
         }
 
-        // --- Event Listeners and Initialization ---
-
         function initialize() {
-            // Set up listeners for sliders
             sliderA.addEventListener('input', updateVariablesFromControls);
             sliderC.addEventListener('input', updateVariablesFromControls);
             sliderD.addEventListener('input', updateVariablesFromControls);
             sliderE.addEventListener('input', updateVariablesFromControls);
             
-            // NEW: Add the keypress listener
             window.addEventListener('keydown', handleKeyPress);
 
-            // Set initial values from sliders and update char count
             updateVariablesFromControls();
-            updateCharCount();
+            updateCharCount(); // Set initial count
 
-            // Initial fill and start the animation loop
             fillScreen();
             setInterval(fillScreen, 100);
 
@@ -223,3 +213,4 @@
     </script>
 </body>
 </html>
+
