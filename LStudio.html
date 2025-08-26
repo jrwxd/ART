@@ -339,6 +339,7 @@
             for (let i = 0; i < iterations; i++) {
                 currentString = Array.from(currentString).map(char => rulesMap.get(char) || char).join('');
             }
+            console.log("Let it be known, the L-System string is: " + currentString);
             return currentString;
         }
 
@@ -388,7 +389,7 @@
                     case '+': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -turtle.yaw)); break;
                     case '-': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), turtle.yaw)); break;
                     case '&': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), turtle.pitch)); break;
-                    case '^': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -turtle.pitch)); break;
+                    case '|': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -turtle.pitch)); break;
                     case '\\': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), turtle.roll)); break;
                     case '/': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -turtle.roll)); break;
                     case '[': stateStack.push({ ...turtle, position: turtle.position.clone(), quaternion: turtle.quaternion.clone() }); break;
@@ -401,18 +402,24 @@
                         }
                         break;
                     }
+                    case '<': turtle.position.y -= turtle.length; break;
+                    case '>': turtle.position.y += turtle.length; break;
+                    case '^': turtle.position.z += turtle.length; break;
+                    case 'v': turtle.position.z -= turtle.length; break;
+                    case '{': turtle.position.x += turtle.length; break;
+                    case '}': turtle.position.x -= turtle.length; break;
                     case '!': turtle.radius *= radiusScale; break;
                     case "'": turtle.radius /= radiusScale; break;
                     case '(': turtle.length *= lengthScale; break;
                     case ')': turtle.length /= lengthScale; break;
-                    case '*': turtle.yaw *= angleScale; turtle.pitch *= angleScale; turtle.roll *= angleScale; break;
-                    case '%': turtle.yaw /= angleScale; turtle.pitch /= angleScale; turtle.roll /= angleScale; break;
-                    case 'C': turtle.colorIndex = (turtle.colorIndex + 1) % colorPalette.length; turtle.material = colorPalette[turtle.colorIndex]; break;
-                    case '$': {
-                        const up = new THREE.Vector3(0, 1, 0).applyQuaternion(turtle.quaternion);
-                        turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(up, -Math.atan2(up.z, up.y)));
-                        break;
-                    }
+                    case '*': turtle.yaw *= angleScale; break;
+                    case '%': turtle.yaw /= angleScale; break;
+                    case '#': turtle.pitch *= angleScale; break;
+                    case '$': turtle.pitch /= angleScale; break;
+                    case '@': turtle.roll *= angleScale; break;
+                    case '=': turtle.roll /= angleScale; break;
+                    case 'C ': turtle.colorIndex = (turtle.colorIndex + 1) % colorPalette.length; turtle.material = colorPalette[turtle.colorIndex]; break;
+                    case 'D ': turtle.colorIndex = (turtle.colorIndex - 1 + colorPalette.length) % colorPalette.length; turtle.material = colorPalette[turtle.colorIndex]; break;
                     default:
                         if (!isNaN(parseInt(char))) {
                             turtle.colorIndex = parseInt(char) % colorPalette.length;
@@ -552,9 +559,10 @@
         }
 
         function animate() {
-            requestAnimationFrame(animate);
+
             controls.update();
             composer.render();
+            requestAnimationFrame(animate);
         }
 
         window.addEventListener('DOMContentLoaded', init);
