@@ -483,7 +483,7 @@
             hideUIPanel();
             await new Promise(resolve => setTimeout(resolve, 350));
 
-            const capturer = new CCapture({ format: 'webm', framerate: 30, verbose: false });
+            const capturer = new CCapture({ format: 'webm', framerate: 16, verbose: false });
             
             ui.exportVideoBtn.disabled = true;
             ui.generateBtn.disabled = true;
