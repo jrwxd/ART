@@ -187,7 +187,7 @@
                 <div>
                     <h3 class="font-bold text-white mb-2">Structure Symbols</h3>
                     <p><strong>F, G, H</strong>: Move & draw</p><p><strong>f, g, h</strong>: Move only</p><hr class="border-gray-600 my-2">
-                    <p><strong>+ / -</strong>: Yaw right / left</p><p><strong>&amp; / ^</strong>: Pitch down / up</p><p><strong>\ / /</strong>: Roll left / right</p><hr class="border-gray-600 my-2">
+                    <p><strong>+ / -</strong>: Yaw right / left</p><p><strong>&amp;  | </strong>: Pitch down / up</p><p><strong>\ / /</strong>: Roll left / right</p><hr class="border-gray-600 my-2">
                     <p><strong>[ / ]</strong>: Push / Pop state</p><hr class="border-gray-600 my-2">
                     <p><strong>o</strong>: Draw a sphere</p><p><strong>! / '</strong>: Scale radius</p><p><strong>( / )</strong>: Scale length</p>
                     <p><strong>* / %</strong>: Scale angles</p><p><strong>C</strong>: Cycle color</p><p><strong>0-9</strong>: Set color</p><p><strong>$</strong>: Level horizontally</p>
@@ -302,6 +302,8 @@
             
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
+            controls.target.set(0, 0, 0);
+            controls.update();
             lSystemGroup = new THREE.Group();
             scene.add(lSystemGroup);
 
@@ -327,6 +329,9 @@
             window.addEventListener('keydown', (e) => {
                 if (e.key.toLowerCase() === 'h') toggleUIPanel();
                 if (e.key.toLowerCase() === 'm') showHelpModal();
+                if (e.key.toLowerCase() === 'g') handleGenerateClick();
+                if (e.key.toLowerCase() === 'r') resetScene();
+                if (e.key.toLowerCase() === 'p') togglePostProcessing();
             });
             
             loadPreset("Growing Vine");
