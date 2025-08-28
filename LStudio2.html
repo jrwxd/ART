@@ -326,7 +326,11 @@
                 bloomStrength: 'bloomStrength', bloomStrengthValue: 'bloomStrength-value',
                 bloomRadius: 'bloomRadius', bloomRadiusValue: 'bloomRadius-value'
             };
-            for (const key in uiMap) { ui[key] = document.getElementById(uiMap[key]); }
+            // safe mapping: element may be missing in HTML
+            for (const key in uiMap) {
+                const el = document.getElementById(uiMap[key]);
+                ui[key] = el || null;
+            }
 
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
@@ -351,27 +355,31 @@
             setupPostProcessing();
             initMaterials();
 
-            Object.keys(presets).forEach(name => ui.presets.appendChild(new Option(name, name)));
+            // populate presets select only if it exists
+            if (ui.presets) {
+                Object.keys(presets).forEach(name => ui.presets.appendChild(new Option(name, name)));
+                ui.presets.addEventListener('change', (e) => loadPreset(e.target.value));
+            }
+
+            if (ui.generateBtn) ui.generateBtn.addEventListener('click', handleGenerateClick);
+            if (ui.exportVideoBtn) ui.exportVideoBtn.addEventListener('click', exportVideo);
+            if (ui.toggleButton) ui.toggleButton.addEventListener('click', toggleUIPanel);
+            if (ui.helpBtn) ui.helpBtn.addEventListener('click', showHelpModal);
+            if (ui.closeModalBtn) ui.closeModalBtn.addEventListener('click', hideHelpModal);
+            if (ui.helpModal) ui.helpModal.addEventListener('click', (e) => e.target === ui.helpModal && hideHelpModal());
             
-            ui.presets.addEventListener('change', (e) => loadPreset(e.target.value));
-            ui.generateBtn.addEventListener('click', handleGenerateClick);
-            ui.exportVideoBtn.addEventListener('click', exportVideo);
-            ui.toggleButton.addEventListener('click', toggleUIPanel);
-            ui.helpBtn.addEventListener('click', showHelpModal);
-            ui.closeModalBtn.addEventListener('click', hideHelpModal);
-            ui.helpModal.addEventListener('click', (e) => e.target === ui.helpModal && hideHelpModal());
-            
+            // safe effect inputs
             ['bgColor', 'fogColor', 'fogToggle', 'bloomToggle', 'bloomStrength', 'bloomRadius'].forEach(id => {
-                ui[id].addEventListener('input', () => {
+                if (ui[id]) ui[id].addEventListener('input', () => {
                     clearTimeout(ui.effectsTimeout);
                     ui.effectsTimeout = setTimeout(updateEffects, 50);
                 });
             });
             
-            ui.iterations.addEventListener('input', () => ui.iterationsValue.textContent = ui.iterations.value);
-            ui.animIterations.addEventListener('input', () => ui.animIterationsValue.textContent = ui.animIterations.value);
-            ui.bloomStrength.addEventListener('input', () => ui.bloomStrengthValue.textContent = ui.bloomStrength.value);
-            ui.bloomRadius.addEventListener('input', () => ui.bloomRadiusValue.textContent = ui.bloomRadius.value);
+            if (ui.iterations && ui.iterationsValue) ui.iterations.addEventListener('input', () => ui.iterationsValue.textContent = ui.iterations.value);
+            if (ui.animIterations && ui.animIterationsValue) ui.animIterations.addEventListener('input', () => ui.animIterationsValue.textContent = ui.animIterations.value);
+            if (ui.bloomStrength && ui.bloomStrengthValue) ui.bloomStrength.addEventListener('input', () => ui.bloomStrengthValue.textContent = ui.bloomStrength.value);
+            if (ui.bloomRadius && ui.bloomRadiusValue) ui.bloomRadius.addEventListener('input', () => ui.bloomRadiusValue.textContent = ui.bloomRadius.value);
 
             window.addEventListener('resize', onWindowResize, false);
             window.addEventListener('keydown', (e) => {
@@ -380,40 +388,66 @@
                 if (e.key.toLowerCase() === 'g') handleGenerateClick();
             });
             
-            loadPreset("Growing Vine");
+            // load default preset if the control exists, otherwise still call generate with defaults
+            if (ui.presets) loadPreset(ui.presets.value || "Growing Vine");
+            else {
+                // attempt to set basic defaults so generate works
+                if (!ui.axiom) ui.axiom = { value: 'F' };
+                if (!ui.rules) ui.rules = { value: 'F=F[+F-F]F' };
+                if (!ui.iterations) ui.iterations = { value: 4 };
+                handleGenerateClick();
+            }
+
             animate();
         }
 
         // Optimized L-system generation with caching
         function generateLSystem(axiom, rules, iterations) {
-            const cacheKey = `${axiom}-${rules}-${iterations}`;
+            const cacheKey = `${axiom}::${rules}::${iterations}`;
             if (lastString && lastParams === cacheKey) {
                 return lastString;
             }
 
-            let currentString = axiom;
+            let currentString = axiom || '';
             const rulesMap = new Map();
             
-            // Parse rules more efficiently
-            rules.split('\n').forEach(rule => {
-                const parts = rule.split('=');
-                if (parts.length === 2) {
-                    rulesMap.set(parts[0].trim(), parts[1].trim());
-                }
+            // Parse rules: each line is "LHS=RHS". Ignore empty lines / comments.
+            rules.split(/\r?\n/).map(r => r.trim()).forEach(rule => {
+                if (!rule) return;
+                const idx = rule.indexOf('=');
+                if (idx <= 0) return;
+                const left = rule.slice(0, idx).trim();
+                const right = rule.slice(idx + 1).trim();
+                if (!left) return;
+                // store last rule for a symbol; for more advanced behaviour you'd support probabilities
+                rulesMap.set(left, right);
             });
 
-            // Generate string
-            for (let i = 0; i < iterations; i++) {
+            // Generate string iteratively
+            for (let iter = 0; iter < (parseInt(iterations, 10) || 0); iter++) {
                 let newString = '';
                 for (let j = 0; j < currentString.length; j++) {
-                    const char = currentString[j];
-                    newString += rulesMap.get(char) || char;
+                    // try match multi-character LHS first (if present)
+                    let matched = false;
+                    // try 2-char then 1-char left-hand rules (simple heuristic)
+                    for (let look = 2; look >= 1; look--) {
+                        if (j + look <= currentString.length) {
+                            const token = currentString.slice(j, j + look);
+                            if (rulesMap.has(token)) {
+                                newString += rulesMap.get(token);
+                                j += (look - 1);
+                                matched = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!matched) newString += currentString[j];
                 }
                 currentString = newString;
-                
+
                 // Safety check for exponential growth
-                if (currentString.length > 100000) {
-                    console.warn('L-system string too long, truncating for performance');
+                if (currentString.length > 200000) {
+                    console.warn('L-system growth limit reached, stopping at iteration', iter);
                     break;
                 }
             }
@@ -424,135 +458,100 @@
             return currentString;
         }
 
-        // Heavily optimized drawing function
+        // Heavily optimized drawing function (minimal working turtle)
         async function drawLSystem(lindenmayerString) {
-            // Clear previous geometry efficiently
+            // Clear previous geometry
             while (lSystemGroup.children.length > 0) {
                 const child = lSystemGroup.children[0];
                 lSystemGroup.remove(child);
+                if (child.geometry) child.geometry.dispose?.();
+                if (child.material) child.material.dispose?.();
             }
             lSystemGroup.position.set(0, 0, 0);
 
+            // Basic turtle state
             const turtle = {
-                position: new THREE.Vector3(0, 0, 0), 
-                quaternion: new THREE.Quaternion(),
-                length: parseFloat(ui.length.value), 
-                radius: parseFloat(ui.radius.value),
-                yaw: THREE.MathUtils.degToRad(parseFloat(ui.yaw.value)),
-                pitch: THREE.MathUtils.degToRad(parseFloat(ui.pitch.value)),
-                roll: THREE.MathUtils.degToRad(parseFloat(ui.roll.value)),
-                colorIndex: 0
+                pos: new THREE.Vector3(0, 0, 0),
+                quat: new THREE.Quaternion(),
+                length: (ui.length && parseFloat(ui.length.value)) || 1.0,
+                radius: (ui.radius && parseFloat(ui.radius.value)) || 0.05,
+                yaw: (ui.yaw && parseFloat(ui.yaw.value)) || 25
             };
 
             const stateStack = [];
-            const lengthScale = parseFloat(ui.lengthScale.value);
-            const radiusScale = parseFloat(ui.radiusScale.value);
-            const angleScale = parseFloat(ui.angleScale.value);
-            const segmentType = ui.segmentType.value;
-            
-            // Pre-calculate rotation quaternions for performance
-            const rotations = {
-                yawPos: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -turtle.yaw),
-                yawNeg: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), turtle.yaw),
-                pitchPos: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), turtle.pitch),
-                pitchNeg: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -turtle.pitch),
-                rollPos: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), turtle.roll),
-                rollNeg: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -turtle.roll)
-            };
-
-            // Batch geometry creation
             const meshesToAdd = [];
-            const tempDir = new THREE.Vector3();
-            const tempPos = new THREE.Vector3();
+            const BATCH_SIZE = 1000; // Add to scene every 1000 meshes to avoid memory spikes
+
+            // helper: create a cylinder between two points
+            function cylinderBetween(p1, p2, radius, material) {
+                const dir = new THREE.Vector3().subVectors(p2, p1);
+                const len = dir.length();
+                if (len <= 0.0001) return null;
+                const geom = new THREE.CylinderGeometry(radius, radius, len, 8);
+                geom.translate(0, len / 2, 0); // move base to origin
+                const mesh = new THREE.Mesh(geom, material);
+                // align cylinder to direction
+                const up = new THREE.Vector3(0, 1, 0);
+                const mat = new THREE.Matrix4();
+                const axis = new THREE.Vector3().crossVectors(up, dir.normalize());
+                const angle = Math.acos(up.dot(dir.normalize()));
+                if (axis.lengthSq() > 0.000001) mat.makeRotationAxis(axis.normalize(), angle);
+                mesh.applyMatrix4(mat);
+                mesh.position.copy(p1);
+                return mesh;
+            }
+
+            const defaultMat = colorPalette[0] || new THREE.MeshPhongMaterial({ color: 0x88cc88 });
 
             for (let i = 0; i < lindenmayerString.length; i++) {
-                const char = lindenmayerString[i];
-                
-                switch (char) {
-                    case 'F': case 'G': case 'H': {
-                        tempDir.set(0, 1, 0).applyQuaternion(turtle.quaternion);
-                        tempPos.copy(turtle.position);
-                        turtle.position.add(tempDir.clone().multiplyScalar(turtle.length));
-                        
-                        if (segmentType !== 'line' && turtle.radius > 0.001 && turtle.length > 0.001) {
-                            const geom = getGeometry(segmentType, turtle.radius, turtle.length);
-                            const material = getMaterial(turtle.colorIndex);
-                            const mesh = new THREE.Mesh(geom, material);
-                            
-                            mesh.position.copy(tempPos).add(turtle.position).multiplyScalar(0.5);
-                            mesh.quaternion.copy(turtle.quaternion);
-                            meshesToAdd.push(mesh);
-                        }
-                        break;
+                const c = lindenmayerString[i];
+                if (c === 'F' || c === 'f') {
+                    // forward + draw
+                    const dir = new THREE.Vector3(0, 1, 0).applyQuaternion(turtle.quat); // use Y-up for cylinder creation
+                    const nextPos = new THREE.Vector3().copy(turtle.pos).addScaledVector(dir, turtle.length);
+                    const mesh = cylinderBetween(turtle.pos, nextPos, turtle.radius, defaultMat);
+                    if (mesh) meshesToAdd.push(mesh);
+                    turtle.pos.copy(nextPos);
+                } else if (c === '+') {
+                    // yaw positive
+                    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(turtle.yaw));
+                    turtle.quat.multiply(q);
+                } else if (c === '-') {
+                    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(-turtle.yaw));
+                    turtle.quat.multiply(q);
+                } else if (c === '&') {
+                    // pitch down
+                    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(turtle.yaw));
+                    turtle.quat.multiply(q);
+                } else if (c === '^') {
+                    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(-turtle.yaw));
+                    turtle.quat.multiply(q);
+                } else if (c === '[') {
+                    stateStack.push({ pos: turtle.pos.clone(), quat: turtle.quat.clone() });
+                } else if (c === ']') {
+                    const s = stateStack.pop();
+                    if (s) {
+                        turtle.pos.copy(s.pos);
+                        turtle.quat.copy(s.quat);
                     }
-                    case 'f': case 'g': case 'h': 
-                        turtle.position.add(tempDir.set(0, 1, 0).applyQuaternion(turtle.quaternion).multiplyScalar(turtle.length)); 
-                        break;
-                    case '+': turtle.quaternion.multiply(rotations.yawPos); break;
-                    case '-': turtle.quaternion.multiply(rotations.yawNeg); break;
-                    case '&': turtle.quaternion.multiply(rotations.pitchPos); break;
-                    case '|': turtle.quaternion.multiply(rotations.pitchNeg); break;
-                    case '\\': turtle.quaternion.multiply(rotations.rollPos); break;
-                    case '/': turtle.quaternion.multiply(rotations.rollNeg); break;
-                    case '[': 
-                        stateStack.push({ 
-                            position: turtle.position.clone(), 
-                            quaternion: turtle.quaternion.clone(),
-                            length: turtle.length,
-                            radius: turtle.radius,
-                            colorIndex: turtle.colorIndex
-                        }); 
-                        break;
-                    case ']': 
-                        const state = stateStack.pop();
-                        if (state) Object.assign(turtle, state);
-                        break;
-                    case 'o': {
-                        if (turtle.radius > 0.001) {
-                            const geom = getGeometry('sphere', turtle.radius * 2.5);
-                            const fruitMaterial = getMaterial(1); // Red fruit
-                            const fruit = new THREE.Mesh(geom, fruitMaterial);
-                            fruit.position.copy(turtle.position);
-                            meshesToAdd.push(fruit);
-                        }
-                        break;
-                    }
-                    case '!': turtle.radius *= radiusScale; break;
-                    case "'": turtle.radius /= radiusScale; break;
-                    case '(': turtle.length *= lengthScale; break;
-                    case ')': turtle.length /= lengthScale; break;
-                    case '*': 
-                        turtle.yaw *= angleScale;
-                        rotations.yawPos.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -turtle.yaw);
-                        rotations.yawNeg.setFromAxisAngle(new THREE.Vector3(0, 0, 1), turtle.yaw);
-                        break;
-                    case '%': 
-                        turtle.yaw /= angleScale;
-                        rotations.yawPos.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -turtle.yaw);
-                        rotations.yawNeg.setFromAxisAngle(new THREE.Vector3(0, 0, 1), turtle.yaw);
-                        break;
-                    case 'C': 
-                        turtle.colorIndex = (turtle.colorIndex + 1) % colorPalette.length; 
-                        break;
-                    default:
-                        if (!isNaN(parseInt(char))) {
-                            turtle.colorIndex = parseInt(char) % colorPalette.length;
-                        }
-                        break;
+                } else {
+                    // ignore other characters for now (C, numbers, custom symbols)
                 }
+                // Add meshes in batches to avoid memory spikes
+                if (meshesToAdd.length >= BATCH_SIZE) {
+                    meshesToAdd.forEach(m => lSystemGroup.add(m));
+                    meshesToAdd.length = 0;
+                    await new Promise(r => setTimeout(r, 0));
+                }
+                // avoid long blocking during large strings
+                if ((i & 4095) === 0) await new Promise(r => setTimeout(r, 0));
             }
 
-            // Add all meshes in batches for better performance
-            const batchSize = 100;
-            for (let i = 0; i < meshesToAdd.length; i += batchSize) {
-                const batch = meshesToAdd.slice(i, i + batchSize);
-                batch.forEach(mesh => lSystemGroup.add(mesh));
-                
-                // Yield control periodically for large systems
-                if (i > 0 && i % 500 === 0) {
-                    await new Promise(resolve => setTimeout(resolve, 1));
-                }
+            // Add any remaining meshes
+            if (meshesToAdd.length > 0) {
+                meshesToAdd.forEach(m => lSystemGroup.add(m));
             }
+            autoFrameCamera();
         }
         
         function autoFrameCamera() {
@@ -579,46 +578,48 @@
         }
 
         // Debounced generation function
-        async function updateLSystem(shouldAutoFrame = false) {
+        async function updateLSystem(shouldAutoFrame = true) {
+            // safe guard: ensure we have axiom/rules inputs fallback
+            const ax = (ui.axiom && ui.axiom.value) || 'F';
+            const rl = (ui.rules && ui.rules.value) || '';
+            const it = (ui.iterations && ui.iterations.value) || 4;
+
             if (isGenerating) {
-                pendingGeneration = shouldAutoFrame;
+                pendingGeneration = true;
                 return;
             }
 
             isGenerating = true;
             try {
-                const lindenmayerString = generateLSystem(
-                    ui.axiom.value, 
-                    ui.rules.value, 
-                    parseInt(ui.iterations.value, 10)
-                );
+                const lindenmayerString = generateLSystem(ax, rl, it);
                 await drawLSystem(lindenmayerString);
+                if (shouldAutoFrame) autoFrameCamera();
             } catch (error) {
                 console.error("Generation error:", error);
             } finally {
                 isGenerating = false;
-                
-                if (shouldAutoFrame) autoFrameCamera();
-                
-                // Handle pending generation
-                if (pendingGeneration !== false) {
-                    const shouldFrame = pendingGeneration;
+                if (pendingGeneration) {
                     pendingGeneration = false;
-                    setTimeout(() => updateLSystem(shouldFrame), 50);
+                    updateLSystem(shouldAutoFrame);
                 }
             }
         }
 
         function handleGenerateClick() {
-            if (isGenerating) return;
-            
-            ui.generateBtn.textContent = 'Generating...';
-            ui.generateBtn.disabled = true;
-            
+            if (isGenerating) {
+                pendingGeneration = true;
+                return;
+            }
+            if (ui.generateBtn) {
+                ui.generateBtn.textContent = 'Generating...';
+                ui.generateBtn.disabled = true;
+            }
             requestAnimationFrame(async () => {
                 await updateLSystem(true);
-                ui.generateBtn.textContent = 'Generate';
-                ui.generateBtn.disabled = false;
+                if (ui.generateBtn) {
+                    ui.generateBtn.textContent = 'Generate';
+                    ui.generateBtn.disabled = false;
+                }
             });
         }
         
