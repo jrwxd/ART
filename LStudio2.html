@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L-system Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+        }
+        #ui-panel {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        #ui-panel.hidden {
+            transform: translateX(calc(100% + 20px));
+            opacity: 0;
+        }
+        #toggle-button {
+            transition: transform 0.3s ease-in-out;
+        }
+        #toggle-button.collapsed {
+            transform: rotate(180deg);
+        }
+        /* Custom scrollbar */
+        #ui-panel::-webkit-scrollbar { width: 8px; }
+        #ui-panel::-webkit-scrollbar-track { background: #1f2937; border-radius: 10px; }
+        #ui-panel::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        #ui-panel::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        
+        #help-modal { transition: opacity 0.2s ease-in-out; }
+        #help-modal-content { transition: transform 0.2s ease-in-out; }
+
+        details > summary {
+            cursor: pointer;
+            list-style: none; /* Hide default marker */
+        }
+        details > summary::-webkit-details-marker {
+            display: none; /* Hide default marker in Safari */
+        }
+        details summary .arrow {
+            transition: transform 0.2s;
+        }
+        details[open] summary .arrow {
+            transform: rotate(90deg);
+        }
+        #progress-overlay {
+            z-index: 9999;
+        }
+        /* Color input styling */
+        input[type="color"] {
+            appearance: none;
+            -webkit-appearance: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+        	padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+        	border: 1px solid #4b5563;
+            border-radius: 8px;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="container"></div>
+
+    <!-- Progress overlay for video export -->
+    <div id="progress-overlay" class="fixed inset-0 bg-black bg-opacity-70 items-center justify-center text-white text-2xl font-bold hidden">
+        <span id="progress-text"></span>
+    </div>
+
+    <div id="ui-panel" class="absolute top-5 right-5 bg-gray-800 bg-opacity-80 backdrop-blur-sm text-white p-6 rounded-lg shadow-2xl w-full max-w-sm">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold">L-system Studio</h1>
+            <div>
+                <button id="help-btn" class="p-2 rounded-full hover:bg-gray-700 focus:outline-none" title="Help (M)">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4 0 1.152-.448 2.213-1.175 3.016l-1.115 1.115a1 1 0 00-1.414 1.414l1.115-1.115a5.96 5.96 0 011.575-2.316A5.986 5.986 0 0020 13c0-3.314-2.686-6-6-6s-6 2.686-6 6c0 .69.106 1.35.305 1.956a1 1 0 101.94-.487A4 4 0 0112 11c-1.272 0-2.382.596-3.14 1.5A1 1 0 008.228 9zM12 18a1 1 0 100-2 1 1 0 000 2z" /></svg>
+                </button>
+                <button id="toggle-button" class="p-2 rounded-full hover:bg-gray-700 focus:outline-none" title="Toggle Panel (H)">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label for="presets" class="block text-sm font-medium text-gray-300">Presets</label>
+                <select id="presets" class="mt-1 block w-full bg-gray-700 border-gray-600 rounded-md shadow-sm p-2"></select>
+            </div>
+
+            <details open>
+                <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Structure System</span><span class="arrow">&#9654;</span></summary>
+                <div class="space-y-4 pt-2 border-t border-gray-700">
+                    <div><label for="axiom" class="block text-sm">Axiom</label><input type="text" id="axiom" class="mt-1 block w-full bg-gray-700 p-2 rounded-md"></div>
+                    <div><label for="iterations" class="block text-sm">Iterations: <span id="iterations-value">6</span></label><input type="range" id="iterations" min="0" max="10" value="6" class="w-full h-2 bg-gray-700 rounded-lg"></div>
+                    <div><label for="rules" class="block text-sm">Rules</label><textarea id="rules" rows="4" class="mt-1 block w-full bg-gray-700 p-2 rounded-md"></textarea></div>
+                </div>
+            </details>
+            
+            <details>
+                <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Animation System</span><span class="arrow">&#9654;</span></summary>
+                <div class="space-y-4 pt-2 border-t border-gray-700">
+                    <div><label for="animAxiom" class="block text-sm">Animation Axiom</label><input type="text" id="animAxiom" class="mt-1 block w-full bg-gray-700 p-2 rounded-md"></div>
+                    <div><label for="animIterations" class="block text-sm">Animation Iterations: <span id="animIterations-value">6</span></label><input type="range" id="animIterations" min="0" max="10" value="6" class="w-full h-2 bg-gray-700 rounded-lg"></div>
+                    <div><label for="animRules" class="block text-sm">Animation Rules</label><textarea id="animRules" rows="3" class="mt-1 block w-full bg-gray-700 p-2 rounded-md"></textarea></div>
+                </div>
+            </details>
+
+            <details>
+                <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Base Geometry & Angles</span><span class="arrow">&#9654;</span></summary>
+                <div class="space-y-4 pt-2 border-t border-gray-700">
+                    <div class="grid grid-cols-2 gap-4">
+                         <div><label for="length" class="block text-sm">Length</label><input type="number" id="length" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                        <div><label for="radius" class="block text-sm">Radius</label><input type="number" id="radius" step="0.01" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label for="yaw" class="block text-sm">Yaw (°)</label><input type="number" id="yaw" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                        <div><label for="pitch" class="block text-sm">Pitch (°)</label><input type="number" id="pitch" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                        <div><label for="roll" class="block text-sm">Roll (°)</label><input type="number" id="roll" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                    </div>
+                    <select id="segmentType" class="w-full bg-gray-700 p-2 rounded-md"><option value="cylinder">Cylinder</option><option value="box">Box</option><option value="line">Line</option></select>
+                </div>
+            </details>
+
+            <details>
+                <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Dynamic Modifiers</span><span class="arrow">&#9654;</span></summary>
+                <div class="space-y-4 pt-2 border-t border-gray-700">
+                     <div class="grid grid-cols-2 gap-4">
+                        <div><label for="lengthScale" class="block text-sm">Length Scale</label><input type="number" id="lengthScale" step="0.01" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                        <div><label for="radiusScale" class="block text-sm">Radius Scale</label><input type="number" id="radiusScale" step="0.01" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="angleScale" class="block text-sm">Angle Scale</label>
+                        <input type="number" id="angleScale" step="0.01" class="mt-1 w-full bg-gray-700 p-2 rounded-md">
+                    </div>
+                </div>
+            </details>
+
+             <details>
+                <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Scene & Effects</span><span class="arrow">&#9654;</span></summary>
+                <div class="space-y-4 pt-2 border-t border-gray-700">
+                    <div class="flex items-center justify-between"><label for="bgColor" class="text-sm">Background</label><input type="color" id="bgColor" value="#111827"></div>
+                    <div class="flex items-center justify-between"><label for="fogToggle" class="text-sm">Atmospheric Fog</label><div class="flex items-center gap-2"><input type="color" id="fogColor" value="#111827"><input type="checkbox" id="fogToggle" class="h-5 w-5 bg-gray-700 rounded text-indigo-500"></div></div>
+                    <div class="flex items-center justify-between"><label for="bloomToggle" class="text-sm">Bloom Effect</label><input type="checkbox" id="bloomToggle" class="h-5 w-5 bg-gray-700 rounded text-indigo-500"></div>
+                    <div><label for="bloomStrength" class="block text-sm">Bloom Strength: <span id="bloomStrength-value">1.5</span></label><input type="range" id="bloomStrength" min="0" max="3" step="0.1" value="1.5" class="w-full h-2 bg-gray-700 rounded-lg"></div>
+                    <div><label for="bloomRadius" class="block text-sm">Bloom Radius: <span id="bloomRadius-value">0.4</span></label><input type="range" id="bloomRadius" min="0" max="1" step="0.01" value="0.4" class="w-full h-2 bg-gray-700 rounded-lg"></div>
+                </div>
+            </details>
+
+             <details>
+                <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Animation Steps</span><span class="arrow">&#9654;</span></summary>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-2 pt-2 border-t border-gray-700">
+                    <div><label for="yawStep" class="text-sm">Yaw</label><input type="number" id="yawStep" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
+                    <div><label for="pitchStep" class="text-sm">Pitch</label><input type="number" id="pitchStep" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
+                    <div><label for="rollStep" class="text-sm">Roll</label><input type="number" id="rollStep" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
+                    <div><label for="lengthStep" class="text-sm">Length</label><input type="number" id="lengthStep" step="0.01" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
+                    <div><label for="radiusStep" class="text-sm">Radius</label><input type="number" id="radiusStep" step="0.001" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
+                    <div><label for="angleScaleStep" class="text-sm">Angle Scale</label><input type="number" id="angleScaleStep" step="0.001" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
+                </div>
+            </details>
+        </div>
+
+        <div class="mt-6 grid grid-cols-2 gap-4">
+            <button id="generate-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Generate</button>
+            <button id="export-video-btn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Export Video</button>
+        </div>
+    </div>
+
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-70 items-center justify-center p-4 hidden">
+        <div id="help-modal-content" class="bg-gray-800 text-white p-6 rounded-lg shadow-2xl w-full max-w-lg scale-95 opacity-0">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Symbol Guide</h2><button id="close-modal-btn" class="p-2 rounded-full hover:bg-gray-700 focus:outline-none">&times;</button></div>
+            <div class="grid grid-cols-2 gap-6 text-gray-300 text-sm">
+                <div>
+                    <h3 class="font-bold text-white mb-2">Structure Symbols</h3>
+                    <p><strong>F, G, H</strong>: Move & draw</p><p><strong>f, g, h</strong>: Move only</p><hr class="border-gray-600 my-2">
+                    <p><strong>+ / -</strong>: Yaw right / left</p><p><strong>&amp;  | </strong>: Pitch down / up</p><p><strong>\ / /</strong>: Roll left / right</p><hr class="border-gray-600 my-2">
+                    <p><strong>[ / ]</strong>: Push / Pop state</p><hr class="border-gray-600 my-2">
+                    <p><strong>o</strong>: Draw a sphere</p><p><strong>! / '</strong>: Scale radius</p><p><strong>( / )</strong>: Scale length</p>
+                    <p><strong>* / %</strong>: Scale angles</p><p><strong>C</strong>: Cycle color</p><p><strong>0-9</strong>: Set color</p><p><strong>$</strong>: Level horizontally</p>
+                </div>
+                 <div>
+                    <h3 class="font-bold text-white mb-2">Animation Symbols</h3>
+                    <p><strong>Y / y</strong>: Inc/dec Yaw</p>
+                    <p><strong>P / p</strong>: Inc/dec Pitch</p>
+                    <p><strong>R / r</strong>: Inc/dec Roll</p>
+                    <hr class="border-gray-600 my-2">
+                    <p><strong>L / l</strong>: Inc/dec Length</p>
+                    <p><strong>W / w</strong>: Inc/dec Radius</p>
+                    <hr class="border-gray-600 my-2">
+                    <p><strong>S / s</strong>: Inc/dec Length Scale</p>
+                    <p><strong>D / d</strong>: Inc/dec Radius Scale</p>
+                    <p><strong>A / a</strong>: Inc/dec Angle Scale</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+        let scene, camera, renderer, controls, lSystemGroup, composer;
+        const ui = {};
+        const geometryPool = { cylinder: [], box: [], sphere: [] };
+        const materialPool = [];
+        let colorPalette = [];
+        let isGenerating = false;
+        let pendingGeneration = false;
+        let lastString = '';
+        let lastParams = '';
+        
+        const presets = {
+            "Growing Vine": { axiom: "F", rules: "F=F[+F-F]F", animAxiom: "A", animRules: "A=YlA", animIterations: 8, iterations: 4, length: 2, radius: 0.1, yaw: 25, pitch: 20, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, yawStep: 1, pitchStep: 0, rollStep: 0, lengthStep: -0.005, radiusStep: 0, angleScaleStep: 0, bloomToggle: true, fogToggle: true },
+            "Twisting Anemone": { axiom: "A", rules: "A=F![+B]F[-B]A\nB=C(*B)", animAxiom: "", animRules: "", animIterations: 0, iterations: 7, length: 1.2, radius: 0.08, yaw: 45, pitch: 60, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 0.95, bloomToggle: true, fogToggle: true },
+            "Wandering Poet's Tree": { axiom: "F", rules: "F=C[//^^^F]C[\\\\&&&F]C[--F]C[++F]F", animAxiom: "", animRules: "", animIterations: 0, iterations: 5, length: 0.8, radius: 0.04, yaw: 22, pitch: 22, roll: 22, lengthScale: 0.9, radiusScale: 0.8, angleScale: 1, bloomToggle: true, fogToggle: true },
+            "Fractal Plant": { axiom: "X", rules: "X=F-[[X]+X]+F[+FX]-X\nF=FF", animAxiom: "", animRules: "", animIterations: 0, iterations: 5, length: 1.5, radius: 0.1, yaw: 22.5, pitch: 22.5, roll: 22.5, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, bloomToggle: false, fogToggle: false },
+            "Rainbow Bush": { axiom: "A", rules: "A=C![+A][-A]F%A\nF=FF", animAxiom: "", animRules: "", animIterations: 0, iterations: 6, length: 1, radius: 0.1, yaw: 35, pitch: 35, roll: 35, lengthScale: 0.9, radiusScale: 0.7, angleScale: 1.1, bloomToggle: true, fogToggle: false },
+        };
+
+        // Optimized geometry and material pools
+        function getGeometry(type, size1, size2) {
+            const pool = geometryPool[type];
+            const key = `${size1.toFixed(3)}-${size2?.toFixed(3) || ''}`;
+            
+            if (!pool[key]) {
+                switch (type) {
+                    case 'cylinder':
+                        pool[key] = new THREE.CylinderGeometry(size1, size1, size2, 6, 1);
+                        break;
+                    case 'box':
+                        pool[key] = new THREE.BoxGeometry(size1 * 2, size2, size1 * 2);
+                        break;
+                    case 'sphere':
+                        pool[key] = new THREE.SphereGeometry(size1, 8, 6);
+                        break;
+                }
+            }
+            return pool[key];
+        }
+
+        function getMaterial(colorIndex) {
+            if (!materialPool[colorIndex]) {
+                materialPool[colorIndex] = colorPalette[colorIndex];
+            }
+            return materialPool[colorIndex];
+        }
+
+        function loadPreset(name) {
+            const p = presets[name];
+            for (const key in p) {
+                const el = ui[key];
+                if (el) {
+                    if (el.type === 'checkbox') {
+                        el.checked = p[key];
+                    } else {
+                        el.value = p[key];
+                    }
+                    const valueEl = ui[`${key}Value`];
+                    if (valueEl) {
+                        valueEl.textContent = p[key];
+                    }
+                }
+            }
+            updateEffects();
+            handleGenerateClick();
+        }
+        
+        function setupPostProcessing() {
+            const renderPass = new RenderPass(scene, camera);
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+            const outputPass = new OutputPass();
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderPass);
+            composer.addPass(bloomPass);
+            composer.addPass(outputPass);
+            ui.bloomPass = bloomPass;
+            updateEffects();
+        }
+
+        function updateEffects() {
+            if (!ui.bgColor || !ui.fogToggle || !ui.bloomPass) return;
+            scene.background = new THREE.Color(ui.bgColor.value);
+            scene.fog = ui.fogToggle.checked ? new THREE.Fog(ui.fogColor.value, 50, 250) : null;
+            ui.bloomPass.enabled = ui.bloomToggle.checked;
+            ui.bloomPass.strength = parseFloat(ui.bloomStrength.value);
+            ui.bloomPass.radius = parseFloat(ui.bloomRadius.value);
+        }
+
+        function initMaterials() {
+            colorPalette = [0x86efac, 0xef4444, 0x3b82f6, 0xf97316, 0x8b5cf6, 0x14b8a6, 0xec4899, 0xfacc15, 0x65a30d, 0x22d3ee]
+                .map(c => new THREE.MeshPhongMaterial({ color: c, side: THREE.DoubleSide }));
+        }
+
+        function init() {
+            const uiMap = {
+                axiom: 'axiom', rules: 'rules', iterations: 'iterations', iterationsValue: 'iterations-value',
+                animAxiom: 'animAxiom', animRules: 'animRules', animIterations: 'animIterations', animIterationsValue: 'animIterations-value',
+                length: 'length', radius: 'radius', yaw: 'yaw', pitch: 'pitch', roll: 'roll',
+                lengthScale: 'lengthScale', radiusScale: 'radiusScale', angleScale: 'angleScale', segmentType: 'segmentType',
+                yawStep: 'yawStep', pitchStep: 'pitchStep', rollStep: 'rollStep', lengthStep: 'lengthStep', radiusStep: 'radiusStep', angleScaleStep: 'angleScaleStep',
+                presets: 'presets', generateBtn: 'generate-btn', exportVideoBtn: 'export-video-btn',
+                uiPanel: 'ui-panel', toggleButton: 'toggle-button', helpBtn: 'help-btn',
+                helpModal: 'help-modal', helpModalContent: 'help-modal-content', closeModalBtn: 'close-modal-btn',
+                progressOverlay: 'progress-overlay', progressText: 'progress-text', bgColor: 'bgColor',
+                fogColor: 'fogColor', fogToggle: 'fogToggle', bloomToggle: 'bloomToggle',
+                bloomStrength: 'bloomStrength', bloomStrengthValue: 'bloomStrength-value',
+                bloomRadius: 'bloomRadius', bloomRadiusValue: 'bloomRadius-value'
+            };
+            for (const key in uiMap) { ui[key] = document.getElementById(uiMap[key]); }
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+            camera.position.set(0, 20, 50);
+            renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio for performance
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            scene.add(new THREE.AmbientLight(0xcccccc, 0.7));
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            directionalLight.position.set(1, 1, 0.5).normalize();
+            scene.add(directionalLight);
+            
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.target.set(0, 0, 0);
+            controls.update();
+            lSystemGroup = new THREE.Group();
+            scene.add(lSystemGroup);
+
+            setupPostProcessing();
+            initMaterials();
+
+            Object.keys(presets).forEach(name => ui.presets.appendChild(new Option(name, name)));
+            
+            ui.presets.addEventListener('change', (e) => loadPreset(e.target.value));
+            ui.generateBtn.addEventListener('click', handleGenerateClick);
+            ui.exportVideoBtn.addEventListener('click', exportVideo);
+            ui.toggleButton.addEventListener('click', toggleUIPanel);
+            ui.helpBtn.addEventListener('click', showHelpModal);
+            ui.closeModalBtn.addEventListener('click', hideHelpModal);
+            ui.helpModal.addEventListener('click', (e) => e.target === ui.helpModal && hideHelpModal());
+            
+            ['bgColor', 'fogColor', 'fogToggle', 'bloomToggle', 'bloomStrength', 'bloomRadius'].forEach(id => {
+                ui[id].addEventListener('input', () => {
+                    clearTimeout(ui.effectsTimeout);
+                    ui.effectsTimeout = setTimeout(updateEffects, 50);
+                });
+            });
+            
+            ui.iterations.addEventListener('input', () => ui.iterationsValue.textContent = ui.iterations.value);
+            ui.animIterations.addEventListener('input', () => ui.animIterationsValue.textContent = ui.animIterations.value);
+            ui.bloomStrength.addEventListener('input', () => ui.bloomStrengthValue.textContent = ui.bloomStrength.value);
+            ui.bloomRadius.addEventListener('input', () => ui.bloomRadiusValue.textContent = ui.bloomRadius.value);
+
+            window.addEventListener('resize', onWindowResize, false);
+            window.addEventListener('keydown', (e) => {
+                if (e.key.toLowerCase() === 'h') toggleUIPanel();
+                if (e.key.toLowerCase() === 'm') showHelpModal();
+                if (e.key.toLowerCase() === 'g') handleGenerateClick();
+            });
+            
+            loadPreset("Growing Vine");
+            animate();
+        }
+
+        // Optimized L-system generation with caching
+        function generateLSystem(axiom, rules, iterations) {
+            const cacheKey = `${axiom}-${rules}-${iterations}`;
+            if (lastString && lastParams === cacheKey) {
+                return lastString;
+            }
+
+            let currentString = axiom;
+            const rulesMap = new Map();
+            
+            // Parse rules more efficiently
+            rules.split('\n').forEach(rule => {
+                const parts = rule.split('=');
+                if (parts.length === 2) {
+                    rulesMap.set(parts[0].trim(), parts[1].trim());
+                }
+            });
+
+            // Generate string
+            for (let i = 0; i < iterations; i++) {
+                let newString = '';
+                for (let j = 0; j < currentString.length; j++) {
+                    const char = currentString[j];
+                    newString += rulesMap.get(char) || char;
+                }
+                currentString = newString;
+                
+                // Safety check for exponential growth
+                if (currentString.length > 100000) {
+                    console.warn('L-system string too long, truncating for performance');
+                    break;
+                }
+            }
+            
+            lastString = currentString;
+            lastParams = cacheKey;
+            console.log("L-System string length:", currentString.length);
+            return currentString;
+        }
+
+        // Heavily optimized drawing function
+        async function drawLSystem(lindenmayerString) {
+            // Clear previous geometry efficiently
+            while (lSystemGroup.children.length > 0) {
+                const child = lSystemGroup.children[0];
+                lSystemGroup.remove(child);
+            }
+            lSystemGroup.position.set(0, 0, 0);
+
+            const turtle = {
+                position: new THREE.Vector3(0, 0, 0), 
+                quaternion: new THREE.Quaternion(),
+                length: parseFloat(ui.length.value), 
+                radius: parseFloat(ui.radius.value),
+                yaw: THREE.MathUtils.degToRad(parseFloat(ui.yaw.value)),
+                pitch: THREE.MathUtils.degToRad(parseFloat(ui.pitch.value)),
+                roll: THREE.MathUtils.degToRad(parseFloat(ui.roll.value)),
+                colorIndex: 0
+            };
+
+            const stateStack = [];
+            const lengthScale = parseFloat(ui.lengthScale.value);
+            const radiusScale = parseFloat(ui.radiusScale.value);
+            const angleScale = parseFloat(ui.angleScale.value);
+            const segmentType = ui.segmentType.value;
+            
+            // Pre-calculate rotation quaternions for performance
+            const rotations = {
+                yawPos: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -turtle.yaw),
+                yawNeg: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), turtle.yaw),
+                pitchPos: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), turtle.pitch),
+                pitchNeg: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -turtle.pitch),
+                rollPos: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), turtle.roll),
+                rollNeg: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -turtle.roll)
+            };
+
+            // Batch geometry creation
+            const meshesToAdd = [];
+            const tempDir = new THREE.Vector3();
+            const tempPos = new THREE.Vector3();
+
+            for (let i = 0; i < lindenmayerString.length; i++) {
+                const char = lindenmayerString[i];
+                
+                switch (char) {
+                    case 'F': case 'G': case 'H': {
+                        tempDir.set(0, 1, 0).applyQuaternion(turtle.quaternion);
+                        tempPos.copy(turtle.position);
+                        turtle.position.add(tempDir.clone().multiplyScalar(turtle.length));
+                        
+                        if (segmentType !== 'line' && turtle.radius > 0.001 && turtle.length > 0.001) {
+                            const geom = getGeometry(segmentType, turtle.radius, turtle.length);
+                            const material = getMaterial(turtle.colorIndex);
+                            const mesh = new THREE.Mesh(geom, material);
+                            
+                            mesh.position.copy(tempPos).add(turtle.position).multiplyScalar(0.5);
+                            mesh.quaternion.copy(turtle.quaternion);
+                            meshesToAdd.push(mesh);
+                        }
+                        break;
+                    }
+                    case 'f': case 'g': case 'h': 
+                        turtle.position.add(tempDir.set(0, 1, 0).applyQuaternion(turtle.quaternion).multiplyScalar(turtle.length)); 
+                        break;
+                    case '+': turtle.quaternion.multiply(rotations.yawPos); break;
+                    case '-': turtle.quaternion.multiply(rotations.yawNeg); break;
+                    case '&': turtle.quaternion.multiply(rotations.pitchPos); break;
+                    case '|': turtle.quaternion.multiply(rotations.pitchNeg); break;
+                    case '\\': turtle.quaternion.multiply(rotations.rollPos); break;
+                    case '/': turtle.quaternion.multiply(rotations.rollNeg); break;
+                    case '[': 
+                        stateStack.push({ 
+                            position: turtle.position.clone(), 
+                            quaternion: turtle.quaternion.clone(),
+                            length: turtle.length,
+                            radius: turtle.radius,
+                            colorIndex: turtle.colorIndex
+                        }); 
+                        break;
+                    case ']': 
+                        const state = stateStack.pop();
+                        if (state) Object.assign(turtle, state);
+                        break;
+                    case 'o': {
+                        if (turtle.radius > 0.001) {
+                            const geom = getGeometry('sphere', turtle.radius * 2.5);
+                            const fruitMaterial = getMaterial(1); // Red fruit
+                            const fruit = new THREE.Mesh(geom, fruitMaterial);
+                            fruit.position.copy(turtle.position);
+                            meshesToAdd.push(fruit);
+                        }
+                        break;
+                    }
+                    case '!': turtle.radius *= radiusScale; break;
+                    case "'": turtle.radius /= radiusScale; break;
+                    case '(': turtle.length *= lengthScale; break;
+                    case ')': turtle.length /= lengthScale; break;
+                    case '*': 
+                        turtle.yaw *= angleScale;
+                        rotations.yawPos.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -turtle.yaw);
+                        rotations.yawNeg.setFromAxisAngle(new THREE.Vector3(0, 0, 1), turtle.yaw);
+                        break;
+                    case '%': 
+                        turtle.yaw /= angleScale;
+                        rotations.yawPos.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -turtle.yaw);
+                        rotations.yawNeg.setFromAxisAngle(new THREE.Vector3(0, 0, 1), turtle.yaw);
+                        break;
+                    case 'C': 
+                        turtle.colorIndex = (turtle.colorIndex + 1) % colorPalette.length; 
+                        break;
+                    default:
+                        if (!isNaN(parseInt(char))) {
+                            turtle.colorIndex = parseInt(char) % colorPalette.length;
+                        }
+                        break;
+                }
+            }
+
+            // Add all meshes in batches for better performance
+            const batchSize = 100;
+            for (let i = 0; i < meshesToAdd.length; i += batchSize) {
+                const batch = meshesToAdd.slice(i, i + batchSize);
+                batch.forEach(mesh => lSystemGroup.add(mesh));
+                
+                // Yield control periodically for large systems
+                if (i > 0 && i % 500 === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1));
+                }
+            }
+        }
+        
+        function autoFrameCamera() {
+            if (lSystemGroup.children.length === 0) return;
+            
+            const box = new THREE.Box3().setFromObject(lSystemGroup);
+            const center = box.getCenter(new THREE.Vector3());
+            const sphere = box.getBoundingSphere(new THREE.Sphere());
+
+            lSystemGroup.position.sub(center);
+            controls.target.set(0, 0, 0);
+
+            const fov = camera.fov * (Math.PI / 180);
+            const distance = sphere.radius / Math.sin(fov / 2);
+            const cameraZ = distance * 1.1;
+
+            if (isNaN(cameraZ) || !isFinite(cameraZ) || cameraZ < 0.1) return;
+
+            camera.position.set(0, 0, cameraZ);
+            camera.near = Math.max(0.1, cameraZ / 100);
+            camera.far = cameraZ * 100;
+            camera.updateProjectionMatrix();
+            controls.update();
+        }
+
+        // Debounced generation function
+        async function updateLSystem(shouldAutoFrame = false) {
+            if (isGenerating) {
+                pendingGeneration = shouldAutoFrame;
+                return;
+            }
+
+            isGenerating = true;
+            try {
+                const lindenmayerString = generateLSystem(
+                    ui.axiom.value, 
+                    ui.rules.value, 
+                    parseInt(ui.iterations.value, 10)
+                );
+                await drawLSystem(lindenmayerString);
+            } catch (error) {
+                console.error("Generation error:", error);
+            } finally {
+                isGenerating = false;
+                
+                if (shouldAutoFrame) autoFrameCamera();
+                
+                // Handle pending generation
+                if (pendingGeneration !== false) {
+                    const shouldFrame = pendingGeneration;
+                    pendingGeneration = false;
+                    setTimeout(() => updateLSystem(shouldFrame), 50);
+                }
+            }
+        }
+
+        function handleGenerateClick() {
+            if (isGenerating) return;
+            
+            ui.generateBtn.textContent = 'Generating...';
+            ui.generateBtn.disabled = true;
+            
+            requestAnimationFrame(async () => {
+                await updateLSystem(true);
+                ui.generateBtn.textContent = 'Generate';
+                ui.generateBtn.disabled = false;
+            });
+        }
+        
+        async function exportVideo() {
+            hideUIPanel();
+            await new Promise(resolve => setTimeout(resolve, 350));
+
+            const capturer = new CCapture({ format: 'webm', framerate: 16, verbose: false });
+            
+            ui.exportVideoBtn.disabled = true;
+            ui.generateBtn.disabled = true;
+            ui.progressOverlay.classList.remove('hidden');
+            ui.progressOverlay.classList.add('flex');
+
+            try {
+                capturer.start();
+                const animationString = generateLSystem(ui.animAxiom.value, ui.animRules.value, parseInt(ui.animIterations.value, 10));
+                const steps = {
+                    Y: parseFloat(ui.yawStep.value), y: -parseFloat(ui.yawStep.value),
+                    P: parseFloat(ui.pitchStep.value), p: -parseFloat(ui.pitchStep.value),
+                    R: parseFloat(ui.rollStep.value), r: -parseFloat(ui.rollStep.value),
+                    L: parseFloat(ui.lengthStep.value), l: -parseFloat(ui.lengthStep.value),
+                    W: parseFloat(ui.radiusStep.value), w: -parseFloat(ui.radiusStep.value),
+                    A: parseFloat(ui.angleScaleStep.value), a: -parseFloat(ui.angleScaleStep.value),
+                };
+
+                for (let i = 0; i < animationString.length; i++) {
+                    const command = animationString[i];
+                    ui.progressText.textContent = `Recording Frame ${i + 1}/${animationString.length}`;
+
+                    switch(command) {
+                        case 'Y': case 'y': ui.yaw.value = (parseFloat(ui.yaw.value) + steps[command]).toFixed(2); break;
+                        case 'P': case 'p': ui.pitch.value = (parseFloat(ui.pitch.value) + steps[command]).toFixed(2); break;
+                        case 'R': case 'r': ui.roll.value = (parseFloat(ui.roll.value) + steps[command]).toFixed(2); break;
+                        case 'L': case 'l': ui.length.value = Math.max(0.01, parseFloat(ui.length.value) + steps[command]).toFixed(3); break;
+                        case 'W': case 'w': ui.radius.value = Math.max(0.001, parseFloat(ui.radius.value) + steps[command]).toFixed(4); break;
+                        case 'A': case 'a': ui.angleScale.value = Math.max(0.1, parseFloat(ui.angleScale.value) + steps[command]).toFixed(3); break;
+                    }
+
+                    await updateLSystem(false);
+                    capturer.capture(renderer.domElement);
+                    await new Promise(resolve => requestAnimationFrame(resolve));
+                }
+
+                ui.progressText.textContent = 'Saving...';
+                capturer.stop();
+                capturer.save();
+            } catch (e) {
+                console.error("Video export failed:", e);
+            } finally {
+                ui.progressOverlay.classList.add('hidden');
+                ui.progressOverlay.classList.remove('flex');
+                ui.exportVideoBtn.disabled = false;
+                ui.generateBtn.disabled = false;
+                showUIPanel();
+            }
+        }
+
+        function hideUIPanel() { if (!ui.uiPanel.classList.contains('hidden')) toggleUIPanel(); }
+        function showUIPanel() { if (ui.uiPanel.classList.contains('hidden')) toggleUIPanel(); }
+        function toggleUIPanel() {
+            ui.uiPanel.classList.toggle('hidden');
+            ui.toggleButton.classList.toggle('collapsed');
+        }
+
+        function showHelpModal() {
+            ui.helpModal.classList.remove('hidden');
+            ui.helpModal.classList.add('flex');
+            setTimeout(() => {
+                ui.helpModal.classList.remove('opacity-0');
+                ui.helpModalContent.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function hideHelpModal() {
+            ui.helpModal.classList.add('opacity-0');
+            ui.helpModalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => ui.helpModal.classList.add('hidden'), 200);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            controls.update();
+            composer.render();
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
