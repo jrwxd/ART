@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L-Systems: A Manifesto for 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Scholarly Neutral -->
+    <!-- Application Structure Plan: A two-column "scrollytelling" layout. The left column contains the manifesto text, and the right, a sticky canvas. As the user scrolls through the text, the canvas interactively demonstrates the concepts being discussed (e.g., string rewriting, turtle graphics for plants, Koch curve generation). This structure was chosen to turn a passive reading experience into an active, hands-on exploration of L-system principles, making the core arguments of the manifesto more tangible and engaging. -->
+    <!-- Visualization & Content Choices: 
+        - Manifesto Text -> Inform -> Scrolling Text Column -> Standard scroll -> Presents the core narrative clearly -> HTML/Tailwind.
+        - Core Idea -> Engage -> Ambiently growing plant on canvas -> Animation -> Immediately showcases the beauty and potential of L-systems -> JS Canvas.
+        - String Rewriting -> Explain -> Text area showing string expansion -> "Iterate" button -> Makes the abstract concept of rule application concrete -> JS DOM Manipulation.
+        - Turtle Graphics -> Demonstrate -> Interactive plant generator -> User can edit rules, angle, iterations and see immediate results -> The core interactive element, allowing for direct experimentation and learning-by-doing -> JS Canvas.
+        - Koch Snowflake -> Demonstrate -> Interactive fractal generator -> Same as plant -> Shows the versatility of L-systems beyond biological forms -> JS Canvas.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        :root {
+            --bg-color: #f4f1eb;
+            --text-color: #2a2a2a;
+            --primary-accent: #4a6c6f;
+            --secondary-accent: #c9a27b;
+            --subtle-gray: #7f7f7f;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            overscroll-behavior: none;
+        }
+        .prose-custom h1, .prose-custom h2, .prose-custom h3 { color: var(--text-color); font-family: 'Lora', serif; }
+        .prose-custom a { color: var(--secondary-accent); text-decoration: none; border-bottom: 1px solid var(--secondary-accent);}
+        .prose-custom strong { color: var(--text-color); }
+        .prose-custom code { color: var(--primary-accent); background-color: rgba(74, 108, 111, 0.08); padding: 0.2em 0.4em; border-radius: 0.25rem; font-size: 0.9em;}
+        .control-panel input, .control-panel button {
+            transition: all 0.2s ease-in-out;
+        }
+        .control-panel button:hover {
+            background-color: var(--secondary-accent);
+            color: white;
+        }
+        .sticky-canvas-container {
+            position: sticky;
+            top: 5vh;
+            height: 90vh;
+        }
+        .prose-custom::-webkit-scrollbar { width: 8px; }
+        .prose-custom::-webkit-scrollbar-track { background: transparent; }
+        .prose-custom::-webkit-scrollbar-thumb { background-color: rgba(74, 108, 111, 0.4); border-radius: 10px; }
+        #l-system-canvas {
+            transition: opacity 0.75s ease-in-out;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body class="overflow-x-hidden">
+
+    <div class="container mx-auto px-4 py-8 md:py-16">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-16">
+            
+            <div id="text-column" class="md:col-span-1 lg:col-span-2 prose prose-custom max-w-none overflow-y-auto h-[90vh] pr-4">
+                <section data-trigger="intro">
+                    <h1 class="text-4xl font-bold">Why L-Systems Still Matter in 2025</h1>
+                    <p class="text-lg text-gray-600 mb-8">(And Why I’m Building a New Studio)</p>
+                    <p>Every so often, computing circles back to its unfinished business. To the strange loops and beautiful dead ends. Fractals. Cellular automata. Artificial life. Entire branches of computational exploration that once lit up the late 20th century, only to recede into the background as the brute force of industry demanded a different kind of efficiency.</p>
+                    <p>L-systems—those recursive, string-rewriting engines first devised to model the quiet, relentless growth of algae—are one of those forgotten futures. They are a formalism that compresses the baroque complexity of a fern into a grammar you could write on a napkin. Data, order, poetry.</p>
+                </section>
+
+                <section data-trigger="history">
+                    <h2 class="font-lora">A Short History of Unfinished Business</h2>
+                    <p>L-systems began not in code, but in life. In 1968, the biologist Aristid Lindenmayer needed a language for growth itself. The result was a formal grammar, a way to describe not a static object, but a developing one. It was a profound shift in perspective. Then came the graphics researchers, and the 1990 book <em>The Algorithmic Beauty of Plants</em>, which revealed the sheer aesthetic power of these simple rules.</p>
+                    <p>For a time, the most tangible embodiment of this was <strong>LStudio</strong>, a research tool from the University of Calgary. It wasn't slick. It wasn't for consumers. But it worked. It was a direct interface with the theory. And then, for decades, nothing truly took its place. That absence is the reason for this project.</p>
+                </section>
+
+                <section data-trigger="mechanics_string">
+                    <h2 class="font-lora">The Grammar of Growth</h2>
+                    <p>At their core, L-systems are brutally, elegantly simple. They are not about learning; they are about unfolding. Every system is just three things: an **Axiom** (the seed), **Production rules** (the physics of its tiny universe), and an **Iteration count** (time).</p>
+                    <p>Watch how one of Lindenmayer's original algae models expands. It's not random. It's a deterministic explosion of order, a cascade of substitutions that builds complexity from the ground up.</p>
+                </section>
+
+                <section data-trigger="mechanics_turtle">
+                    <h3 class="font-lora">Turtle Graphics: Giving Symbols a Body</h3>
+                    <p>The genius was in translation. The leap from abstract string to physical form came via turtle graphics, where each symbol becomes a command: move, turn, remember, return. The standard alphabet is a language of movement:</p>
+                    <ul>
+                        <li><code>F</code>: Move forward, leaving a trace.</li>
+                        <li><code>+</code> / <code>-</code>: Turn, changing orientation.</li>
+                        <li><code>[</code> / <code>]</code>: Push or pop a state from memory.</li>
+                    </ul>
+                    <p>Those brackets—<code>[</code> and <code>]</code>—are the secret to branching. They are memory. They are recursion made manifest. A way for the turtle to explore a path and then return, precisely, to where it was before. Try it. Change a rule, an angle. See what universe you can grow.</p>
+                </section>
+
+                <section data-trigger="mechanics_koch">
+                     <h3 class="font-lora">Beyond Biology: The Koch Curve</h3>
+                    <p>But this language isn't limited to the organic. The same grammar that grows a plant can also etch the infinite coastline of a fractal. The Koch snowflake is an L-system, a perfect, crystalline structure born from the same simple process of recursive substitution. It's a reminder that the line between the living and the mathematical is thinner than we think.</p>
+                </section>
+
+                <section data-trigger="conclusion">
+                    <h2 class="font-lora">Let's Grow Something</h2>
+                    <p>This project is a gesture against the black box. Against the drift toward computational systems that are ever more powerful but ever less scrutable. L-systems are the opposite: they are generative systems you can read. They are interpretable by design.</p>
+                    <p>This is not nostalgia. It is a continuation. An open invitation to build tools for thought, for art, for exploration. To developers, artists, researchers, and anyone who feels that quiet thrill when a few lines of text blossom into a world.</p>
+                </section>
+            </div>
+
+            <div class="md:col-span-1 lg:col-span-3">
+                <div class="sticky-canvas-container flex flex-col items-center justify-center bg-white/30 rounded-lg shadow-lg p-4 backdrop-blur-sm">
+                    <canvas id="l-system-canvas" class="w-full h-full rounded"></canvas>
+                    <div id="control-panel" class="w-full mt-4 space-y-2 text-sm"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('l-system-canvas');
+            const ctx = canvas.getContext('2d');
+            const controlPanel = document.getElementById('control-panel');
+            const textColumn = document.getElementById('text-column');
+
+            let currentScene = 'intro';
+            let animationFrameId;
+
+            const resizeCanvas = () => {
+                const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                ctx.scale(dpr, dpr);
+                drawScene(currentScene, true);
+            };
+
+            const lSystem = {
+                string: '',
+                generate(axiom, rules, iterations) {
+                    this.string = axiom;
+                    for (let i = 0; i < iterations; i++) {
+                        let nextString = '';
+                        for (const char of this.string) {
+                            nextString += rules[char] || char;
+                        }
+                        this.string = nextString;
+                    }
+                    return this.string;
+                },
+                draw(length, angle, isResize = false) {
+                    if (!isResize) {
+                        canvas.style.opacity = 0;
+                    }
+                    
+                    setTimeout(() => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.beginPath();
+                        ctx.strokeStyle = 'var(--primary-accent)';
+                        ctx.lineWidth = 1.5;
+                        
+                        const originX = canvas.width / window.devicePixelRatio / 2;
+                        const originY = canvas.height / window.devicePixelRatio;
+                        ctx.moveTo(originX, originY);
+
+                        const stack = [];
+                        let currentX = originX;
+                        let currentY = originY;
+                        let currentAngle = -Math.PI / 2;
+
+                        for (const char of this.string) {
+                            switch (char) {
+                                case 'F': case 'G':
+                                    const nextX = currentX + length * Math.cos(currentAngle);
+                                    const nextY = currentY + length * Math.sin(currentAngle);
+                                    ctx.lineTo(nextX, nextY);
+                                    currentX = nextX;
+                                    currentY = nextY;
+                                    break;
+                                case '+': currentAngle += angle * Math.PI / 180; break;
+                                case '-': currentAngle -= angle * Math.PI / 180; break;
+                                case '[': stack.push({ x: currentX, y: currentY, angle: currentAngle }); break;
+                                case ']':
+                                    const state = stack.pop();
+                                    if (state) {
+                                        ctx.moveTo(state.x, state.y);
+                                        currentX = state.x;
+                                        currentY = state.y;
+                                        currentAngle = state.angle;
+                                    }
+                                    break;
+                            }
+                        }
+                        ctx.stroke();
+                        if (!isResize) {
+                           canvas.style.opacity = 1;
+                        }
+                    }, isResize ? 0 : 100);
+                }
+            };
+            
+            const scenes = {
+                intro: {
+                    axiom: 'X', rules: { 'X': 'F+[[X]-X]-F[-FX]+X', 'F': 'FF' }, iterations: 6, angle: 25, length: 2,
+                    setup: (isResize) => {
+                        controlPanel.innerHTML = `<p class="text-center text-gray-500 font-lora">An ambiently growing fractal plant.</p>`;
+                        lSystem.generate(scenes.intro.axiom, scenes.intro.rules, scenes.intro.iterations);
+                        lSystem.draw(scenes.intro.length, scenes.intro.angle, isResize);
+                    }
+                },
+                history: {
+                    setup: (isResize) => {
+                        controlPanel.innerHTML = `<p class="text-center text-gray-500 font-lora">The legacy of L-Systems.</p>`;
+                        lSystem.generate(scenes.intro.axiom, scenes.intro.rules, scenes.intro.iterations);
+                        lSystem.draw(scenes.intro.length, scenes.intro.angle, isResize);
+                    }
+                },
+                mechanics_string: {
+                    setup: () => {
+                        canvas.style.opacity = 0;
+                        let iterations = 0;
+                        const axiom = 'A', rules = { 'A': 'AB', 'B': 'A' };
+                        const update = () => {
+                            const result = lSystem.generate(axiom, rules, iterations);
+                            controlPanel.innerHTML = `
+                                <div class="font-mono p-2 bg-gray-100 rounded text-center">
+                                    <p class="mb-1"><strong>Axiom:</strong> A, <strong>Rules:</strong> (A → AB), (B → A)</p>
+                                    <p class="mb-2"><strong>n=${iterations}:</strong> <span class="text-xs break-all">${result}</span></p>
+                                    <button id="iterate-string" class="px-4 py-1 bg-gray-200 rounded">Iterate</button>
+                                </div>`;
+                            document.getElementById('iterate-string').onclick = () => {
+                                iterations = (iterations < 7) ? iterations + 1 : 0;
+                                update();
+                            };
+                        };
+                        update();
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    }
+                },
+                mechanics_turtle: {
+                    state: { axiom: 'F', rules: 'F->F[+F]F[-F]F', angle: 25.7, iterations: 4, length: 5 },
+                    setup: (isResize) => {
+                        const update = (resize) => {
+                            const rulesObj = {};
+                            const parts = scenes.mechanics_turtle.state.rules.split('->');
+                            if (parts.length === 2) rulesObj[parts[0].trim()] = parts[1].trim();
+                            lSystem.generate(scenes.mechanics_turtle.state.axiom, rulesObj, scenes.mechanics_turtle.state.iterations);
+                            lSystem.draw(scenes.mechanics_turtle.state.length, scenes.mechanics_turtle.state.angle, resize);
+                        };
+                        controlPanel.innerHTML = `
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="block">Axiom</label><input id="axiom" type="text" value="${scenes.mechanics_turtle.state.axiom}" class="w-full p-1 border rounded bg-gray-100"></div>
+                                <div><label class="block">Iterations (1-6)</label><input id="iterations" type="number" min="1" max="6" value="${scenes.mechanics_turtle.state.iterations}" class="w-full p-1 border rounded bg-gray-100"></div>
+                                <div class="col-span-2"><label class="block">Rule</label><input id="rules" type="text" value="${scenes.mechanics_turtle.state.rules}" class="w-full p-1 border rounded bg-gray-100"></div>
+                                <div><label class="block">Angle</label><input id="angle" type="number" value="${scenes.mechanics_turtle.state.angle}" class="w-full p-1 border rounded bg-gray-100"></div>
+                                <div class="flex items-end"><button id="draw" class="w-full py-1 bg-gray-200 rounded">Generate</button></div>
+                            </div>`;
+                        document.getElementById('draw').onclick = () => {
+                            scenes.mechanics_turtle.state.axiom = document.getElementById('axiom').value;
+                            scenes.mechanics_turtle.state.rules = document.getElementById('rules').value;
+                            scenes.mechanics_turtle.state.angle = parseFloat(document.getElementById('angle').value);
+                            scenes.mechanics_turtle.state.iterations = parseInt(document.getElementById('iterations').value);
+                            update(false);
+                        };
+                        update(isResize);
+                    }
+                },
+                mechanics_koch: {
+                    state: { axiom: 'F', rules: 'F->F+F--F+F', angle: 60, iterations: 3, length: 8 },
+                    setup: (isResize) => {
+                        const update = (resize) => {
+                            const rulesObj = {};
+                            const parts = scenes.mechanics_koch.state.rules.split('->');
+                            if (parts.length === 2) rulesObj[parts[0].trim()] = parts[1].trim();
+                            lSystem.generate(scenes.mechanics_koch.state.axiom, rulesObj, scenes.mechanics_koch.state.iterations);
+                            
+                            canvas.style.opacity = 0;
+                            setTimeout(() => {
+                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                ctx.beginPath();
+                                ctx.strokeStyle = 'var(--primary-accent)';
+                                ctx.lineWidth = 1;
+                                const w = canvas.width / window.devicePixelRatio;
+                                ctx.moveTo(w * 0.1, w * 0.2);
+                                lSystem.draw(scenes.mechanics_koch.state.length, scenes.mechanics_koch.state.angle, true);
+                                canvas.style.opacity = 1;
+                            }, 100);
+                        };
+                        controlPanel.innerHTML = `
+                             <div class="grid grid-cols-2 gap-2">
+                                <div><label class="block">Axiom</label><input id="koch_axiom" type="text" value="${scenes.mechanics_koch.state.axiom}" class="w-full p-1 border rounded bg-gray-100" readonly></div>
+                                <div><label class="block">Iterations (0-5)</label><input id="koch_iterations" type="number" min="0" max="5" value="${scenes.mechanics_koch.state.iterations}" class="w-full p-1 border rounded bg-gray-100"></div>
+                                <div class="col-span-2"><label class="block">Rule</label><input id="koch_rules" type="text" value="${scenes.mechanics_koch.state.rules}" class="w-full p-1 border rounded bg-gray-100" readonly></div>
+                                <div><label class="block">Angle</label><input id="koch_angle" type="number" value="${scenes.mechanics_koch.state.angle}" class="w-full p-1 border rounded bg-gray-100" readonly></div>
+                                <div class="flex items-end"><button id="draw_koch" class="w-full py-1 bg-gray-200 rounded">Generate</button></div>
+                            </div>`;
+                        document.getElementById('draw_koch').onclick = () => {
+                            scenes.mechanics_koch.state.iterations = parseInt(document.getElementById('koch_iterations').value);
+                            update(false);
+                        };
+                        update(isResize);
+                    }
+                },
+                conclusion: {
+                    setup: (isResize) => {
+                        controlPanel.innerHTML = `<p class="text-center text-gray-500 font-lora">Recursion is still beautiful. Let's grow something.</p>`;
+                        lSystem.generate(scenes.intro.axiom, scenes.intro.rules, scenes.intro.iterations);
+                        lSystem.draw(scenes.intro.length, scenes.intro.angle, isResize);
+                    }
+                }
+            };
+
+            function drawScene(sceneName, isResize = false) {
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                if (scenes[sceneName] && typeof scenes[sceneName].setup === 'function') {
+                    scenes[sceneName].setup(isResize);
+                }
+            }
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const sceneName = entry.target.dataset.trigger;
+                        if (sceneName !== currentScene) {
+                            currentScene = sceneName;
+                            drawScene(currentScene);
+                        }
+                    }
+                });
+            }, { root: textColumn, threshold: 0.5 });
+
+            document.querySelectorAll('#text-column section').forEach(section => {
+                observer.observe(section);
+            });
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+        });
+    </script>
+</body>
+</html>
