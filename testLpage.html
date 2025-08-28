@@ -13,14 +13,16 @@
         .prose-custom h1,.prose-custom h2,.prose-custom h3{font-family:Lora,serif; color:var(--text);}
         .sticky-canvas-container{position:sticky; top:5vh; height:90vh; display:flex; align-items:center; justify-content:center;}
         .canvas-wrap{width:100%; height:100%; display:flex; flex-direction:column; gap:8px;}
-        #l-system-canvas{width:100%; height: calc(100% - 64px); background:linear-gradient(180deg,#ffffff,#f0ebe4); border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,0.08); display:block;}
-        .control-panel{height:64px; display:flex; gap:8px; align-items:center; padding:6px 4px;}
-        .control-panel input[type="text"], .control-panel input[type="number"]{padding:6px 8px; border-radius:6px; border:1px solid rgba(0,0,0,0.08); background:white;}
+        #l-system-canvas{width:100%; height: calc(100% - 72px); background:linear-gradient(180deg,#ffffff,#f0ebe4); border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,0.08); display:block;}
+        .control-panel{height:72px; display:flex; gap:8px; align-items:center; padding:6px 4px; flex-wrap:wrap;}
+        .control-panel input[type="text"], .control-panel input[type="number"], .control-panel select{padding:6px 8px; border-radius:6px; border:1px solid rgba(0,0,0,0.08); background:white;}
         .control-panel button{background:var(--accent); color:white; padding:8px 12px; border-radius:6px; border:none; cursor:pointer;}
-        .control-panel button:focus,.control-panel input:focus{outline:3px solid rgba(74,108,111,0.12);}
+        .control-panel button.secondary{background:transparent; color:var(--accent); border:1px solid rgba(74,108,111,0.12);}
+        .control-panel button:focus,.control-panel input:focus,.control-panel select:focus{outline:3px solid rgba(74,108,111,0.12);}
         @media (max-width: 900px){
             .sticky-canvas-container{position:static; height: 48vh; margin-top:12px;}
             #l-system-canvas{height:100%;}
+            .control-panel{height:auto; gap:6px;}
         }
         @media (prefers-reduced-motion: reduce){
             *{transition:none!important; animation:none!important;}
@@ -79,12 +81,25 @@
                     <div class="canvas-wrap w-full h-full">
                         <canvas id="l-system-canvas" role="img" aria-label="L-system visualization" tabindex="0"></canvas>
                         <div class="control-panel" aria-live="polite">
+                            <label class="sr-only" for="scene-select">Scene</label>
+                            <select id="scene-select" aria-label="Select scene">
+                                <option value="intro">Intro</option>
+                                <option value="history">History</option>
+                                <option value="mechanics_string">String</option>
+                                <option value="mechanics_turtle">Turtle</option>
+                                <option value="mechanics_koch">Koch</option>
+                                <option value="conclusion">Conclusion</option>
+                            </select>
+
+                            <button id="prev-scene" class="secondary" title="Previous scene">Prev</button>
+                            <button id="next-scene" class="secondary" title="Next scene">Next</button>
+
                             <input id="axiom" type="text" title="axiom" placeholder="Axiom (e.g. F)" value="F">
                             <input id="rules" type="text" title="rules" placeholder='Rules (F=F[+F]F)' value="F=F[+F]F">
                             <input id="iterations" type="number" min="0" max="8" title="iterations" value="4" style="width:80px;">
                             <input id="angle" type="number" min="0" max="180" title="angle" value="25" style="width:72px;">
                             <button id="generate-btn">Generate</button>
-                            <button id="reset-btn">Reset</button>
+                            <button id="reset-btn" class="secondary">Reset</button>
                         </div>
                     </div>
                 </div>
@@ -102,7 +117,9 @@
         const angleInput = document.getElementById('angle');
         const genBtn = document.getElementById('generate-btn');
         const resetBtn = document.getElementById('reset-btn');
-        const textColumn = document.getElementById('text-column');
+        const sceneSelect = document.getElementById('scene-select');
+        const prevBtn = document.getElementById('prev-scene');
+        const nextBtn = document.getElementById('next-scene');
 
         // helpers: resize canvas correctly and use setTransform to avoid cumulative scale
         function resizeCanvas(){
@@ -150,9 +167,7 @@
         function drawTurtle(str, opts = {}){
             const { startX, startY, length, angleDeg, strokeStyle } = opts;
             ctx.clearRect(0,0, canvas.width, canvas.height);
-            // coordinate system: origin top-left, positive Y down; we'll map turtle Y-up to -Y canvas
             ctx.save();
-            // center transform for nicer framing
             ctx.translate(startX, startY);
             ctx.scale(1, -1); // invert Y so turtle treats +Y as 'up'
             ctx.lineWidth = Math.max(0.5, Math.min(6, (length * 0.12)));
@@ -183,11 +198,7 @@
                 } else if(c === ']'){
                     const s = stack.pop();
                     if(s){ x = s.x; y = s.y; ang = s.ang; ctx.moveTo(x,y); }
-                } else {
-                    // ignore other symbols
                 }
-                // safety yield for very long strings (avoid blocking for extremely large data)
-                // not implemented here because draw is fast for reasonable strings
             }
             ctx.stroke();
             ctx.restore();
@@ -195,7 +206,6 @@
 
         // Koch fractal drawer (simple)
         function generateKoch(iterations){
-            // initial line segment represented as string using characters F and angle markers
             let ax = "F";
             const rule = { 'F': "F+F--F+F" };
             let cur = ax;
@@ -210,15 +220,13 @@
             return cur;
         }
 
-        // Scenes logic
+        // Scenes logic (unchanged)
         const scenes = {
             intro: {
-                setup(){ /* animated gentle growth */ },
                 render(){
-                    // simple ambient plant growth over time
                     const ax = "F";
                     const rules = "F=F[+F]F[-F]F";
-                    const t = Math.floor((Date.now()/600) % 6) + 1; // 1..6 iterations
+                    const t = Math.floor((Date.now()/600) % 6) + 1;
                     const s = generateLSystem(ax, rules, t);
                     const len = Math.max(2, (canvas.getBoundingClientRect().height / 200) * (6 / (t+1)) );
                     drawTurtle(s, { startX: canvas.width/2/Math.max(1,window.devicePixelRatio), startY: canvas.getBoundingClientRect().height*0.1, length: len, angleDeg: 22, strokeStyle:'#2c6b6b' });
@@ -226,7 +234,6 @@
             },
             history:{
                 render(){
-                    // static decorative plant
                     const s = generateLSystem("F", "F=F[+F]F", 4);
                     const len = Math.max(1.8, (canvas.getBoundingClientRect().height / 180));
                     drawTurtle(s, { startX: canvas.width/2/Math.max(1,window.devicePixelRatio), startY: canvas.getBoundingClientRect().height*0.12, length: len, angleDeg: 24, strokeStyle:'#6b4a3a' });
@@ -234,7 +241,6 @@
             },
             mechanics_string:{
                 render(){
-                    // show string expansion visually as text (drawn on canvas)
                     ctx.clearRect(0,0,canvas.width, canvas.height);
                     ctx.save();
                     ctx.setTransform(1,0,0,1,0,0);
@@ -244,7 +250,6 @@
                     const rules = "A=AB;B=A";
                     const it = 6;
                     let s = generateLSystem(ax, rules, it);
-                    // render only first N chars
                     const rect = canvas.getBoundingClientRect();
                     const padding = 12;
                     ctx.fillText("Expanded string (truncated):", padding, 20);
@@ -260,7 +265,6 @@
             },
             mechanics_turtle:{
                 render(){
-                    // draw using current controls
                     const ax = axInput.value || "F";
                     const rules = rulesInput.value || "F=F[+F]F";
                     const it = parseInt(iterInput.value,10) || 4;
@@ -273,13 +277,11 @@
             },
             mechanics_koch:{
                 render(){
-                    // draw Koch curve centered
                     const it = 4;
                     const s = generateKoch(it);
                     ctx.clearRect(0,0,canvas.width, canvas.height);
                     ctx.save();
                     const rect = canvas.getBoundingClientRect();
-                    // map turtle to horizontal center
                     const length = Math.min(rect.width, rect.height) / (s.length / 2 + 10);
                     ctx.translate(rect.width/2, rect.height/2);
                     ctx.scale(1, -1);
@@ -307,7 +309,6 @@
             },
             conclusion:{
                 render(){
-                    // light decorative fade
                     ctx.clearRect(0,0,canvas.width, canvas.height);
                     ctx.save();
                     ctx.fillStyle = '#f8f6f3';
@@ -317,15 +318,16 @@
             }
         };
 
+        // scene order and control
+        const scenesOrder = ['intro','history','mechanics_string','mechanics_turtle','mechanics_koch','conclusion'];
         let currentScene = 'intro';
         let raf = null;
-        let lastResize = 0;
 
         function drawScene(sceneName, isResize=false){
             currentScene = sceneName in scenes ? sceneName : 'intro';
-            // cancel previous RAF to avoid stacking
-            if(raf) { cancelAnimationFrame(raf); raf = null; }
-            // for animated scenes (intro) use RAF loop; for others a single render is enough
+            // update select UI without triggering change event loop
+            if(sceneSelect.value !== currentScene) sceneSelect.value = currentScene;
+            if(raf){ cancelAnimationFrame(raf); raf = null; }
             if(currentScene === 'intro'){
                 function loop(){
                     scenes.intro.render();
@@ -337,21 +339,21 @@
             }
         }
 
-        // IntersectionObserver to change scenes based on visible section
-        const observerRoot = textColumn;
-        const observer = new IntersectionObserver((entries)=>{
-            entries.forEach(entry=>{
-                if(entry.isIntersecting){
-                    const trigger = entry.target.getAttribute('data-trigger');
-                    if(trigger) drawScene(trigger);
-                }
-            });
-        }, { root: observerRoot, threshold: 0.5 });
-        document.querySelectorAll('#text-column section').forEach(s => observer.observe(s));
+        // discrete controls: select, prev, next
+        sceneSelect.addEventListener('change', (e)=> drawScene(e.target.value));
+        prevBtn.addEventListener('click', ()=>{
+            const idx = scenesOrder.indexOf(currentScene);
+            const prev = scenesOrder[(idx - 1 + scenesOrder.length) % scenesOrder.length];
+            drawScene(prev);
+        });
+        nextBtn.addEventListener('click', ()=>{
+            const idx = scenesOrder.indexOf(currentScene);
+            const nxt = scenesOrder[(idx + 1) % scenesOrder.length];
+            drawScene(nxt);
+        });
 
-        // controls
+        // generate/reset
         genBtn.addEventListener('click', ()=>{
-            // switch to mechanics_turtle when generating
             drawScene('mechanics_turtle');
         });
         resetBtn.addEventListener('click', ()=>{
@@ -362,27 +364,29 @@
             drawScene('intro');
         });
 
-        // accessibility: keyboard triggers
-        canvas.addEventListener('keydown', (e)=>{
-            if(e.key === 'g') drawScene('mechanics_turtle');
-            if(e.key === 'k') drawScene('mechanics_koch');
+        // keyboard accessibility
+        document.addEventListener('keydown', (e)=>{
+            if(e.key === 'ArrowLeft') prevBtn.click();
+            if(e.key === 'ArrowRight') nextBtn.click();
+            if(e.key === 'g') genBtn.click();
+            if(e.key === 'r') resetBtn.click();
         });
 
         // initial resize + draw
-        window.addEventListener('resize', () => { lastResize = Date.now(); resizeCanvas(); });
-        // observe size changes of parent container to handle responsive height changes
+        window.addEventListener('resize', () => resizeCanvas());
         const ro = new ResizeObserver(() => { resizeCanvas(); });
         ro.observe(canvas);
-        // initial call
         resizeCanvas();
-
-        // ensure canvas is focusable on mobile when tapped
+        // focus behaviour
         canvas.addEventListener('pointerdown', ()=> canvas.focus());
 
-        // keep an interval to update animated intro even if scrolled into view
+        // keep animated intro updated on interval too (safe fallback)
         setInterval(()=> {
             if(currentScene === 'intro') scenes.intro.render();
         }, 700);
+
+        // start
+        drawScene(currentScene);
     })();
     </script>
 </body>
