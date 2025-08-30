@@ -1016,6 +1016,12 @@
             const animationResult = generateLSystem(ui.animAxiom.value || 'Y', ui.animRules.value || 'Y=Y', parseInt(ui.animIterations.value, 10) || 0);
             const animationString = animationResult.string || animationResult; // Handle both new and old format
             
+            console.log("Animation axiom:", ui.animAxiom.value);
+            console.log("Animation rules:", ui.animRules.value);
+            console.log("Animation iterations:", ui.animIterations.value);
+            console.log("Generated animation string:", animationString);
+            console.log("Animation string length:", animationString.length);
+            
             // Handle case where animation string is empty or too short
             if (animationString.length === 0) {
                 alert("No animation commands found. Please set up animation axiom and rules.");
@@ -1068,32 +1074,54 @@
 
                 for (let i = 0; i < animationString.length; i++) {
                     const command = animationString[i];
-                    ui.progressText.textContent = `Recording Frame ${i + 1}/${animationString.length}`;
+                    ui.progressText.textContent = `Recording Frame ${i + 1}/${animationString.length} - Command: ${command}`;
 
-                    // Apply animation step
+                    // Apply animation step - always capture a frame regardless of command
+                    let parameterChanged = false;
                     if (steps[command] !== undefined) {
                         switch(command) {
-                            case 'Y': case 'y': ui.yaw.value = (parseFloat(ui.yaw.value) + steps[command]).toFixed(2); break;
-                            case 'P': case 'p': ui.pitch.value = (parseFloat(ui.pitch.value) + steps[command]).toFixed(2); break;
-                            case 'R': case 'r': ui.roll.value = (parseFloat(ui.roll.value) + steps[command]).toFixed(2); break;
-                            case 'L': case 'l': ui.length.value = Math.max(0.01, parseFloat(ui.length.value) + steps[command]).toFixed(3); break;
-                            case 'W': case 'w': ui.radius.value = Math.max(0.001, parseFloat(ui.radius.value) + steps[command]).toFixed(4); break;
-                            case 'A': case 'a': ui.angleScale.value = Math.max(0.1, parseFloat(ui.angleScale.value) + steps[command]).toFixed(3); break;
+                            case 'Y': case 'y': 
+                                ui.yaw.value = (parseFloat(ui.yaw.value) + steps[command]).toFixed(2); 
+                                parameterChanged = true;
+                                break;
+                            case 'P': case 'p': 
+                                ui.pitch.value = (parseFloat(ui.pitch.value) + steps[command]).toFixed(2); 
+                                parameterChanged = true;
+                                break;
+                            case 'R': case 'r': 
+                                ui.roll.value = (parseFloat(ui.roll.value) + steps[command]).toFixed(2); 
+                                parameterChanged = true;
+                                break;
+                            case 'L': case 'l': 
+                                ui.length.value = Math.max(0.01, parseFloat(ui.length.value) + steps[command]).toFixed(3); 
+                                parameterChanged = true;
+                                break;
+                            case 'W': case 'w': 
+                                ui.radius.value = Math.max(0.001, parseFloat(ui.radius.value) + steps[command]).toFixed(4); 
+                                parameterChanged = true;
+                                break;
+                            case 'A': case 'a': 
+                                ui.angleScale.value = Math.max(0.1, parseFloat(ui.angleScale.value) + steps[command]).toFixed(3); 
+                                parameterChanged = true;
+                                break;
                         }
+                    }
 
-                        // Update the L-system with new parameters
+                    // Always update and capture a frame (for consistent frame rate)
+                    if (parameterChanged) {
                         await updateLSystem(false);
-                        
-                        // Ensure rendering is complete
-                        await new Promise(resolve => requestAnimationFrame(resolve));
-                        
-                        // Capture frame only if we made a change
-                        try {
-                            capturer.capture(renderer.domElement);
-                            framesCaptured++;
-                        } catch (captureError) {
-                            console.warn("Frame capture failed:", captureError);
-                        }
+                    }
+                    
+                    // Ensure rendering is complete
+                    await new Promise(resolve => requestAnimationFrame(resolve));
+                    
+                    // Capture frame
+                    try {
+                        capturer.capture(renderer.domElement);
+                        framesCaptured++;
+                        console.log(`Captured frame ${framesCaptured} for command '${command}'`);
+                    } catch (captureError) {
+                        console.warn("Frame capture failed:", captureError);
                     }
                     
                     // Small delay to ensure frame processing
