@@ -201,15 +201,11 @@
     </div>
 
     <script type="module">
-        // Test imports first
-        try {
-            const THREE = await import('https://unpkg.com/three@0.153.0/build/three.module.js');
-            const { OrbitControls } = await import('https://unpkg.com/three@0.153.0/examples/jsm/controls/OrbitControls.js');
-            console.log('Three.js loaded successfully:', THREE);
-            console.log('OrbitControls loaded successfully:', OrbitControls);
-        } catch (error) {
-            console.error('Import failed:', error);
-        }
+        import * as THREE from 'https://unpkg.com/three@0.153.0/build/three.module.js';
+        import { OrbitControls } from 'https://unpkg.com/three@0.153.0/examples/jsm/controls/OrbitControls.js';
+
+        // Make THREE global for compatibility
+        window.THREE = THREE;
 
         let scene, camera, renderer, controls, lSystemGroup, composer;
         const ui = {};
