@@ -202,9 +202,10 @@
 
     <!-- The rest of your HTML (no stray JS code in the body!) -->
 
-    <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.153.0/build/three.module.js';
-    import { OrbitControls } from 'https://unpkg.com/three@0.153.0/examples/jsm/controls/OrbitControls.js';
+   <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
         let scene, camera, renderer, controls, lSystemGroup, composer;
     const ui = {};
         const geometryPool = { cylinder: [], box: [], sphere: [] };
