@@ -459,11 +459,9 @@
                 return;
             }
 
-            // Create geometry and material
+            // Create geometryds and material
             const geometry = new THREE.CylinderGeometry(1, 1, 1, 8, 1);
-            const material = colorPalette[0].clone();
-            // Enable per-instance color
-            material.vertexColors = true;
+            const material = new THREE.MeshStandardMaterial({ vertexColors: true });
             const instancedMesh = new THREE.InstancedMesh(geometry, material, instanceCount);
             lSystemGroup.add(instancedMesh);
 
