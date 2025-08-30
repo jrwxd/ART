@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>L-system Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/three@0.153.0/build/three.min.js"></script>
+        <script src="https://unpkg.com/three@0.153.0/build/three.min.js"></script>
     <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
     <style>
         body {
@@ -204,9 +204,10 @@
     <!-- The rest of your HTML (no stray JS code in the body!) -->
 
     <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.153.0/build/three.module.js';
     import { OrbitControls } from 'https://unpkg.com/three@0.153.0/examples/jsm/controls/OrbitControls.js';
         let scene, camera, renderer, controls, lSystemGroup, composer;
-        const ui = {};
+    const ui = {};
         const geometryPool = { cylinder: [], box: [], sphere: [] };
         const materialPool = [];
         let colorPalette = [];
