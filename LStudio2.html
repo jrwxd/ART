@@ -168,6 +168,12 @@
                     <div><label for="angleScaleStep" class="text-sm">Angle Scale</label><input type="number" id="angleScaleStep" step="0.001" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
                 </div>
             </details>
+        </div> <!-- <-- This closes the .space-y-4 div -->
+    </div> <!-- <-- This closes the #ui-panel div -->
+
+    <!-- The rest of your HTML (no stray JS code in the body!) -->
+
+    <script type="module">
         let scene, camera, renderer, controls, lSystemGroup, composer;
         const ui = {};
         const geometryPool = { cylinder: [], box: [], sphere: [] };
@@ -246,8 +252,11 @@
         }
 
         function initMaterials() {
-            colorPalette = [0x86efac, 0xef4444, 0x3b82f6, 0xf97316, 0x8b5cf6, 0x14b8a6, 0xec4899, 0xfacc15, 0x65a30d, 0x22d3ee]
-                .map(c => new THREE.MeshPhongMaterial({ color: c, side: THREE.DoubleSide }));
+            // Use THREE.Color objects for palette, not materials!
+            colorPalette = [
+                0x86efac, 0xef4444, 0x3b82f6, 0xf97316, 0x8b5cf6,
+                0x14b8a6, 0xec4899, 0xfacc15, 0x65a30d, 0x22d3ee
+            ].map(c => new THREE.Color(c));
         }
 
         function init() {
@@ -412,7 +421,7 @@
                 return;
             }
 
-            // Create geometryds and material
+            // Use MeshStandardMaterial with vertexColors enabled
             const geometry = new THREE.CylinderGeometry(1, 1, 1, 8, 1);
             const material = new THREE.MeshStandardMaterial({ vertexColors: true });
             const instancedMesh = new THREE.InstancedMesh(geometry, material, instanceCount);
@@ -459,7 +468,7 @@
 
                         // Set color for this instance
                         if (instancedMesh.setColorAt) {
-                            instancedMesh.setColorAt(instanceIndex, colorPalette[turtle.colorIndex % colorPalette.length].color);
+                            instancedMesh.setColorAt(instanceIndex, colorPalette[turtle.colorIndex % colorPalette.length]);
                         }
 
                         instanceIndex++;
