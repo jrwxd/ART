@@ -200,14 +200,19 @@
         </div>
     </div>
 
-    <!-- The rest of your HTML (no stray JS code in the body!) -->
-
-   <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.153.0/build/three.module.js';
-    import { OrbitControls } from 'https://unpkg.com/three@0.153.0/examples/jsm/controls/OrbitControls.js';
+    <script type="module">
+        // Test imports first
+        try {
+            const THREE = await import('https://unpkg.com/three@0.153.0/build/three.module.js');
+            const { OrbitControls } = await import('https://unpkg.com/three@0.153.0/examples/jsm/controls/OrbitControls.js');
+            console.log('Three.js loaded successfully:', THREE);
+            console.log('OrbitControls loaded successfully:', OrbitControls);
+        } catch (error) {
+            console.error('Import failed:', error);
+        }
 
         let scene, camera, renderer, controls, lSystemGroup, composer;
-    const ui = {};
+        const ui = {};
         const geometryPool = { cylinder: [], box: [], sphere: [] };
         const materialPool = [];
         let colorPalette = [];
