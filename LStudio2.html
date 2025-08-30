@@ -634,6 +634,13 @@
             hideUIPanel();
             await new Promise(resolve => setTimeout(resolve, 350));
 
+            const animationString = generateLSystem(ui.animAxiom.value, ui.animRules.value, parseInt(ui.animIterations.value, 10));
+            if (animationString.length > 200) { // You can adjust this threshold
+                alert("Too many animation steps for video export. Please reduce animation iterations.");
+                showUIPanel();
+                return;
+            }
+
             const capturer = new CCapture({ format: 'webm', framerate: 16, verbose: false });
             
             ui.exportVideoBtn.disabled = true;
@@ -643,7 +650,6 @@
 
             try {
                 capturer.start();
-                const animationString = generateLSystem(ui.animAxiom.value, ui.animRules.value, parseInt(ui.animIterations.value, 10));
                 const steps = {
                     Y: parseFloat(ui.yawStep.value), y: -parseFloat(ui.yawStep.value),
                     P: parseFloat(ui.pitchStep.value), p: -parseFloat(ui.pitchStep.value),
