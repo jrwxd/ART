@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>L-system Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/three@0.153.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.153.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
     <style>
         body {
@@ -200,13 +202,7 @@
         </div>
     </div>
 
-    <script type="module">
-        import * as THREE from 'https://unpkg.com/three@0.153.0/build/three.module.js';
-        import { OrbitControls } from 'https://unpkg.com/three@0.153.0/examples/jsm/controls/OrbitControls.js';
-
-        // Make THREE global for compatibility
-        window.THREE = THREE;
-
+    <script>
         let scene, camera, renderer, controls, lSystemGroup, composer;
         const ui = {};
         const geometryPool = { cylinder: [], box: [], sphere: [] };
