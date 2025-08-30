@@ -450,7 +450,7 @@
             }
             lSystemGroup.position.set(0, 0, 0);
 
-            // Filter the string to find out exactly how many cylinders we need to draw.
+            // Count how many segments to draw
             const drawCommands = lindenmayerString.match(/[FGH]/g) || [];
             const instanceCount = drawCommands.length;
 
@@ -459,10 +459,11 @@
                 return;
             }
 
-            // 2. SETUP: Create ONE geometry and ONE InstancedMesh
-            // We create a "unit" cylinder of length 1, which we will scale in the matrix.
-            const geometry = new THREE.CylinderGeometry(1, 1, 1, 8, 1); 
-            const material = colorPalette[0] || new THREE.MeshPhongMaterial({color: 0x86efac});
+            // Create geometry and material
+            const geometry = new THREE.CylinderGeometry(1, 1, 1, 8, 1);
+            const material = colorPalette[0].clone();
+            // Enable per-instance color
+            material.vertexColors = true;
             const instancedMesh = new THREE.InstancedMesh(geometry, material, instanceCount);
             lSystemGroup.add(instancedMesh);
 
@@ -473,55 +474,47 @@
                 length: parseFloat(ui.length.value) || 1.0,
                 radius: parseFloat(ui.radius.value) || 0.05,
                 yaw: parseFloat(ui.yaw.value) || 25,
-                // Add other angles if needed from UI
                 pitch: parseFloat(ui.pitch.value) || 25,
-                roll: parseFloat(ui.roll.value) || 25
+                roll: parseFloat(ui.roll.value) || 25,
+                colorIndex: 0
             };
 
             const stateStack = [];
-            let instanceIndex = 0; // Keep track of which instance we are transforming
+            let instanceIndex = 0;
 
-            // Reusable objects for performance
+            // Reusable objects
             const matrix = new THREE.Matrix4();
             const position = new THREE.Vector3();
             const quaternion = new THREE.Quaternion();
             const scale = new THREE.Vector3();
-
             const up = new THREE.Vector3(0, 1, 0);
 
-            // 3. THE LOOP: Calculate transformations, don't create objects
             for (let i = 0; i < lindenmayerString.length; i++) {
                 const char = lindenmayerString[i];
 
                 switch (char) {
                     case 'F':
                     case 'G':
-                    case 'H': { // Draw a segment
+                    case 'H': {
                         const direction = new THREE.Vector3(0, 1, 0).applyQuaternion(turtle.quat);
                         const nextPos = new THREE.Vector3().copy(turtle.pos).addScaledVector(direction, turtle.length);
 
-                        // --- Matrix Calculation ---
-                        // a. Scale: Set the cylinder's radius and length
                         scale.set(turtle.radius, turtle.length, turtle.radius);
-                        
-                        // b. Rotation: Orient the cylinder to point from pos to nextPos
                         quaternion.setFromUnitVectors(up, direction.normalize());
-
-                        // c. Position: Place the cylinder halfway between the two points
                         position.copy(turtle.pos).add(nextPos).multiplyScalar(0.5);
-
-                        // Compose the final transformation matrix
                         matrix.compose(position, quaternion, scale);
-                        
-                        // Set the matrix for the current instance
+
                         instancedMesh.setMatrixAt(instanceIndex, matrix);
+
+                        // Set color for this instance
+                        if (instancedMesh.setColorAt) {
+                            instancedMesh.setColorAt(instanceIndex, colorPalette[turtle.colorIndex % colorPalette.length].color);
+                        }
 
                         instanceIndex++;
                         turtle.pos.copy(nextPos);
                         break;
                     }
-
-                    // --- Turtle movements (no drawing) ---
                     case 'f':
                     case 'g':
                     case 'h': {
@@ -532,31 +525,35 @@
                     case '+': turtle.quat.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(turtle.yaw))); break;
                     case '-': turtle.quat.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(-turtle.yaw))); break;
                     case '&': turtle.quat.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(turtle.pitch))); break;
-                    case '^': turtle.quat.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(-turtle.pitch))); break; // Used '|' in help, but let's stick to your current code
+                    case '^': turtle.quat.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(-turtle.pitch))); break;
                     case '\\': turtle.quat.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(turtle.roll))); break;
                     case '/': turtle.quat.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(-turtle.roll))); break;
-                    
-                    case '[': stateStack.push({ pos: turtle.pos.clone(), quat: turtle.quat.clone() }); break;
-                    case ']': 
+                    case '[': stateStack.push({ pos: turtle.pos.clone(), quat: turtle.quat.clone(), colorIndex: turtle.colorIndex }); break;
+                    case ']':
                         const state = stateStack.pop();
                         if (state) {
                             turtle.pos.copy(state.pos);
                             turtle.quat.copy(state.quat);
+                            turtle.colorIndex = state.colorIndex;
                         }
                         break;
-                    
-                    // NOTE: Other symbols (like color changing) would be implemented here
-                    // by calling instancedMesh.setColorAt(instanceIndex, ...), etc.
+                    case 'C': // Cycle color
+                        turtle.colorIndex = (turtle.colorIndex + 1) % colorPalette.length;
+                        break;
+                    case '0': case '1': case '2': case '3': case '4':
+                    case '5': case '6': case '7': case '8': case '9':
+                        turtle.colorIndex = parseInt(char, 10) % colorPalette.length;
+                        break;
+                    // Add more symbols as needed
                 }
 
-                // Yield to the main thread occasionally to prevent freezing
                 if ((i & 4095) === 4095) {
                     await new Promise(r => setTimeout(r, 0));
                 }
             }
 
-            // 4. FINALIZE: Tell Three.js to update the instance data on the GPU
             instancedMesh.instanceMatrix.needsUpdate = true;
+            if (instancedMesh.instanceColor) instancedMesh.instanceColor.needsUpdate = true;
 
             autoFrameCamera();
         }
