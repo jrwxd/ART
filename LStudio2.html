@@ -446,11 +446,12 @@
         let lastParams = '';
         
         const presets = {
-            "Growing Vine": { axiom: "F", rules: "F=F[+F-F]F", animAxiom: "A", animRules: "A=YlA", animIterations: 8, iterations: 4, length: 2, radius: 0.1, yaw: 25, pitch: 20, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, yawStep: 1, pitchStep: 0, rollStep: 0, lengthStep: -0.005, radiusStep: 0, angleScaleStep: 0, bloomToggle: true, fogToggle: true },
-            "Twisting Anemone": { axiom: "A", rules: "A=F![+B]F[-B]A\nB=C(*B)", animAxiom: "", animRules: "", animIterations: 0, iterations: 7, length: 1.2, radius: 0.08, yaw: 45, pitch: 60, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 0.95, bloomToggle: true, fogToggle: true },
+            "Growing Vine": { axiom: "F", rules: "F=F[+FC-F]F", animAxiom: "A", animRules: "A=YlA", animIterations: 8, iterations: 4, length: 2, radius: 0.1, yaw: 25, pitch: 20, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, yawStep: 1, pitchStep: 0, rollStep: 0, lengthStep: -0.005, radiusStep: 0, angleScaleStep: 0, bloomToggle: true, fogToggle: true },
+            "Twisting Anemone": { axiom: "A", rules: "A=F![+B]F[-B]CA\nB=C(*B)", animAxiom: "", animRules: "", animIterations: 0, iterations: 7, length: 1.2, radius: 0.08, yaw: 45, pitch: 60, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 0.95, bloomToggle: true, fogToggle: true },
             "Wandering Poet's Tree": { axiom: "F", rules: "F=C[//^^^F]C[\\\\&&&F]C[--F]C[++F]F", animAxiom: "", animRules: "", animIterations: 0, iterations: 5, length: 0.8, radius: 0.04, yaw: 22, pitch: 22, roll: 22, lengthScale: 0.9, radiusScale: 0.8, angleScale: 1, bloomToggle: true, fogToggle: true },
-            "Fractal Plant": { axiom: "X", rules: "X=F-[[X]+X]+F[+FX]-X\nF=FF", animAxiom: "", animRules: "", animIterations: 0, iterations: 5, length: 1.5, radius: 0.1, yaw: 22.5, pitch: 22.5, roll: 22.5, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, bloomToggle: false, fogToggle: false },
-            "Rainbow Bush": { axiom: "A", rules: "A=C![+A][-A]F%A\nF=FF", animAxiom: "", animRules: "", animIterations: 0, iterations: 6, length: 1, radius: 0.1, yaw: 35, pitch: 35, roll: 35, lengthScale: 0.9, radiusScale: 0.7, angleScale: 1.1, bloomToggle: true, fogToggle: false },
+            "Fractal Plant": { axiom: "X", rules: "X=F-[[X]+X]+F[+FX]-X\nF=CFF", animAxiom: "", animRules: "", animIterations: 0, iterations: 5, length: 1.5, radius: 0.1, yaw: 22.5, pitch: 22.5, roll: 22.5, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, bloomToggle: false, fogToggle: false },
+            "Rainbow Bush": { axiom: "A", rules: "A=C![+A][-A]F%CA\nF=CFF", animAxiom: "", animRules: "", animIterations: 0, iterations: 6, length: 1, radius: 0.1, yaw: 35, pitch: 35, roll: 35, lengthScale: 0.9, radiusScale: 0.7, angleScale: 1.1, bloomToggle: true, fogToggle: false },
+            "Color Spiral": { axiom: "F", rules: "F=F[+FC]F[-FC]F", animAxiom: "", animRules: "", animIterations: 0, iterations: 5, length: 1.0, radius: 0.08, yaw: 30, pitch: 15, roll: 10, lengthScale: 0.85, radiusScale: 0.9, angleScale: 1, bloomToggle: true, fogToggle: false },
         };
 
         // Optimized geometry and material pools
@@ -513,10 +514,24 @@
         }
 
         function initMaterials() {
-            // Use THREE.Color objects for palette, not materials!
+            // Enhanced color palette with more vibrant colors
             colorPalette = [
-                0x86efac, 0xef4444, 0x3b82f6, 0xf97316, 0x8b5cf6,
-                0x14b8a6, 0xec4899, 0xfacc15, 0x65a30d, 0x22d3ee
+                0x86efac, // Light green
+                0xef4444, // Red
+                0x3b82f6, // Blue  
+                0xf97316, // Orange
+                0x8b5cf6, // Purple
+                0x14b8a6, // Teal
+                0xec4899, // Pink
+                0xfacc15, // Yellow
+                0x65a30d, // Lime green
+                0x22d3ee, // Cyan
+                0xff6b6b, // Coral
+                0x4ecdc4, // Turquoise
+                0x45b7d1, // Sky blue
+                0x96ceb4, // Mint
+                0xfeca57, // Bright yellow
+                0xff9ff3  // Magenta
             ].map(c => new THREE.Color(c));
         }
 
@@ -692,8 +707,13 @@
 
             // Use MeshStandardMaterial with vertexColors enabled
             const geometry = new THREE.CylinderGeometry(1, 1, 1, 8, 1);
-            const material = new THREE.MeshStandardMaterial({ vertexColors: true , flatShading: true,});
+            const material = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true });
             const instancedMesh = new THREE.InstancedMesh(geometry, material, instanceCount);
+            
+            // Initialize instance colors array
+            const colors = new Float32Array(instanceCount * 3);
+            instancedMesh.instanceColor = new THREE.InstancedBufferAttribute(colors, 3);
+            
             lSystemGroup.add(instancedMesh);
 
             // Turtle state
@@ -736,9 +756,8 @@
                         instancedMesh.setMatrixAt(instanceIndex, matrix);
 
                         // Set color for this instance
-                        if (instancedMesh.setColorAt) {
-                            instancedMesh.setColorAt(instanceIndex, colorPalette[turtle.colorIndex % colorPalette.length]);
-                        }
+                        const color = colorPalette[turtle.colorIndex % colorPalette.length];
+                        instancedMesh.instanceColor.setXYZ(instanceIndex, color.r, color.g, color.b);
 
                         instanceIndex++;
                         turtle.pos.copy(nextPos);
@@ -766,14 +785,32 @@
                             turtle.colorIndex = state.colorIndex;
                         }
                         break;
-                    case 'C': // Cycle color
+                    case 'C': // Cycle color forward
                         turtle.colorIndex = (turtle.colorIndex + 1) % colorPalette.length;
+                        break;
+                    case 'c': // Cycle color backward  
+                        turtle.colorIndex = (turtle.colorIndex - 1 + colorPalette.length) % colorPalette.length;
+                        break;
+                    case '!': // Random color
+                        turtle.colorIndex = Math.floor(Math.random() * colorPalette.length);
                         break;
                     case '0': case '1': case '2': case '3': case '4':
                     case '5': case '6': case '7': case '8': case '9':
                         turtle.colorIndex = parseInt(char, 10) % colorPalette.length;
                         break;
-                    // Add more symbols as needed
+                    // Additional turtle commands for scaling
+                    case 'l': // Decrease length
+                        turtle.length *= (ui.lengthScale ? parseFloat(ui.lengthScale.value) : 0.9);
+                        break;
+                    case 'L': // Increase length  
+                        turtle.length /= (ui.lengthScale ? parseFloat(ui.lengthScale.value) : 0.9);
+                        break;
+                    case 'w': // Decrease radius
+                        turtle.radius *= (ui.radiusScale ? parseFloat(ui.radiusScale.value) : 0.9);
+                        break;
+                    case 'W': // Increase radius
+                        turtle.radius /= (ui.radiusScale ? parseFloat(ui.radiusScale.value) : 0.9);
+                        break;
                 }
 
                 if ((i & 4095) === 4095) {
@@ -782,7 +819,7 @@
             }
 
             instancedMesh.instanceMatrix.needsUpdate = true;
-            if (instancedMesh.instanceColor) instancedMesh.instanceColor.needsUpdate = true;
+            instancedMesh.instanceColor.needsUpdate = true;
 
             autoFrameCamera();
         }
