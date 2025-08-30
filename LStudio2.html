@@ -98,6 +98,12 @@
             </div>
         </div>
 
+        <!-- Action Buttons -->
+        <div class="flex gap-2 mb-4">
+            <button id="generate-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow">Generate</button>
+            <button id="export-video-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow">Export Video</button>
+        </div>
+
         <div class="space-y-4">
             <div>
                 <label for="presets" class="block text-sm font-medium text-gray-300">Presets</label>
@@ -172,6 +178,29 @@
             </details>
         </div> <!-- <-- This closes the .space-y-4 div -->
     </div> <!-- <-- This closes the #ui-panel div -->
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 items-center justify-center hidden opacity-0 transition-opacity duration-200 z-50">
+        <div id="help-modal-content" class="bg-gray-900 rounded-lg p-8 max-w-lg w-full shadow-2xl transform scale-95 opacity-0 transition-all duration-200 mx-auto relative">
+            <button id="close-modal-btn" class="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+            <h2 class="text-xl font-bold mb-4">L-system Studio Help</h2>
+            <p class="mb-2">Use the controls to design and animate 3D L-systems.</p>
+            <ul class="list-disc pl-6 mb-2">
+                <li><b>Presets:</b> Load example systems.</li>
+                <li><b>Structure System:</b> Set axiom, rules, and iterations.</li>
+                <li><b>Base Geometry & Angles:</b> Adjust segment shape and angles.</li>
+                <li><b>Dynamic Modifiers:</b> Scale length, radius, and angles per step.</li>
+                <li><b>Scene & Effects:</b> Change background color.</li>
+                <li><b>Animation Steps:</b> Set per-frame changes for video export.</li>
+            </ul>
+            <p class="mb-2">Keyboard Shortcuts:</p>
+            <ul class="list-disc pl-6">
+                <li><b>H</b>: Toggle panel</li>
+                <li><b>M</b>: Show help</li>
+                <li><b>G</b>: Generate</li>
+            </ul>
+        </div>
+    </div>
 
     <!-- The rest of your HTML (no stray JS code in the body!) -->
 
