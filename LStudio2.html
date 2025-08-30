@@ -154,10 +154,6 @@
                 <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Scene & Effects</span><span class="arrow">&#9654;</span></summary>
                 <div class="space-y-4 pt-2 border-t border-gray-700">
                     <div class="flex items-center justify-between"><label for="bgColor" class="text-sm">Background</label><input type="color" id="bgColor" value="#111827"></div>
-                    <div class="flex items-center justify-between"><label for="fogToggle" class="text-sm">Atmospheric Fog</label><div class="flex items-center gap-2"><input type="color" id="fogColor" value="#111827"><input type="checkbox" id="fogToggle" class="h-5 w-5 bg-gray-700 rounded text-indigo-500"></div></div>
-                    <div class="flex items-center justify-between"><label for="bloomToggle" class="text-sm">Bloom Effect</label><input type="checkbox" id="bloomToggle" class="h-5 w-5 bg-gray-700 rounded text-indigo-500"></div>
-                    <div><label for="bloomStrength" class="block text-sm">Bloom Strength: <span id="bloomStrength-value">1.5</span></label><input type="range" id="bloomStrength" min="0" max="3" step="0.1" value="1.5" class="w-full h-2 bg-gray-700 rounded-lg"></div>
-                    <div><label for="bloomRadius" class="block text-sm">Bloom Radius: <span id="bloomRadius-value">0.4</span></label><input type="range" id="bloomRadius" min="0" max="1" step="0.01" value="0.4" class="w-full h-2 bg-gray-700 rounded-lg"></div>
                 </div>
             </details>
 
@@ -286,24 +282,14 @@
         }
         
         function setupPostProcessing() {
-            const renderPass = new RenderPass(scene, camera);
-            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-            const outputPass = new OutputPass();
-            composer = new EffectComposer(renderer);
-            composer.addPass(renderPass);
-            composer.addPass(bloomPass);
-            composer.addPass(outputPass);
-            ui.bloomPass = bloomPass;
+            composer = { render: () => renderer.render(scene, camera), setSize: () => {} };
+            ui.bloomPass = null;
             updateEffects();
         }
 
         function updateEffects() {
-            if (!ui.bgColor || !ui.fogToggle || !ui.bloomPass) return;
+            if (!ui.bgColor) return;
             scene.background = new THREE.Color(ui.bgColor.value);
-            scene.fog = ui.fogToggle.checked ? new THREE.Fog(ui.fogColor.value, 50, 250) : null;
-            ui.bloomPass.enabled = ui.bloomToggle.checked;
-            ui.bloomPass.strength = parseFloat(ui.bloomStrength.value);
-            ui.bloomPass.radius = parseFloat(ui.bloomRadius.value);
         }
 
         function initMaterials() {
@@ -322,9 +308,6 @@
                 uiPanel: 'ui-panel', toggleButton: 'toggle-button', helpBtn: 'help-btn',
                 helpModal: 'help-modal', helpModalContent: 'help-modal-content', closeModalBtn: 'close-modal-btn',
                 progressOverlay: 'progress-overlay', progressText: 'progress-text', bgColor: 'bgColor',
-                fogColor: 'fogColor', fogToggle: 'fogToggle', bloomToggle: 'bloomToggle',
-                bloomStrength: 'bloomStrength', bloomStrengthValue: 'bloomStrength-value',
-                bloomRadius: 'bloomRadius', bloomRadiusValue: 'bloomRadius-value'
             };
             // safe mapping: element may be missing in HTML
             for (const key in uiMap) {
@@ -369,7 +352,7 @@
             if (ui.helpModal) ui.helpModal.addEventListener('click', (e) => e.target === ui.helpModal && hideHelpModal());
             
             // safe effect inputs
-            ['bgColor', 'fogColor', 'fogToggle', 'bloomToggle', 'bloomStrength', 'bloomRadius'].forEach(id => {
+            ['bgColor'].forEach(id => {
                 if (ui[id]) ui[id].addEventListener('input', () => {
                     clearTimeout(ui.effectsTimeout);
                     ui.effectsTimeout = setTimeout(updateEffects, 50);
@@ -378,8 +361,6 @@
             
             if (ui.iterations && ui.iterationsValue) ui.iterations.addEventListener('input', () => ui.iterationsValue.textContent = ui.iterations.value);
             if (ui.animIterations && ui.animIterationsValue) ui.animIterations.addEventListener('input', () => ui.animIterationsValue.textContent = ui.animIterations.value);
-            if (ui.bloomStrength && ui.bloomStrengthValue) ui.bloomStrength.addEventListener('input', () => ui.bloomStrengthValue.textContent = ui.bloomStrength.value);
-            if (ui.bloomRadius && ui.bloomRadiusValue) ui.bloomRadius.addEventListener('input', () => ui.bloomRadiusValue.textContent = ui.bloomRadius.value);
 
             window.addEventListener('resize', onWindowResize, false);
             window.addEventListener('keydown', (e) => {
