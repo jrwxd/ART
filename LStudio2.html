@@ -457,12 +457,12 @@
         let currentCameraMode = 'orbit';
         
         const presets = {
-            "Growing Vine": { axiom: "F", rules: "F=F[+FC-F]F", animAxiom: "A", animRules: "A=YlA", animIterations: 8, iterations: 4, length: 2, radius: 0.1, yaw: 25, pitch: 20, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, yawStep: 1, pitchStep: 0, rollStep: 0, lengthStep: -0.005, radiusStep: 0, angleScaleStep: 0, bloomToggle: true, fogToggle: true },
-            "Twisting Anemone": { axiom: "A", rules: "A=F![+B]F[-B]CA\nB=C(*B)", animAxiom: "", animRules: "", animIterations: 0, iterations: 7, length: 1.2, radius: 0.08, yaw: 45, pitch: 60, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 0.95, bloomToggle: true, fogToggle: true },
-            "Wandering Poet's Tree": { axiom: "F", rules: "F=C[//^^^F]C[\\\\&&&F]C[--F]C[++F]F", animAxiom: "", animRules: "", animIterations: 0, iterations: 5, length: 0.8, radius: 0.04, yaw: 22, pitch: 22, roll: 22, lengthScale: 0.9, radiusScale: 0.8, angleScale: 1, bloomToggle: true, fogToggle: true },
-            "Fractal Plant": { axiom: "X", rules: "X=F-[[X]+X]+F[+FX]-X\nF=CFF", animAxiom: "", animRules: "", animIterations: 0, iterations: 5, length: 1.5, radius: 0.1, yaw: 22.5, pitch: 22.5, roll: 22.5, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, bloomToggle: false, fogToggle: false },
-            "Rainbow Bush": { axiom: "A", rules: "A=C![+A][-A]F%CA\nF=CFF", animAxiom: "", animRules: "", animIterations: 0, iterations: 6, length: 1, radius: 0.1, yaw: 35, pitch: 35, roll: 35, lengthScale: 0.9, radiusScale: 0.7, angleScale: 1.1, bloomToggle: true, fogToggle: false },
-            "Color Spiral": { axiom: "F", rules: "F=F[+FC]F[-FC]F", animAxiom: "", animRules: "", animIterations: 0, iterations: 5, length: 1.0, radius: 0.08, yaw: 30, pitch: 15, roll: 10, lengthScale: 0.85, radiusScale: 0.9, angleScale: 1, bloomToggle: true, fogToggle: false },
+            "Growing Vine": { axiom: "F", rules: "F=F[+FC-F]F", animAxiom: "YYYYY", animRules: "Y=Y", animIterations: 5, iterations: 4, length: 2, radius: 0.1, yaw: 25, pitch: 20, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, yawStep: 2, pitchStep: 1, rollStep: 0, lengthStep: -0.01, radiusStep: 0, angleScaleStep: 0, bloomToggle: true, fogToggle: true },
+            "Twisting Anemone": { axiom: "A", rules: "A=F![+B]F[-B]CA\nB=C(*B)", animAxiom: "RRRRRRRR", animRules: "R=R", animIterations: 8, iterations: 7, length: 1.2, radius: 0.08, yaw: 45, pitch: 60, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 0.95, yawStep: 0, pitchStep: 0, rollStep: 5, lengthStep: 0, radiusStep: 0, angleScaleStep: 0, bloomToggle: true, fogToggle: true },
+            "Wandering Poet's Tree": { axiom: "F", rules: "F=C[//^^^F]C[\\\\&&&F]C[--F]C[++F]F", animAxiom: "YPPYPPYPP", animRules: "Y=Y\nP=P", animIterations: 9, iterations: 5, length: 0.8, radius: 0.04, yaw: 22, pitch: 22, roll: 22, lengthScale: 0.9, radiusScale: 0.8, angleScale: 1, yawStep: 1, pitchStep: 2, rollStep: 0, lengthStep: 0, radiusStep: 0, angleScaleStep: 0, bloomToggle: true, fogToggle: true },
+            "Fractal Plant": { axiom: "X", rules: "X=F-[[X]+X]+F[+FX]-X\nF=CFF", animAxiom: "LLLLLLLL", animRules: "L=L", animIterations: 8, iterations: 5, length: 1.5, radius: 0.1, yaw: 22.5, pitch: 22.5, roll: 22.5, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, yawStep: 0, pitchStep: 0, rollStep: 0, lengthStep: -0.02, radiusStep: 0, angleScaleStep: 0, bloomToggle: false, fogToggle: false },
+            "Rainbow Bush": { axiom: "A", rules: "A=C![+A][-A]F%CA\nF=CFF", animAxiom: "YRYRYRYR", animRules: "Y=Y\nR=R", animIterations: 8, iterations: 6, length: 1, radius: 0.1, yaw: 35, pitch: 35, roll: 35, lengthScale: 0.9, radiusScale: 0.7, angleScale: 1.1, yawStep: 3, pitchStep: 0, rollStep: 4, lengthStep: 0, radiusStep: 0, angleScaleStep: 0, bloomToggle: true, fogToggle: false },
+            "Color Spiral": { axiom: "F", rules: "F=F[+FC]F[-FC]F", animAxiom: "AAAAAAAA", animRules: "A=A", animIterations: 8, iterations: 5, length: 1.0, radius: 0.08, yaw: 30, pitch: 15, roll: 10, lengthScale: 0.85, radiusScale: 0.9, angleScale: 1, yawStep: 0, pitchStep: 0, rollStep: 0, lengthStep: 0, radiusStep: 0, angleScaleStep: 0.02, bloomToggle: true, fogToggle: false },
         };
 
         // Optimized geometry and material pools
@@ -1013,15 +1013,21 @@
             hideUIPanel();
             await new Promise(resolve => setTimeout(resolve, 350));
 
-            const animationString = generateLSystem(ui.animAxiom.value, ui.animRules.value, parseInt(ui.animIterations.value, 10));
-            if (animationString.length > 200) { // You can adjust this threshold
+            const animationString = generateLSystem(ui.animAxiom.value || 'Y', ui.animRules.value || 'Y=Y', parseInt(ui.animIterations.value, 10) || 0);
+            
+            // Handle case where animation string is empty or too short
+            if (animationString.length === 0) {
+                alert("No animation commands found. Please set up animation axiom and rules.");
+                showUIPanel();
+                return;
+            }
+            
+            if (animationString.length > 200) {
                 alert("Too many animation steps for video export. Please reduce animation iterations.");
                 showUIPanel();
                 return;
             }
 
-            const capturer = new CCapture({ format: 'webm', framerate: 16, verbose: false });
-            
             // Store original camera mode and switch to turtle following for animation
             const originalCameraMode = currentCameraMode;
             currentCameraMode = 'turtle';
@@ -1032,41 +1038,91 @@
             ui.progressOverlay.classList.remove('hidden');
             ui.progressOverlay.classList.add('flex');
 
+            let capturer = null;
+            let framesCaptured = 0;
+
             try {
-                capturer.start();
+                // Initialize capturer with better error handling
+                capturer = new CCapture({ 
+                    format: 'webm', 
+                    framerate: 16, 
+                    verbose: true,
+                    display: true,
+                    timeLimit: 0,
+                    frameLimit: 0,
+                    autoSaveTime: 0
+                });
+                
                 const steps = {
-                    Y: parseFloat(ui.yawStep.value), y: -parseFloat(ui.yawStep.value),
-                    P: parseFloat(ui.pitchStep.value), p: -parseFloat(ui.pitchStep.value),
-                    R: parseFloat(ui.rollStep.value), r: -parseFloat(ui.rollStep.value),
-                    L: parseFloat(ui.lengthStep.value), l: -parseFloat(ui.lengthStep.value),
-                    W: parseFloat(ui.radiusStep.value), w: -parseFloat(ui.radiusStep.value),
-                    A: parseFloat(ui.angleScaleStep.value), a: -parseFloat(ui.angleScaleStep.value),
+                    Y: parseFloat(ui.yawStep.value) || 0, y: -(parseFloat(ui.yawStep.value) || 0),
+                    P: parseFloat(ui.pitchStep.value) || 0, p: -(parseFloat(ui.pitchStep.value) || 0),
+                    R: parseFloat(ui.rollStep.value) || 0, r: -(parseFloat(ui.rollStep.value) || 0),
+                    L: parseFloat(ui.lengthStep.value) || 0, l: -(parseFloat(ui.lengthStep.value) || 0),
+                    W: parseFloat(ui.radiusStep.value) || 0, w: -(parseFloat(ui.radiusStep.value) || 0),
+                    A: parseFloat(ui.angleScaleStep.value) || 0, a: -(parseFloat(ui.angleScaleStep.value) || 0),
                 };
+
+                capturer.start();
+                console.log("Started video capture...");
 
                 for (let i = 0; i < animationString.length; i++) {
                     const command = animationString[i];
                     ui.progressText.textContent = `Recording Frame ${i + 1}/${animationString.length}`;
 
-                    switch(command) {
-                        case 'Y': case 'y': ui.yaw.value = (parseFloat(ui.yaw.value) + steps[command]).toFixed(2); break;
-                        case 'P': case 'p': ui.pitch.value = (parseFloat(ui.pitch.value) + steps[command]).toFixed(2); break;
-                        case 'R': case 'r': ui.roll.value = (parseFloat(ui.roll.value) + steps[command]).toFixed(2); break;
-                        case 'L': case 'l': ui.length.value = Math.max(0.01, parseFloat(ui.length.value) + steps[command]).toFixed(3); break;
-                        case 'W': case 'w': ui.radius.value = Math.max(0.001, parseFloat(ui.radius.value) + steps[command]).toFixed(4); break;
-                        case 'A': case 'a': ui.angleScale.value = Math.max(0.1, parseFloat(ui.angleScale.value) + steps[command]).toFixed(3); break;
-                    }
+                    // Apply animation step
+                    if (steps[command] !== undefined) {
+                        switch(command) {
+                            case 'Y': case 'y': ui.yaw.value = (parseFloat(ui.yaw.value) + steps[command]).toFixed(2); break;
+                            case 'P': case 'p': ui.pitch.value = (parseFloat(ui.pitch.value) + steps[command]).toFixed(2); break;
+                            case 'R': case 'r': ui.roll.value = (parseFloat(ui.roll.value) + steps[command]).toFixed(2); break;
+                            case 'L': case 'l': ui.length.value = Math.max(0.01, parseFloat(ui.length.value) + steps[command]).toFixed(3); break;
+                            case 'W': case 'w': ui.radius.value = Math.max(0.001, parseFloat(ui.radius.value) + steps[command]).toFixed(4); break;
+                            case 'A': case 'a': ui.angleScale.value = Math.max(0.1, parseFloat(ui.angleScale.value) + steps[command]).toFixed(3); break;
+                        }
 
-                    await updateLSystem(false);
-                    // Camera will automatically follow turtle due to applyCameraMode() call in drawLSystem
-                    capturer.capture(renderer.domElement);
-                    await new Promise(resolve => requestAnimationFrame(resolve));
+                        // Update the L-system with new parameters
+                        await updateLSystem(false);
+                        
+                        // Ensure rendering is complete
+                        await new Promise(resolve => requestAnimationFrame(resolve));
+                        
+                        // Capture frame only if we made a change
+                        try {
+                            capturer.capture(renderer.domElement);
+                            framesCaptured++;
+                        } catch (captureError) {
+                            console.warn("Frame capture failed:", captureError);
+                        }
+                    }
+                    
+                    // Small delay to ensure frame processing
+                    await new Promise(resolve => setTimeout(resolve, 50));
                 }
 
-                ui.progressText.textContent = 'Saving...';
-                capturer.stop();
-                capturer.save();
+                ui.progressText.textContent = 'Finalizing video...';
+                
+                if (framesCaptured > 0) {
+                    console.log(`Captured ${framesCaptured} frames, stopping capturer...`);
+                    capturer.stop();
+                    
+                    // Give capturer time to process before saving
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    try {
+                        capturer.save();
+                        console.log("Video save initiated");
+                    } catch (saveError) {
+                        console.error("Save failed:", saveError);
+                        alert("Video save failed. Try recording a shorter animation or check console for details.");
+                    }
+                } else {
+                    console.warn("No frames were captured");
+                    alert("No frames were captured. Please check your animation settings.");
+                }
+                
             } catch (e) {
                 console.error("Video export failed:", e);
+                alert(`Video export failed: ${e.message}. Check console for details.`);
             } finally {
                 // Restore original camera mode
                 currentCameraMode = originalCameraMode;
