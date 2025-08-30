@@ -168,53 +168,6 @@
                     <div><label for="angleScaleStep" class="text-sm">Angle Scale</label><input type="number" id="angleScaleStep" step="0.001" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
                 </div>
             </details>
-        </div>
-
-        <div class="mt-6 grid grid-cols-2 gap-4">
-            <button id="generate-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Generate</button>
-            <button id="export-video-btn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Export Video</button>
-        </div>
-    </div>
-
-    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-70 items-center justify-center p-4 hidden">
-        <div id="help-modal-content" class="bg-gray-800 text-white p-6 rounded-lg shadow-2xl w-full max-w-lg scale-95 opacity-0">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Symbol Guide</h2><button id="close-modal-btn" class="p-2 rounded-full hover:bg-gray-700 focus:outline-none">&times;</button></div>
-            <div class="grid grid-cols-2 gap-6 text-gray-300 text-sm">
-                <div>
-                    <h3 class="font-bold text-white mb-2">Structure Symbols</h3>
-                    <p><strong>F, G, H</strong>: Move & draw</p><p><strong>f, g, h</strong>: Move only</p><hr class="border-gray-600 my-2">
-                    <p><strong>+ / -</strong>: Yaw right / left</p><p><strong>&amp;  | </strong>: Pitch down / up</p><p><strong>\ / /</strong>: Roll left / right</p><hr class="border-gray-600 my-2">
-                    <p><strong>[ / ]</strong>: Push / Pop state</p><hr class="border-gray-600 my-2">
-                    <p><strong>o</strong>: Draw a sphere</p><p><strong>! / '</strong>: Scale radius</p><p><strong>( / )</strong>: Scale length</p>
-                    <p><strong>* / %</strong>: Scale angles</p><p><strong>C</strong>: Cycle color</p><p><strong>0-9</strong>: Set color</p><p><strong>$</strong>: Level horizontally</p>
-                </div>
-                 <div>
-                    <h3 class="font-bold text-white mb-2">Animation Symbols</h3>
-                    <p><strong>Y / y</strong>: Inc/dec Yaw</p>
-                    <p><strong>P / p</strong>: Inc/dec Pitch</p>
-                    <p><strong>R / r</strong>: Inc/dec Roll</p>
-                    <hr class="border-gray-600 my-2">
-                    <p><strong>L / l</strong>: Inc/dec Length</p>
-                    <p><strong>W / w</strong>: Inc/dec Radius</p>
-                    <hr class="border-gray-600 my-2">
-                    <p><strong>S / s</strong>: Inc/dec Length Scale</p>
-                    <p><strong>D / d</strong>: Inc/dec Radius Scale</p>
-                    <p><strong>A / a</strong>: Inc/dec Angle Scale</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
-
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-
         let scene, camera, renderer, controls, lSystemGroup, composer;
         const ui = {};
         const geometryPool = { cylinder: [], box: [], sphere: [] };
