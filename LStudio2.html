@@ -233,7 +233,6 @@
                 document.removeEventListener( 'mousemove', onMouseMove, false );
                 document.removeEventListener( 'mouseup', onMouseUp, false );
             };
-            
             this.update();
         };
         
@@ -546,9 +545,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio for performance
             document.getElementById('container').appendChild(renderer.domElement);
-            composer = new THREE.EffectComposer(renderer);
-            const renderPass = new THREE.RenderPass(scene, camera);
-            composer.addPass(renderPass);
             scene.add(new THREE.AmbientLight(0xffffff, 0.7));
             const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
             directionalLight.position.set(1, 1, 0.5).normalize();
@@ -698,7 +694,7 @@
 
             // Use MeshStandardMaterial with vertexColors enabled
             const geometry = new THREE.CylinderGeometry(1, 1, 1, 8, 1);
-            const material = new THREE.MeshStandardMaterial({ vertexColors: true });
+            const material = new THREE.MeshStandardMaterial({ vertexColors: true , flatShading: true,});
             const instancedMesh = new THREE.InstancedMesh(geometry, material, instanceCount);
             lSystemGroup.add(instancedMesh);
 
