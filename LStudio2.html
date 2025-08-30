@@ -541,12 +541,14 @@
 
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 20, 50);
+            camera.position.set(0, 10, 30);
             renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio for performance
             document.getElementById('container').appendChild(renderer.domElement);
-            
+            composer = new THREE.EffectComposer(renderer);
+            const renderPass = new THREE.RenderPass(scene, camera);
+            composer.addPass(renderPass);
             scene.add(new THREE.AmbientLight(0xffffff, 0.7));
             const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
             directionalLight.position.set(1, 1, 0.5).normalize();
@@ -555,8 +557,6 @@
             directionalLight.shadow.mapSize.height = 2048;
             directionalLight.shadow.camera.near = 0.5;
             directionalLight.shadow.camera.far = 500;
-            directionalLight.shadow.camera.left = -250;
-            directionalLight.shadow.camera.right = 250;
             directionalLight.shadow.camera.top = 250;
             directionalLight.shadow.camera.bottom = -250;
             scene.add(directionalLight);
@@ -564,6 +564,10 @@
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.target.set(0, 0, 0);
+            controls.enableZoom = true;
+            controls.enableRotate = true;
+            controls.enablePan = true;
+            controls.
             controls.update();
             lSystemGroup = new THREE.Group();
             scene.add(lSystemGroup);
