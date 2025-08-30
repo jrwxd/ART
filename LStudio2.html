@@ -203,6 +203,12 @@
     </div>
 
     <script>
+        // Debug what's actually loaded
+        console.log('THREE:', typeof THREE);
+        console.log('OrbitControls:', typeof OrbitControls);
+        console.log('THREE.OrbitControls:', typeof THREE?.OrbitControls);
+        console.log('window.THREE:', typeof window.THREE);
+        
         let scene, camera, renderer, controls, lSystemGroup, composer;
         const ui = {};
         const geometryPool = { cylinder: [], box: [], sphere: [] };
@@ -319,7 +325,7 @@
             directionalLight.position.set(1, 1, 0.5).normalize();
             scene.add(directionalLight);
 
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.target.set(0, 0, 0);
             controls.update();
