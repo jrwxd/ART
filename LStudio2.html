@@ -1013,7 +1013,8 @@
             hideUIPanel();
             await new Promise(resolve => setTimeout(resolve, 350));
 
-            const animationString = generateLSystem(ui.animAxiom.value || 'Y', ui.animRules.value || 'Y=Y', parseInt(ui.animIterations.value, 10) || 0);
+            const animationResult = generateLSystem(ui.animAxiom.value || 'Y', ui.animRules.value || 'Y=Y', parseInt(ui.animIterations.value, 10) || 0);
+            const animationString = animationResult.string || animationResult; // Handle both new and old format
             
             // Handle case where animation string is empty or too short
             if (animationString.length === 0) {
