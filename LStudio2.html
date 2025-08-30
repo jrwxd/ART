@@ -873,19 +873,40 @@
         }
 
         function followTurtle() {
-            // Follow the last turtle position (tip of the current growth)
+            if (turtlePositions.length === 0) return;
+            
+            // For animation, follow the turtle tip (latest growth)
             const lastTurtle = turtlePositions[turtlePositions.length - 1];
-            if (lastTurtle) {
-                // Position camera perpendicular to turtle's direction
-                const offset = new THREE.Vector3()
-                    .crossVectors(lastTurtle.direction, new THREE.Vector3(0, 1, 0))
-                    .normalize()
-                    .multiplyScalar(10); // Distance from turtle
-                
-                camera.position.copy(lastTurtle.position).add(offset);
-                camera.lookAt(lastTurtle.position);
-                camera.updateMatrixWorld();
+            
+            // Create a dynamic camera position that smoothly follows the turtle
+            const turtlePos = lastTurtle.position;
+            const turtleDir = lastTurtle.direction;
+            
+            // Calculate camera offset perpendicular to turtle direction
+            const rightVector = new THREE.Vector3()
+                .crossVectors(turtleDir, new THREE.Vector3(0, 1, 0))
+                .normalize();
+            
+            // If right vector is too small (turtle pointing up/down), use a different approach
+            if (rightVector.length() < 0.1) {
+                rightVector.set(1, 0, 0); // Default to X axis
             }
+            
+            // Position camera at an angle for better view
+            const distance = Math.max(5, Math.sqrt(turtlePositions.length) * 0.5); // Dynamic distance based on growth
+            const cameraOffset = rightVector.clone().multiplyScalar(distance * 0.8)
+                .add(new THREE.Vector3(0, distance * 0.6, 0)) // Add vertical offset
+                .add(turtleDir.clone().multiplyScalar(-distance * 0.4)); // Pull back along turtle direction
+            
+            const targetPosition = turtlePos.clone().add(cameraOffset);
+            
+            // Smooth camera movement for animation
+            camera.position.lerp(targetPosition, 0.1);
+            
+            // Look ahead of the turtle for better anticipation
+            const lookAhead = turtlePos.clone().add(turtleDir.clone().multiplyScalar(3));
+            camera.lookAt(lookAhead);
+            camera.updateMatrixWorld();
         }
 
         function setGenerationView() {
@@ -1001,6 +1022,11 @@
 
             const capturer = new CCapture({ format: 'webm', framerate: 16, verbose: false });
             
+            // Store original camera mode and switch to turtle following for animation
+            const originalCameraMode = currentCameraMode;
+            currentCameraMode = 'turtle';
+            controls.enabled = false;
+            
             ui.exportVideoBtn.disabled = true;
             ui.generateBtn.disabled = true;
             ui.progressOverlay.classList.remove('hidden');
@@ -1031,6 +1057,7 @@
                     }
 
                     await updateLSystem(false);
+                    // Camera will automatically follow turtle due to applyCameraMode() call in drawLSystem
                     capturer.capture(renderer.domElement);
                     await new Promise(resolve => requestAnimationFrame(resolve));
                 }
@@ -1041,6 +1068,12 @@
             } catch (e) {
                 console.error("Video export failed:", e);
             } finally {
+                // Restore original camera mode
+                currentCameraMode = originalCameraMode;
+                if (currentCameraMode === 'orbit') {
+                    controls.enabled = true;
+                }
+                
                 ui.progressOverlay.classList.add('hidden');
                 ui.progressOverlay.classList.remove('flex');
                 ui.exportVideoBtn.disabled = false;
