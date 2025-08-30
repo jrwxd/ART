@@ -469,88 +469,114 @@
             }
             lSystemGroup.position.set(0, 0, 0);
 
-            // Basic turtle state
+            // Filter the string to find out exactly how many cylinders we need to draw.
+            const drawCommands = lindenmayerString.match(/[FGH]/g) || [];
+            const instanceCount = drawCommands.length;
+
+            if (instanceCount === 0) {
+                autoFrameCamera();
+                return;
+            }
+
+            // 2. SETUP: Create ONE geometry and ONE InstancedMesh
+            // We create a "unit" cylinder of length 1, which we will scale in the matrix.
+            const geometry = new THREE.CylinderGeometry(1, 1, 1, 8, 1); 
+            const material = colorPalette[0] || new THREE.MeshPhongMaterial({color: 0x86efac});
+            const instancedMesh = new THREE.InstancedMesh(geometry, material, instanceCount);
+            lSystemGroup.add(instancedMesh);
+
+            // Turtle state
             const turtle = {
                 pos: new THREE.Vector3(0, 0, 0),
                 quat: new THREE.Quaternion(),
-                length: (ui.length && parseFloat(ui.length.value)) || 1.0,
-                radius: (ui.radius && parseFloat(ui.radius.value)) || 0.05,
-                yaw: (ui.yaw && parseFloat(ui.yaw.value)) || 25
+                length: parseFloat(ui.length.value) || 1.0,
+                radius: parseFloat(ui.radius.value) || 0.05,
+                yaw: parseFloat(ui.yaw.value) || 25,
+                // Add other angles if needed from UI
+                pitch: parseFloat(ui.pitch.value) || 25,
+                roll: parseFloat(ui.roll.value) || 25
             };
 
             const stateStack = [];
-            const meshesToAdd = [];
-            const BATCH_SIZE = 1000; // Add to scene every 1000 meshes to avoid memory spikes
+            let instanceIndex = 0; // Keep track of which instance we are transforming
 
-            // helper: create a cylinder between two points
-            function cylinderBetween(p1, p2, radius, material) {
-                const dir = new THREE.Vector3().subVectors(p2, p1);
-                const len = dir.length();
-                if (len <= 0.0001) return null;
-                const geom = new THREE.CylinderGeometry(radius, radius, len, 8);
-                geom.translate(0, len / 2, 0); // move base to origin
-                const mesh = new THREE.Mesh(geom, material);
-                // align cylinder to direction
-                const up = new THREE.Vector3(0, 1, 0);
-                const mat = new THREE.Matrix4();
-                const axis = new THREE.Vector3().crossVectors(up, dir.normalize());
-                const angle = Math.acos(up.dot(dir.normalize()));
-                if (axis.lengthSq() > 0.000001) mat.makeRotationAxis(axis.normalize(), angle);
-                mesh.applyMatrix4(mat);
-                mesh.position.copy(p1);
-                return mesh;
-            }
+            // Reusable objects for performance
+            const matrix = new THREE.Matrix4();
+            const position = new THREE.Vector3();
+            const quaternion = new THREE.Quaternion();
+            const scale = new THREE.Vector3();
 
-            const defaultMat = colorPalette[0] || new THREE.MeshPhongMaterial({ color: 0x88cc88 });
+            const up = new THREE.Vector3(0, 1, 0);
 
+            // 3. THE LOOP: Calculate transformations, don't create objects
             for (let i = 0; i < lindenmayerString.length; i++) {
-                const c = lindenmayerString[i];
-                if (c === 'F' || c === 'f') {
-                    // forward + draw
-                    const dir = new THREE.Vector3(0, 1, 0).applyQuaternion(turtle.quat); // use Y-up for cylinder creation
-                    const nextPos = new THREE.Vector3().copy(turtle.pos).addScaledVector(dir, turtle.length);
-                    const mesh = cylinderBetween(turtle.pos, nextPos, turtle.radius, defaultMat);
-                    if (mesh) meshesToAdd.push(mesh);
-                    turtle.pos.copy(nextPos);
-                } else if (c === '+') {
-                    // yaw positive
-                    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(turtle.yaw));
-                    turtle.quat.multiply(q);
-                } else if (c === '-') {
-                    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(-turtle.yaw));
-                    turtle.quat.multiply(q);
-                } else if (c === '&') {
-                    // pitch down
-                    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(turtle.yaw));
-                    turtle.quat.multiply(q);
-                } else if (c === '^') {
-                    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(-turtle.yaw));
-                    turtle.quat.multiply(q);
-                } else if (c === '[') {
-                    stateStack.push({ pos: turtle.pos.clone(), quat: turtle.quat.clone() });
-                } else if (c === ']') {
-                    const s = stateStack.pop();
-                    if (s) {
-                        turtle.pos.copy(s.pos);
-                        turtle.quat.copy(s.quat);
+                const char = lindenmayerString[i];
+
+                switch (char) {
+                    case 'F':
+                    case 'G':
+                    case 'H': { // Draw a segment
+                        const direction = new THREE.Vector3(0, 1, 0).applyQuaternion(turtle.quat);
+                        const nextPos = new THREE.Vector3().copy(turtle.pos).addScaledVector(direction, turtle.length);
+
+                        // --- Matrix Calculation ---
+                        // a. Scale: Set the cylinder's radius and length
+                        scale.set(turtle.radius, turtle.length, turtle.radius);
+                        
+                        // b. Rotation: Orient the cylinder to point from pos to nextPos
+                        quaternion.setFromUnitVectors(up, direction.normalize());
+
+                        // c. Position: Place the cylinder halfway between the two points
+                        position.copy(turtle.pos).add(nextPos).multiplyScalar(0.5);
+
+                        // Compose the final transformation matrix
+                        matrix.compose(position, quaternion, scale);
+                        
+                        // Set the matrix for the current instance
+                        instancedMesh.setMatrixAt(instanceIndex, matrix);
+
+                        instanceIndex++;
+                        turtle.pos.copy(nextPos);
+                        break;
                     }
-                } else {
-                    // ignore other characters for now (C, numbers, custom symbols)
+
+                    // --- Turtle movements (no drawing) ---
+                    case 'f':
+                    case 'g':
+                    case 'h': {
+                        const moveDir = new THREE.Vector3(0, 1, 0).applyQuaternion(turtle.quat);
+                        turtle.pos.addScaledVector(moveDir, turtle.length);
+                        break;
+                    }
+                    case '+': turtle.quat.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(turtle.yaw))); break;
+                    case '-': turtle.quat.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(-turtle.yaw))); break;
+                    case '&': turtle.quat.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(turtle.pitch))); break;
+                    case '^': turtle.quat.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(-turtle.pitch))); break; // Used '|' in help, but let's stick to your current code
+                    case '\\': turtle.quat.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(turtle.roll))); break;
+                    case '/': turtle.quat.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(-turtle.roll))); break;
+                    
+                    case '[': stateStack.push({ pos: turtle.pos.clone(), quat: turtle.quat.clone() }); break;
+                    case ']': 
+                        const state = stateStack.pop();
+                        if (state) {
+                            turtle.pos.copy(state.pos);
+                            turtle.quat.copy(state.quat);
+                        }
+                        break;
+                    
+                    // NOTE: Other symbols (like color changing) would be implemented here
+                    // by calling instancedMesh.setColorAt(instanceIndex, ...), etc.
                 }
-                // Add meshes in batches to avoid memory spikes
-                if (meshesToAdd.length >= BATCH_SIZE) {
-                    meshesToAdd.forEach(m => lSystemGroup.add(m));
-                    meshesToAdd.length = 0;
+
+                // Yield to the main thread occasionally to prevent freezing
+                if ((i & 4095) === 4095) {
                     await new Promise(r => setTimeout(r, 0));
                 }
-                // avoid long blocking during large strings
-                if ((i & 4095) === 0) await new Promise(r => setTimeout(r, 0));
             }
 
-            // Add any remaining meshes
-            if (meshesToAdd.length > 0) {
-                meshesToAdd.forEach(m => lSystemGroup.add(m));
-            }
+            // 4. FINALIZE: Tell Three.js to update the instance data on the GPU
+            instancedMesh.instanceMatrix.needsUpdate = true;
+
             autoFrameCamera();
         }
         
