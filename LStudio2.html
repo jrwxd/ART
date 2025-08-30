@@ -394,6 +394,14 @@
                 <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Scene & Effects</span><span class="arrow">&#9654;</span></summary>
                 <div class="space-y-4 pt-2 border-t border-gray-700">
                     <div class="flex items-center justify-between"><label for="bgColor" class="text-sm">Background</label><input type="color" id="bgColor" value="#111827"></div>
+                    <div class="flex items-center justify-between">
+                        <label for="cameraMode" class="text-sm">Camera Mode</label>
+                        <select id="cameraMode" class="bg-gray-700 p-2 rounded-md text-sm">
+                            <option value="orbit">Orbit (Default)</option>
+                            <option value="turtle">Turtle Following</option>
+                            <option value="generation">Generation View</option>
+                        </select>
+                    </div>
                 </div>
             </details>
 
@@ -444,6 +452,9 @@
         let pendingGeneration = false;
         let lastString = '';
         let lastParams = '';
+        let turtlePositions = []; // Store turtle positions for camera following
+        let generationBreakpoints = []; // Store where each generation ends
+        let currentCameraMode = 'orbit';
         
         const presets = {
             "Growing Vine": { axiom: "F", rules: "F=F[+FC-F]F", animAxiom: "A", animRules: "A=YlA", animIterations: 8, iterations: 4, length: 2, radius: 0.1, yaw: 25, pitch: 20, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, yawStep: 1, pitchStep: 0, rollStep: 0, lengthStep: -0.005, radiusStep: 0, angleScaleStep: 0, bloomToggle: true, fogToggle: true },
@@ -546,6 +557,7 @@
                 uiPanel: 'ui-panel', toggleButton: 'toggle-button', helpBtn: 'help-btn',
                 helpModal: 'help-modal', helpModalContent: 'help-modal-content', closeModalBtn: 'close-modal-btn',
                 progressOverlay: 'progress-overlay', progressText: 'progress-text', bgColor: 'bgColor',
+                cameraMode: 'cameraMode',
             };
             // safe mapping: element may be missing in HTML
             for (const key in uiMap) {
@@ -605,6 +617,16 @@
                 });
             });
             
+            // Camera mode change
+            if (ui.cameraMode) ui.cameraMode.addEventListener('change', () => {
+                currentCameraMode = ui.cameraMode.value;
+                if (currentCameraMode === 'orbit') {
+                    controls.enabled = true;
+                } else {
+                    controls.enabled = false;
+                }
+            });
+            
             if (ui.iterations && ui.iterationsValue) ui.iterations.addEventListener('input', () => ui.iterationsValue.textContent = ui.iterations.value);
             if (ui.animIterations && ui.animIterationsValue) ui.animIterations.addEventListener('input', () => ui.animIterationsValue.textContent = ui.animIterations.value);
 
@@ -628,15 +650,16 @@
             animate();
         }
 
-        // Optimized L-system generation with caching
+        // Optimized L-system generation with caching and generation tracking
         function generateLSystem(axiom, rules, iterations) {
             const cacheKey = `${axiom}::${rules}::${iterations}`;
             if (lastString && lastParams === cacheKey) {
-                return lastString;
+                return { string: lastString, generations: generationBreakpoints };
             }
 
             let currentString = axiom || '';
             const rulesMap = new Map();
+            generationBreakpoints = [0]; // Track where each generation starts
             
             // Parse rules: each line is "LHS=RHS". Ignore empty lines / comments.
             rules.split(/\r?\n/).map(r => r.trim()).forEach(rule => {
@@ -671,6 +694,7 @@
                     if (!matched) newString += currentString[j];
                 }
                 currentString = newString;
+                generationBreakpoints.push(currentString.length);
 
                 // Safety check for exponential growth
                 if (currentString.length > 200000) {
@@ -682,10 +706,11 @@
             lastString = currentString;
             lastParams = cacheKey;
             console.log("L-System string length:", currentString.length);
-            return currentString;
+            console.log("Generation breakpoints:", generationBreakpoints);
+            return { string: currentString, generations: generationBreakpoints };
         }
 
-        // Heavily optimized drawing function (minimal working turtle)
+        // Heavily optimized drawing function with turtle tracking
         async function drawLSystem(lindenmayerString) {
             // Clear previous geometry
             while (lSystemGroup.children.length > 0) {
@@ -704,6 +729,9 @@
                 autoFrameCamera();
                 return;
             }
+
+            // Clear turtle tracking arrays
+            turtlePositions = [];
 
             // Use MeshStandardMaterial with vertexColors enabled
             const geometry = new THREE.CylinderGeometry(1, 1, 1, 8, 1);
@@ -747,6 +775,14 @@
                     case 'H': {
                         const direction = new THREE.Vector3(0, 1, 0).applyQuaternion(turtle.quat);
                         const nextPos = new THREE.Vector3().copy(turtle.pos).addScaledVector(direction, turtle.length);
+
+                        // Store turtle position and orientation for camera following
+                        turtlePositions.push({
+                            position: turtle.pos.clone(),
+                            direction: direction.clone(),
+                            quaternion: turtle.quat.clone(),
+                            segmentIndex: instanceIndex
+                        });
 
                         scale.set(turtle.radius, turtle.length, turtle.radius);
                         quaternion.setFromUnitVectors(up, direction.normalize());
@@ -821,9 +857,67 @@
             instancedMesh.instanceMatrix.needsUpdate = true;
             instancedMesh.instanceColor.needsUpdate = true;
 
-            autoFrameCamera();
+            // Apply camera mode
+            applyCameraMode();
         }
         
+        
+        function applyCameraMode() {
+            if (currentCameraMode === 'orbit') {
+                autoFrameCamera();
+            } else if (currentCameraMode === 'turtle' && turtlePositions.length > 0) {
+                followTurtle();
+            } else if (currentCameraMode === 'generation' && turtlePositions.length > 0) {
+                setGenerationView();
+            }
+        }
+
+        function followTurtle() {
+            // Follow the last turtle position (tip of the current growth)
+            const lastTurtle = turtlePositions[turtlePositions.length - 1];
+            if (lastTurtle) {
+                // Position camera perpendicular to turtle's direction
+                const offset = new THREE.Vector3()
+                    .crossVectors(lastTurtle.direction, new THREE.Vector3(0, 1, 0))
+                    .normalize()
+                    .multiplyScalar(10); // Distance from turtle
+                
+                camera.position.copy(lastTurtle.position).add(offset);
+                camera.lookAt(lastTurtle.position);
+                camera.updateMatrixWorld();
+            }
+        }
+
+        function setGenerationView() {
+            // Get turtle position from the latest generation
+            const iterations = parseInt(ui.iterations?.value || 4);
+            if (generationBreakpoints.length > iterations && turtlePositions.length > 0) {
+                // Find a turtle position from the last generation
+                const lastGenStart = Math.max(0, turtlePositions.length - 20); // Last 20 segments
+                const targetTurtle = turtlePositions[Math.min(lastGenStart + 10, turtlePositions.length - 1)];
+                
+                if (targetTurtle) {
+                    // Create a side view perpendicular to the turtle
+                    const rightVector = new THREE.Vector3()
+                        .crossVectors(targetTurtle.direction, new THREE.Vector3(0, 1, 0))
+                        .normalize();
+                    
+                    const distance = 15;
+                    camera.position.copy(targetTurtle.position)
+                        .add(rightVector.multiplyScalar(distance))
+                        .add(new THREE.Vector3(0, 5, 0)); // Slight upward offset
+                    
+                    // Look ahead in the turtle's direction
+                    const lookTarget = new THREE.Vector3()
+                        .copy(targetTurtle.position)
+                        .add(targetTurtle.direction.clone().multiplyScalar(5));
+                    
+                    camera.lookAt(lookTarget);
+                    camera.updateMatrixWorld();
+                }
+            }
+        }
+
         function autoFrameCamera() {
             if (lSystemGroup.children.length === 0) return;
             
@@ -861,9 +955,10 @@
 
             isGenerating = true;
             try {
-                const lindenmayerString = generateLSystem(ax, rl, it);
+                const result = generateLSystem(ax, rl, it);
+                const lindenmayerString = result.string || result; // Handle both new and old format
                 await drawLSystem(lindenmayerString);
-                if (shouldAutoFrame) autoFrameCamera();
+                // Note: applyCameraMode() is now called from within drawLSystem()
             } catch (error) {
                 console.error("Generation error:", error);
             } finally {
