@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L-system Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+        }
+        #ui-panel {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        #ui-panel.hidden {
+            transform: translateX(calc(100% + 20px));
+            opacity: 0;
+        }
+        #toggle-button {
+            transition: transform 0.3s ease-in-out;
+        }
+        #toggle-button.collapsed {
+            transform: rotate(180deg);
+        }
+        /* Custom scrollbar */
+        #ui-panel::-webkit-scrollbar { width: 8px; }
+        #ui-panel::-webkit-scrollbar-track { background: #1f2937; border-radius: 10px; }
+        #ui-panel::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        #ui-panel::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        
+        #help-modal { transition: opacity 0.2s ease-in-out; }
+        #help-modal-content { transition: transform 0.2s ease-in-out; }
+
+        details > summary {
+            cursor: pointer;
+            list-style: none; /* Hide default marker */
+        }
+        details > summary::-webkit-details-marker {
+            display: none; /* Hide default marker in Safari */
+        }
+        details summary .arrow {
+            transition: transform 0.2s;
+        }
+        details[open] summary .arrow {
+            transform: rotate(90deg);
+        }
+        #progress-overlay {
+            z-index: 9999;
+        }
+        /* Color input styling */
+        input[type="color"] {
+            appearance: none;
+            -webkit-appearance: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+        	padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+        	border: 1px solid #4b5563;
+            border-radius: 8px;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="container"></div>
+
+    <!-- Progress overlay for video export -->
+    <div id="progress-overlay" class="fixed inset-0 bg-black bg-opacity-70 items-center justify-center text-white text-2xl font-bold hidden">
+        <span id="progress-text"></span>
+    </div>
+
+    <div id="ui-panel" class="absolute top-5 right-5 bg-gray-800 bg-opacity-80 backdrop-blur-sm text-white p-6 rounded-lg shadow-2xl w-full max-w-sm">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold">L-system Studio</h1>
+            <div>
+                <button id="help-btn" class="p-2 rounded-full hover:bg-gray-700 focus:outline-none" title="Help (M)">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4 0 1.152-.448 2.213-1.175 3.016l-1.115 1.115a1 1 0 00-1.414 1.414l1.115-1.115a5.96 5.96 0 011.575-2.316A5.986 5.986 0 0020 13c0-3.314-2.686-6-6-6s-6 2.686-6 6c0 .69.106 1.35.305 1.956a1 1 0 101.94-.487A4 4 0 0112 11c-1.272 0-2.382.596-3.14 1.5A1 1 0 008.228 9zM12 18a1 1 0 100-2 1 1 0 000 2z" /></svg>
+                </button>
+                <button id="toggle-button" class="p-2 rounded-full hover:bg-gray-700 focus:outline-none" title="Toggle Panel (H)">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label for="presets" class="block text-sm font-medium text-gray-300">Presets</label>
+                <select id="presets" class="mt-1 block w-full bg-gray-700 border-gray-600 rounded-md shadow-sm p-2"></select>
+            </div>
+
+            <details open>
+                <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Structure System</span><span class="arrow">&#9654;</span></summary>
+                <div class="space-y-4 pt-2 border-t border-gray-700">
+                    <div><label for="axiom" class="block text-sm">Axiom</label><input type="text" id="axiom" class="mt-1 block w-full bg-gray-700 p-2 rounded-md"></div>
+                    <div><label for="iterations" class="block text-sm">Iterations: <span id="iterations-value">6</span></label><input type="range" id="iterations" min="0" max="10" value="6" class="w-full h-2 bg-gray-700 rounded-lg"></div>
+                    <div><label for="rules" class="block text-sm">Rules</label><textarea id="rules" rows="4" class="mt-1 block w-full bg-gray-700 p-2 rounded-md"></textarea></div>
+                </div>
+            </details>
+            
+            <details>
+                <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Animation System</span><span class="arrow">&#9654;</span></summary>
+                <div class="space-y-4 pt-2 border-t border-gray-700">
+                    <div><label for="animAxiom" class="block text-sm">Animation Axiom</label><input type="text" id="animAxiom" class="mt-1 block w-full bg-gray-700 p-2 rounded-md"></div>
+                    <div><label for="animIterations" class="block text-sm">Animation Iterations: <span id="animIterations-value">6</span></label><input type="range" id="animIterations" min="0" max="10" value="6" class="w-full h-2 bg-gray-700 rounded-lg"></div>
+                    <div><label for="animRules" class="block text-sm">Animation Rules</label><textarea id="animRules" rows="3" class="mt-1 block w-full bg-gray-700 p-2 rounded-md"></textarea></div>
+                </div>
+            </details>
+
+            <details>
+                <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Base Geometry & Angles</span><span class="arrow">&#9654;</span></summary>
+                <div class="space-y-4 pt-2 border-t border-gray-700">
+                    <div class="grid grid-cols-2 gap-4">
+                         <div><label for="length" class="block text-sm">Length</label><input type="number" id="length" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                        <div><label for="radius" class="block text-sm">Radius</label><input type="number" id="radius" step="0.01" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label for="yaw" class="block text-sm">Yaw (°)</label><input type="number" id="yaw" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                        <div><label for="pitch" class="block text-sm">Pitch (°)</label><input type="number" id="pitch" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                        <div><label for="roll" class="block text-sm">Roll (°)</label><input type="number" id="roll" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                    </div>
+                    <select id="segmentType" class="w-full bg-gray-700 p-2 rounded-md"><option value="cylinder">Cylinder</option><option value="box">Box</option><option value="line">Line</option></select>
+                </div>
+            </details>
+
+            <details>
+                <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Dynamic Modifiers</span><span class="arrow">&#9654;</span></summary>
+                <div class="space-y-4 pt-2 border-t border-gray-700">
+                     <div class="grid grid-cols-2 gap-4">
+                        <div><label for="lengthScale" class="block text-sm">Length Scale</label><input type="number" id="lengthScale" step="0.01" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                        <div><label for="radiusScale" class="block text-sm">Radius Scale</label><input type="number" id="radiusScale" step="0.01" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="angleScale" class="block text-sm">Angle Scale</label>
+                        <input type="number" id="angleScale" step="0.01" class="mt-1 w-full bg-gray-700 p-2 rounded-md">
+                    </div>
+                </div>
+            </details>
+
+             <details>
+                <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Scene & Effects</span><span class="arrow">&#9654;</span></summary>
+                <div class="space-y-4 pt-2 border-t border-gray-700">
+                    <div class="flex items-center justify-between"><label for="bgColor" class="text-sm">Background</label><input type="color" id="bgColor" value="#111827"></div>
+                    <div class="flex items-center justify-between"><label for="fogToggle" class="text-sm">Atmospheric Fog</label><div class="flex items-center gap-2"><input type="color" id="fogColor" value="#111827"><input type="checkbox" id="fogToggle" class="h-5 w-5 bg-gray-700 rounded text-indigo-500"></div></div>
+                    <div class="flex items-center justify-between"><label for="bloomToggle" class="text-sm">Bloom Effect</label><input type="checkbox" id="bloomToggle" class="h-5 w-5 bg-gray-700 rounded text-indigo-500"></div>
+                    <div><label for="bloomStrength" class="block text-sm">Bloom Strength: <span id="bloomStrength-value">1.5</span></label><input type="range" id="bloomStrength" min="0" max="3" step="0.1" value="1.5" class="w-full h-2 bg-gray-700 rounded-lg"></div>
+                    <div><label for="bloomRadius" class="block text-sm">Bloom Radius: <span id="bloomRadius-value">0.4</span></label><input type="range" id="bloomRadius" min="0" max="1" step="0.01" value="0.4" class="w-full h-2 bg-gray-700 rounded-lg"></div>
+                </div>
+            </details>
+
+             <details>
+                <summary class="text-lg font-semibold py-2 flex justify-between items-center"><span>Animation Steps</span><span class="arrow">&#9654;</span></summary>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-2 pt-2 border-t border-gray-700">
+                    <div><label for="yawStep" class="text-sm">Yaw</label><input type="number" id="yawStep" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
+                    <div><label for="pitchStep" class="text-sm">Pitch</label><input type="number" id="pitchStep" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
+                    <div><label for="rollStep" class="text-sm">Roll</label><input type="number" id="rollStep" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
+                    <div><label for="lengthStep" class="text-sm">Length</label><input type="number" id="lengthStep" step="0.01" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
+                    <div><label for="radiusStep" class="text-sm">Radius</label><input type="number" id="radiusStep" step="0.001" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
+                    <div><label for="angleScaleStep" class="text-sm">Angle Scale</label><input type="number" id="angleScaleStep" step="0.001" class="mt-1 w-full bg-gray-700 p-2 rounded-md text-xs"></div>
+                </div>
+            </details>
+        </div>
+
+        <div class="mt-6 grid grid-cols-2 gap-4">
+            <button id="generate-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Generate</button>
+            <button id="export-video-btn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Export Video</button>
+        </div>
+    </div>
+
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-70 items-center justify-center p-4 hidden">
+        <div id="help-modal-content" class="bg-gray-800 text-white p-6 rounded-lg shadow-2xl w-full max-w-lg scale-95 opacity-0">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold">Symbol Guide</h2><button id="close-modal-btn" class="p-2 rounded-full hover:bg-gray-700 focus:outline-none">&times;</button></div>
+            <div class="grid grid-cols-2 gap-6 text-gray-300 text-sm">
+                <div>
+                    <h3 class="font-bold text-white mb-2">Structure Symbols</h3>
+                    <p><strong>F, G, H</strong>: Move & draw</p><p><strong>f, g, h</strong>: Move only</p><hr class="border-gray-600 my-2">
+                    <p><strong>+ / -</strong>: Yaw right / left</p><p><strong>&amp;  | </strong>: Pitch down / up</p><p><strong>\ / /</strong>: Roll left / right</p><hr class="border-gray-600 my-2">
+                    <p><strong>[ / ]</strong>: Push / Pop state</p><hr class="border-gray-600 my-2">
+                    <p><strong>o</strong>: Draw a sphere</p><p><strong>! / '</strong>: Scale radius</p><p><strong>( / )</strong>: Scale length</p>
+                    <p><strong>* / %</strong>: Scale angles</p><p><strong>C</strong>: Cycle color</p><p><strong>0-9</strong>: Set color</p><p><strong>$</strong>: Level horizontally</p>
+                </div>
+                 <div>
+                    <h3 class="font-bold text-white mb-2">Animation Symbols</h3>
+                    <p><strong>Y / y</strong>: Inc/dec Yaw</p>
+                    <p><strong>P / p</strong>: Inc/dec Pitch</p>
+                    <p><strong>R / r</strong>: Inc/dec Roll</p>
+                    <hr class="border-gray-600 my-2">
+                    <p><strong>L / l</strong>: Inc/dec Length</p>
+                    <p><strong>W / w</strong>: Inc/dec Radius</p>
+                    <hr class="border-gray-600 my-2">
+                    <p><strong>S / s</strong>: Inc/dec Length Scale</p>
+                    <p><strong>D / d</strong>: Inc/dec Radius Scale</p>
+                    <p><strong>A / a</strong>: Inc/dec Angle Scale</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+        let scene, camera, renderer, controls, lSystemGroup, composer;
+        const ui = {};
+        const presets = {
+            "Growing Vine": { axiom: "F", rules: "F=F[+F-F]F", animAxiom: "A", animRules: "A=YlA", animIterations: 8, iterations: 4, length: 2, radius: 0.1, yaw: 25, pitch: 20, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, yawStep: 1, pitchStep: 0, rollStep: 0, lengthStep: -0.005, radiusStep: 0, angleScaleStep: 0, bloomToggle: true, fogToggle: true },
+            "Twisting Anemone": { axiom: "A", rules: "A=F![+B]F[-B]A\nB=C(*B)", animAxiom: "", animRules: "", animIterations: 0, iterations: 7, length: 1.2, radius: 0.08, yaw: 45, pitch: 60, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 0.95, bloomToggle: true, fogToggle: true },
+            "Wandering Poet's Tree": { axiom: "F", rules: "F=C[//^^^F]C[\\\\&&&F]C[--F]C[++F]F", animAxiom: "", animRules: "", animIterations: 0, iterations: 5, length: 0.8, radius: 0.04, yaw: 22, pitch: 22, roll: 22, lengthScale: 0.9, radiusScale: 0.8, angleScale: 1, bloomToggle: true, fogToggle: true },
+            "Fractal Plant": { axiom: "X", rules: "X=F-[[X]+X]+F[+FX]-X\nF=FF", animAxiom: "", animRules: "", animIterations: 0, iterations: 5, length: 1.5, radius: 0.1, yaw: 22.5, pitch: 22.5, roll: 22.5, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, bloomToggle: false, fogToggle: false },
+            "Rainbow Bush": { axiom: "A", rules: "A=C![+A][-A]F%A\nF=FF", animAxiom: "", animRules: "", animIterations: 0, iterations: 6, length: 1, radius: 0.1, yaw: 35, pitch: 35, roll: 35, lengthScale: 0.9, radiusScale: 0.7, angleScale: 1.1, bloomToggle: true, fogToggle: false },
+        };
+
+        function loadPreset(name) {
+            const p = presets[name];
+            for (const key in p) {
+                const el = ui[key];
+                if (el) {
+                    if (el.type === 'checkbox') {
+                        el.checked = p[key];
+                    } else {
+                        el.value = p[key];
+                    }
+                    const valueEl = ui[`${key}Value`];
+                    if (valueEl) {
+                        valueEl.textContent = p[key];
+                    }
+                }
+            }
+            updateEffects();
+            handleGenerateClick();
+        }
+        
+        function setupPostProcessing() {
+            const renderPass = new RenderPass(scene, camera);
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+            const outputPass = new OutputPass();
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderPass);
+            composer.addPass(bloomPass);
+            composer.addPass(outputPass);
+            ui.bloomPass = bloomPass;
+            updateEffects();
+        }
+
+        function updateEffects() {
+            if (!ui.bgColor || !ui.fogToggle || !ui.bloomPass) return;
+            scene.background = new THREE.Color(ui.bgColor.value);
+            scene.fog = ui.fogToggle.checked ? new THREE.Fog(ui.fogColor.value, 50, 250) : null;
+            ui.bloomPass.enabled = ui.bloomToggle.checked;
+            ui.bloomPass.strength = parseFloat(ui.bloomStrength.value);
+            ui.bloomPass.radius = parseFloat(ui.bloomRadius.value);
+        }
+
+        function init() {
+            const uiMap = {
+                axiom: 'axiom', rules: 'rules', iterations: 'iterations', iterationsValue: 'iterations-value',
+                animAxiom: 'animAxiom', animRules: 'animRules', animIterations: 'animIterations', animIterationsValue: 'animIterations-value',
+                length: 'length', radius: 'radius', yaw: 'yaw', pitch: 'pitch', roll: 'roll',
+                lengthScale: 'lengthScale', radiusScale: 'radiusScale', angleScale: 'angleScale', segmentType: 'segmentType',
+                yawStep: 'yawStep', pitchStep: 'pitchStep', rollStep: 'rollStep', lengthStep: 'lengthStep', radiusStep: 'radiusStep', angleScaleStep: 'angleScaleStep',
+                presets: 'presets', generateBtn: 'generate-btn', exportVideoBtn: 'export-video-btn',
+                uiPanel: 'ui-panel', toggleButton: 'toggle-button', helpBtn: 'help-btn',
+                helpModal: 'help-modal', helpModalContent: 'help-modal-content', closeModalBtn: 'close-modal-btn',
+                progressOverlay: 'progress-overlay', progressText: 'progress-text', bgColor: 'bgColor',
+                fogColor: 'fogColor', fogToggle: 'fogToggle', bloomToggle: 'bloomToggle',
+                bloomStrength: 'bloomStrength', bloomStrengthValue: 'bloomStrength-value',
+                bloomRadius: 'bloomRadius', bloomRadiusValue: 'bloomRadius-value'
+            };
+            for (const key in uiMap) { ui[key] = document.getElementById(uiMap[key]); }
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+            camera.position.set(0, 20, 50);
+            renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            scene.add(new THREE.AmbientLight(0xcccccc, 0.7));
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            directionalLight.position.set(1, 1, 0.5).normalize();
+            scene.add(directionalLight);
+            
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.target.set(0, 0, 0);
+            controls.update();
+            lSystemGroup = new THREE.Group();
+            scene.add(lSystemGroup);
+
+            setupPostProcessing();
+
+            Object.keys(presets).forEach(name => ui.presets.appendChild(new Option(name, name)));
+            
+            ui.presets.addEventListener('change', (e) => loadPreset(e.target.value));
+            ui.generateBtn.addEventListener('click', handleGenerateClick);
+            ui.exportVideoBtn.addEventListener('click', exportVideo);
+            ui.toggleButton.addEventListener('click', toggleUIPanel);
+            ui.helpBtn.addEventListener('click', showHelpModal);
+            ui.closeModalBtn.addEventListener('click', hideHelpModal);
+            ui.helpModal.addEventListener('click', (e) => e.target === ui.helpModal && hideHelpModal());
+            
+            ['bgColor', 'fogColor', 'fogToggle', 'bloomToggle', 'bloomStrength', 'bloomRadius'].forEach(id => ui[id].addEventListener('input', updateEffects));
+            ui.iterations.addEventListener('input', () => ui.iterationsValue.textContent = ui.iterations.value);
+            ui.animIterations.addEventListener('input', () => ui.animIterationsValue.textContent = ui.animIterations.value);
+            ui.bloomStrength.addEventListener('input', () => ui.bloomStrengthValue.textContent = ui.bloomStrength.value);
+            ui.bloomRadius.addEventListener('input', () => ui.bloomRadiusValue.textContent = ui.bloomRadius.value);
+
+            window.addEventListener('resize', onWindowResize, false);
+            window.addEventListener('keydown', (e) => {
+                if (e.key.toLowerCase() === 'h') toggleUIPanel();
+                if (e.key.toLowerCase() === 'm') showHelpModal();
+                if (e.key.toLowerCase() === 'g') handleGenerateClick();
+                if (e.key.toLowerCase() === 'r') resetScene();
+                if (e.key.toLowerCase() === 'p') togglePostProcessing();
+            });
+            
+            loadPreset("Growing Vine");
+            animate();
+        }
+
+        function generateLSystem(axiom, rules, iterations) {
+            // --- Parametric L-System Implementation ---
+            function parseModules(str) {
+                // Parses a string like 'F(1,2)G(3)' into [{sym: 'F', params: [1,2]}, {sym: 'G', params: [3]}]
+                const modules = [];
+                const regex = /([A-Za-z]+)(\(([^)]*)\))?/g;
+                let match;
+                while ((match = regex.exec(str)) !== null) {
+                    const sym = match[1];
+                    const params = match[3] ? match[3].split(',').map(s => {
+                        const n = Number(s.trim());
+                        return isNaN(n) ? s.trim() : n;
+                    }) : [];
+                    modules.push({ sym, params });
+                }
+                return modules;
+            }
+
+            function parseRules(rulesStr) {
+                // Parses rules like 'F(x)=F(x*0.9)G(x+1):x>0' into rule objects
+                // Supports multiple rules separated by newlines
+                const rules = [];
+                const lines = rulesStr.split('\n').map(l => l.trim()).filter(Boolean);
+                for (const line of lines) {
+                    // Format: F(x,y)=G(x*0.9,y+1):x>0
+                    const [headBody, condition] = line.split(':');
+                    const [head, body] = headBody.split('=');
+                    const headMatch = head.match(/([A-Za-z]+)\(([^)]*)\)/);
+                    if (!headMatch) continue;
+                    const sym = headMatch[1];
+                    const paramNames = headMatch[2].split(',').map(s => s.trim()).filter(Boolean);
+                    // Body: e.g. F(x*0.9)G(y+1)
+                    const bodyModules = [];
+                    const regex = /([A-Za-z]+)(\(([^)]*)\))?/g;
+                    let m;
+                    while ((m = regex.exec(body)) !== null) {
+                        const bSym = m[1];
+                        const bParams = m[3] ? m[3].split(',').map(s => s.trim()) : [];
+                        bodyModules.push({ sym: bSym, params: bParams });
+                    }
+                    rules.push({ sym, paramNames, body: bodyModules, condition: condition ? condition.trim() : 'true' });
+                }
+                return rules;
+            }
+
+            let currentGeneration = parseModules(axiom);
+            const rules = parseRules(rules);
+
+            for (let i = 0; i < iterations; i++) {
+                let nextGeneration = [];
+                for (const module of currentGeneration) {
+                    let ruleFound = false;
+                    for (const rule of rules) {
+                        if (rule.sym === module.sym && rule.paramNames.length === module.params.length) {
+                            // Create a context for evaluating the condition and body expressions
+                            const context = {};
+                            rule.paramNames.forEach((name, index) => {
+                                context[name] = module.params[index];
+                            });
+
+                            // Evaluate condition
+                            const isConditionMet = new Function(...Object.keys(context), `return ${rule.condition}`)(...Object.values(context));
+
+                            if (isConditionMet) {
+                                // If condition is met, produce the new modules from the rule body
+                                const newModules = rule.body.map(bodyModule => {
+                                    const newParams = bodyModule.params.map(p => {
+                                        try {
+                                            const evaluatedParam = new Function(...Object.keys(context), `return ${p}`)(...Object.values(context));
+                                            return evaluatedParam;
+                                        } catch (e) {
+                                            return p; // Return as is if it's not a valid expression
+                                        }
+                                    });
+                                    return { sym: bodyModule.sym, params: newParams };
+                                });
+
+                                nextGeneration.push(...newModules);
+                                ruleFound = true;
+                                break; // Move to the next module in the current generation
+                            }
+                        }
+                    }
+                    if (!ruleFound) {
+                        // If no rule matched, carry the module over (identity rule)
+                        nextGeneration.push(module);
+                    }
+                }
+                currentGeneration = nextGeneration;
+            }
+            // For logging, convert back to a string-like format
+            const finalString = currentGeneration.map(m => m.sym + (m.params.length > 0 ? `(${m.params.join(',')})` : '')).join('');
+            console.log("Let it be known, the Parametric L-System string is: " + finalString);
+            return currentGeneration;
+        }
+
+        function drawLSystem(lindenmayerString) {
+            while (lSystemGroup.children.length > 0) {
+                const child = lSystemGroup.children[0];
+                lSystemGroup.remove(child);
+                if(child.geometry) child.geometry.dispose();
+                if(child.material) child.material.dispose();
+            }
+            lSystemGroup.position.set(0, 0, 0);
+
+            const colorPalette = [0x86efac, 0xef4444, 0x3b82f6, 0xf97316, 0x8b5cf6, 0x14b8a6, 0xec4899, 0xfacc15, 0x65a30d, 0x22d3ee].map(c => new THREE.MeshPhongMaterial({ color: c, side: THREE.DoubleSide }));
+            const materials = { fruit: new THREE.MeshPhongMaterial({ color: 0xea580c }) };
+
+            const turtle = {
+                position: new THREE.Vector3(0, 0, 0), quaternion: new THREE.Quaternion(),
+                length: parseFloat(ui.length.value), radius: parseFloat(ui.radius.value),
+                yaw: THREE.MathUtils.degToRad(parseFloat(ui.yaw.value)),
+                pitch: THREE.MathUtils.degToRad(parseFloat(ui.pitch.value)),
+                roll: THREE.MathUtils.degToRad(parseFloat(ui.roll.value)),
+                colorIndex: 0, material: colorPalette[0]
+            };
+            const stateStack = [];
+            const lengthScale = parseFloat(ui.lengthScale.value);
+            const radiusScale = parseFloat(ui.radiusScale.value);
+            const angleScale = parseFloat(ui.angleScale.value);
+
+            for (const char of lindenmayerString) {
+                switch (char) {
+                    case 'F': case 'G': case 'H': {
+                        const dir = new THREE.Vector3(0, 1, 0).applyQuaternion(turtle.quaternion);
+                        const start = turtle.position.clone();
+                        turtle.position.add(dir.clone().multiplyScalar(turtle.length));
+                        if (ui.segmentType.value !== 'line' && turtle.radius > 0.001 && turtle.length > 0.001 && isFinite(turtle.radius) && isFinite(turtle.length)) {
+                            let geom;
+                            if (ui.segmentType.value === 'cylinder') geom = new THREE.CylinderGeometry(turtle.radius, turtle.radius, turtle.length, 8);
+                            else geom = new THREE.BoxGeometry(turtle.radius * 2, turtle.length, turtle.radius * 2);
+                            const seg = new THREE.Mesh(geom, turtle.material);
+                            seg.position.copy(start).add(turtle.position).multiplyScalar(0.5);
+                            seg.quaternion.copy(turtle.quaternion);
+                            lSystemGroup.add(seg);
+                        }
+                        break;
+                    }
+                    case 'f': case 'g': case 'h': turtle.position.add(new THREE.Vector3(0, 1, 0).applyQuaternion(turtle.quaternion).multiplyScalar(turtle.length)); break;
+                    case '+': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -turtle.yaw)); break;
+                    case '-': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), turtle.yaw)); break;
+                    case '&': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), turtle.pitch)); break;
+                    case '|': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -turtle.pitch)); break;
+                    case '\\': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), turtle.roll)); break;
+                    case '/': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -turtle.roll)); break;
+                    case '[': stateStack.push({ ...turtle, position: turtle.position.clone(), quaternion: turtle.quaternion.clone() }); break;
+                    case ']': Object.assign(turtle, stateStack.pop()); break;
+                    case 'o': {
+                        if (turtle.radius > 0.001) {
+                            const fruit = new THREE.Mesh(new THREE.SphereGeometry(turtle.radius * 2.5, 16, 12), materials.fruit);
+                            fruit.position.copy(turtle.position);
+                            lSystemGroup.add(fruit);
+                        }
+                        break;
+                    }
+                    case '<': turtle.position.y -= turtle.length; break;
+                    case '>': turtle.position.y += turtle.length; break;
+                    case '^': turtle.position.z += turtle.length; break;
+                    case 'v': turtle.position.z -= turtle.length; break;
+                    case '{': turtle.position.x += turtle.length; break;
+                    case '}': turtle.position.x -= turtle.length; break;
+                    case '!': turtle.radius *= radiusScale; break;
+                    case "'": turtle.radius /= radiusScale; break;
+                    case '(': turtle.length *= lengthScale; break;
+                    case ')': turtle.length /= lengthScale; break;
+                    case '*': turtle.yaw *= angleScale; break;
+                    case '%': turtle.yaw /= angleScale; break;
+                    case '#': turtle.pitch *= angleScale; break;
+                    case '$': turtle.pitch /= angleScale; break;
+                    case '@': turtle.roll *= angleScale; break;
+                    case '=': turtle.roll /= angleScale; break;
+                    case 'C ': turtle.colorIndex = (turtle.colorIndex + 1) % colorPalette.length; turtle.material = colorPalette[turtle.colorIndex]; break;
+                    case 'D ': turtle.colorIndex = (turtle.colorIndex - 1 + colorPalette.length) % colorPalette.length; turtle.material = colorPalette[turtle.colorIndex]; break;
+                    default:
+                        if (!isNaN(parseInt(char))) {
+                            turtle.colorIndex = parseInt(char) % colorPalette.length;
+                            turtle.material = colorPalette[turtle.colorIndex];
+                        }
+                        break;
+                }
+            }
+            colorPalette.forEach(mat => mat.dispose());
+            Object.values(materials).forEach(mat => mat.dispose());
+        }
+        
+        function autoFrameCamera() {
+            if (lSystemGroup.children.length === 0) return;
+            const box = new THREE.Box3().setFromObject(lSystemGroup);
+            const center = box.getCenter(new THREE.Vector3());
+            const sphere = box.getBoundingSphere(new THREE.Sphere());
+
+            lSystemGroup.position.sub(center);
+            controls.target.set(0, 0, 0);
+
+            const fov = camera.fov * (Math.PI / 180);
+            const distance = sphere.radius / Math.sin(fov / 2);
+            const cameraZ = distance * 1.1;
+
+            if (isNaN(cameraZ) || !isFinite(cameraZ) || cameraZ < 0.1) return;
+
+            camera.position.set(0, 0, cameraZ);
+            camera.near = cameraZ / 100;
+            camera.far = cameraZ * 100;
+            camera.updateProjectionMatrix();
+            controls.update();
+        }
+
+        function updateLSystem(shouldAutoFrame = false) {
+            try {
+                const lindenmayerModules = generateLSystem(ui.axiom.value, ui.rules.value, parseInt(ui.iterations.value, 10));
+                // Convert modules back to string for drawLSystem (if needed)
+                const lindenmayerString = lindenmayerModules.map(m => m.sym + (m.params.length > 0 ? `(${m.params.join(',')})` : '')).join('');
+                drawLSystem(lindenmayerString);
+            } catch (error) {
+                console.error("An error occurred during generation:", error);
+            }
+            if (shouldAutoFrame) autoFrameCamera();
+        }
+
+        function handleGenerateClick() {
+            ui.generateBtn.textContent = 'Generating...';
+            ui.generateBtn.disabled = true;
+            setTimeout(() => {
+                updateLSystem(true);
+                ui.generateBtn.textContent = 'Generate';
+                ui.generateBtn.disabled = false;
+            }, 10);
+        }
+        
+        async function exportVideo() {
+            hideUIPanel();
+            await new Promise(resolve => setTimeout(resolve, 350));
+
+            const capturer = new CCapture({ format: 'webm', framerate: 16, verbose: false });
+            
+            ui.exportVideoBtn.disabled = true;
+            ui.generateBtn.disabled = true;
+            ui.progressOverlay.classList.remove('hidden');
+            ui.progressOverlay.classList.add('flex');
+
+            try {
+                capturer.start();
+                const animationString = generateLSystem(ui.animAxiom.value, ui.animRules.value, parseInt(ui.animIterations.value, 10));
+                const steps = {
+                    Y: parseFloat(ui.yawStep.value), y: -parseFloat(ui.yawStep.value),
+                    P: parseFloat(ui.pitchStep.value), p: -parseFloat(ui.pitchStep.value),
+                    R: parseFloat(ui.rollStep.value), r: -parseFloat(ui.rollStep.value),
+                    L: parseFloat(ui.lengthStep.value), l: -parseFloat(ui.lengthStep.value),
+                    W: parseFloat(ui.radiusStep.value), w: -parseFloat(ui.radiusStep.value),
+                    A: parseFloat(ui.angleScaleStep.value), a: -parseFloat(ui.angleScaleStep.value),
+                };
+
+                for (let i = 0; i < animationString.length; i++) {
+                    const command = animationString[i];
+                    ui.progressText.textContent = `Recording Frame ${i + 1}/${animationString.length}`;
+
+                    switch(command) {
+                        case 'Y': case 'y': ui.yaw.value = (parseFloat(ui.yaw.value) + steps[command]).toFixed(2); break;
+                        case 'P': case 'p': ui.pitch.value = (parseFloat(ui.pitch.value) + steps[command]).toFixed(2); break;
+                        case 'R': case 'r': ui.roll.value = (parseFloat(ui.roll.value) + steps[command]).toFixed(2); break;
+                        case 'L': case 'l': ui.length.value = (parseFloat(ui.length.value) + steps[command]).toFixed(3); break;
+                        case 'W': case 'w': ui.radius.value = (parseFloat(ui.radius.value) + steps[command]).toFixed(4); break;
+                        case 'A': case 'a': ui.angleScale.value = (parseFloat(ui.angleScale.value) + steps[command]).toFixed(3); break;
+                    }
+
+                    updateLSystem(false);
+                    capturer.capture(renderer.domElement);
+                    await new Promise(resolve => requestAnimationFrame(resolve));
+                }
+
+                ui.progressText.textContent = 'Saving...';
+                capturer.stop();
+                capturer.save();
+            } catch (e) {
+                console.error("Video export failed:", e);
+            } finally {
+                ui.progressOverlay.classList.add('hidden');
+                ui.progressOverlay.classList.remove('flex');
+                ui.exportVideoBtn.disabled = false;
+                ui.generateBtn.disabled = false;
+                showUIPanel();
+            }
+        }
+
+        function hideUIPanel() { if (!ui.uiPanel.classList.contains('hidden')) toggleUIPanel(); }
+        function showUIPanel() { if (ui.uiPanel.classList.contains('hidden')) toggleUIPanel(); }
+        function toggleUIPanel() {
+            ui.uiPanel.classList.toggle('hidden');
+            ui.toggleButton.classList.toggle('collapsed');
+        }
+
+        function showHelpModal() {
+            ui.helpModal.classList.remove('hidden');
+            ui.helpModal.classList.add('flex');
+            setTimeout(() => {
+                ui.helpModal.classList.remove('opacity-0');
+                ui.helpModalContent.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function hideHelpModal() {
+            ui.helpModal.classList.add('opacity-0');
+            ui.helpModalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => ui.helpModal.classList.add('hidden'), 200);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+
+            controls.update();
+            composer.render();
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
