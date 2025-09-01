@@ -434,7 +434,7 @@
             return currentGeneration;
         }
 
-        function drawLSystem(lindenmayerString) {
+        function drawLSystem(lindenmayerModules) {
             while (lSystemGroup.children.length > 0) {
                 const child = lSystemGroup.children[0];
                 lSystemGroup.remove(child);
@@ -455,20 +455,23 @@
                 colorIndex: 0, material: colorPalette[0]
             };
             const stateStack = [];
+            const stateQueue = [];
             const lengthScale = parseFloat(ui.lengthScale.value);
             const radiusScale = parseFloat(ui.radiusScale.value);
             const angleScale = parseFloat(ui.angleScale.value);
 
-            for (const char of lindenmayerString) {
-                switch (char) {
+            for (const module of lindenmayerModules) {
+                switch (module.sym) {
                     case 'F': case 'G': case 'H': {
+                        const len = module.params.length > 0 ? module.params[0] : turtle.length;
+                        const rad = module.params.length > 1 ? module.params[1] : turtle.radius;
                         const dir = new THREE.Vector3(0, 1, 0).applyQuaternion(turtle.quaternion);
                         const start = turtle.position.clone();
-                        turtle.position.add(dir.clone().multiplyScalar(turtle.length));
-                        if (ui.segmentType.value !== 'line' && turtle.radius > 0.001 && turtle.length > 0.001 && isFinite(turtle.radius) && isFinite(turtle.length)) {
+                        turtle.position.add(dir.clone().multiplyScalar(len));
+                        if (ui.segmentType.value !== 'line' && rad > 0.001 && len > 0.001 && isFinite(rad) && isFinite(len)) {
                             let geom;
-                            if (ui.segmentType.value === 'cylinder') geom = new THREE.CylinderGeometry(turtle.radius, turtle.radius, turtle.length, 8);
-                            else geom = new THREE.BoxGeometry(turtle.radius * 2, turtle.length, turtle.radius * 2);
+                            if (ui.segmentType.value === 'cylinder') geom = new THREE.CylinderGeometry(rad, rad, len, 8);
+                            else geom = new THREE.BoxGeometry(rad * 2, len, rad * 2);
                             const seg = new THREE.Mesh(geom, turtle.material);
                             seg.position.copy(start).add(turtle.position).multiplyScalar(0.5);
                             seg.quaternion.copy(turtle.quaternion);
@@ -476,7 +479,12 @@
                         }
                         break;
                     }
-                    case 'f': case 'g': case 'h': turtle.position.add(new THREE.Vector3(0, 1, 0).applyQuaternion(turtle.quaternion).multiplyScalar(turtle.length)); break;
+                    case 'f': case 'g': case 'h': {
+                        const len = turtle.length;
+                        const dir = new THREE.Vector3(0, 1, 0).applyQuaternion(turtle.quaternion);
+                        turtle.position.add(dir.clone().multiplyScalar(len));
+                        break;
+                    }
                     case '+': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -turtle.yaw)); break;
                     case '-': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), turtle.yaw)); break;
                     case '&': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), turtle.pitch)); break;
@@ -485,6 +493,8 @@
                     case '/': turtle.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -turtle.roll)); break;
                     case '[': stateStack.push({ ...turtle, position: turtle.position.clone(), quaternion: turtle.quaternion.clone() }); break;
                     case ']': Object.assign(turtle, stateStack.pop()); break;
+                    case '{': stateQueue.push({ ...turtle, position: turtle.position.clone(), quaternion: turtle.quaternion.clone() }); break;
+                    case '}': if (stateQueue.length > 0) { Object.assign(turtle, stateQueue.shift()); } break;
                     case 'o': {
                         if (turtle.radius > 0.001) {
                             const fruit = new THREE.Mesh(new THREE.SphereGeometry(turtle.radius * 2.5, 16, 12), materials.fruit);
@@ -497,8 +507,6 @@
                     case '>': turtle.position.y += turtle.length; break;
                     case '^': turtle.position.z += turtle.length; break;
                     case 'v': turtle.position.z -= turtle.length; break;
-                    case '{': turtle.position.x += turtle.length; break;
-                    case '}': turtle.position.x -= turtle.length; break;
                     case '!': turtle.radius *= radiusScale; break;
                     case "'": turtle.radius /= radiusScale; break;
                     case '(': turtle.length *= lengthScale; break;
@@ -512,8 +520,8 @@
                     case 'C ': turtle.colorIndex = (turtle.colorIndex + 1) % colorPalette.length; turtle.material = colorPalette[turtle.colorIndex]; break;
                     case 'D ': turtle.colorIndex = (turtle.colorIndex - 1 + colorPalette.length) % colorPalette.length; turtle.material = colorPalette[turtle.colorIndex]; break;
                     default:
-                        if (!isNaN(parseInt(char))) {
-                            turtle.colorIndex = parseInt(char) % colorPalette.length;
+                        if (!isNaN(parseInt(module.sym))) {
+                            turtle.colorIndex = parseInt(module.sym) % colorPalette.length;
                             turtle.material = colorPalette[turtle.colorIndex];
                         }
                         break;
@@ -548,9 +556,7 @@
         function updateLSystem(shouldAutoFrame = false) {
             try {
                 const lindenmayerModules = generateLSystem(ui.axiom.value, ui.rules.value, parseInt(ui.iterations.value, 10));
-                // Convert modules back to string for drawLSystem (if needed)
-                const lindenmayerString = lindenmayerModules.map(m => m.sym + (m.params.length > 0 ? `(${m.params.join(',')})` : '')).join('');
-                drawLSystem(lindenmayerString);
+                drawLSystem(lindenmayerModules);
             } catch (error) {
                 console.error("An error occurred during generation:", error);
             }
