@@ -1,0 +1,251 @@
+testsite.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unfurling Horizons Portfolio</title>
+    <style>
+        /* --- Basic Reset & Typography --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            background-color: #111;
+            color: #fff;
+            /* This is important to ensure smooth scrolling behavior for GSAP */
+            overflow-x: hidden;
+        }
+
+        /* --- Main Container & Horizon Sections --- */
+        .scroll-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .horizon {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh; /* Full viewport height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden; /* Hide anything that might overflow */
+        }
+
+        /* --- Individual Horizon Styling & Layering (z-index) --- */
+        /* Each subsequent horizon has a lower z-index to appear behind the previous one. */
+        .horizon-1 {
+            background: linear-gradient(45deg, #023e8a, #0077b6);
+            z-index: 5;
+        }
+
+        .horizon-2 {
+            background: linear-gradient(45deg, #2a9d8f, #264653);
+            z-index: 4;
+        }
+
+        .horizon-3 {
+            background: linear-gradient(45deg, #f4a261, #e76f51);
+            z-index: 3;
+        }
+        
+        .horizon-4 {
+            background: linear-gradient(45deg, #1d3557, #457b9d);
+            z-index: 2;
+        }
+
+        .horizon-5 {
+            background-color: #111;
+            z-index: 1;
+        }
+
+
+        /* --- Content Styling --- */
+        .content {
+            max-width: 800px;
+            padding: 2rem;
+            /* Initially hidden, will be animated by GSAP */
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .content h1 {
+            font-size: clamp(2.5rem, 8vw, 5rem); /* Responsive font size */
+            margin-bottom: 0.5rem;
+        }
+        
+        .content h2 {
+            font-size: clamp(2rem, 7vw, 4rem);
+            margin-bottom: 1rem;
+        }
+
+        .content p {
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            max-width: 600px;
+            margin: 0 auto 1.5rem;
+            line-height: 1.6;
+        }
+
+        .content a {
+            display: inline-block;
+            font-size: 1rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .content a:hover {
+            background-color: #fff;
+            color: #111;
+        }
+
+        /* --- Scroll Down Indicator --- */
+        .scroll-down-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            40% {
+                transform: translateX(-50%) translateY(-15px);
+            }
+            60% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="scroll-container">
+
+        <section class="horizon horizon-1">
+            <div class="content">
+                <h1>Data, Order, Poetry</h1>
+                <p>A portfolio by John.</p>
+                <div class="scroll-down-indicator">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5V19M12 19L19 12M12 19L5 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <section class="horizon horizon-2">
+            <div class="content">
+                <h2>Newsreader & Knowledge Graph</h2>
+                <p>An elegant and sophisticated research assistant designed to connect ideas and reveal hidden patterns in data.</p>
+                <a href="#project1">Explore the Project</a>
+            </div>
+        </section>
+
+        <section class="horizon horizon-3">
+            <div class="content">
+                <h2>Economic Modeling</h2>
+                <p>A simulation tool exploring real-world limits in supply and demand using dynamic flow diagrams and time-based behavior.</p>
+                <a href="#project2">View the Simulation</a>
+            </div>
+        </section>
+
+        <section class="horizon horizon-4">
+             <div class="content">
+                <h2>Modularity & Composability</h2>
+                <p>An elegant system is one where the parts are as well-designed as the whole. Breaking down goals into smaller, self-contained components.</p>
+                <a href="#about">Read About Me</a>
+            </div>
+        </section>
+        
+        <section class="horizon horizon-5">
+             <div class="content">
+                <h2>Contact</h2>
+                <p>Let's build something beautiful and exact together.</p>
+                <a href="mailto:example@email.com">Get In Touch</a>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <script>
+        // Wait for the document to be fully loaded
+        document.addEventListener("DOMContentLoaded", function() {
+
+            // Register the ScrollTrigger plugin with GSAP
+            gsap.registerPlugin(ScrollTrigger);
+
+            // --- Animate the content of the first section to appear on load ---
+            gsap.to(".horizon-1 .content", {
+                opacity: 1,
+                y: 0,
+                duration: 1,
+                ease: "power2.out",
+                delay: 0.5
+            });
+
+            // --- Create a reusable function for transitions ---
+            // This makes the code cleaner and easier to manage (Modularity!)
+            function createHorizonTransition(triggerSection, targetContent, animatedSection) {
+                
+                // Animation to "unfurl" or wipe the section away
+                // We use a clip-path polygon for a diagonal wipe effect.
+                // It animates from covering 100% of the screen to 0%.
+                gsap.fromTo(animatedSection, 
+                    { clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)" }, 
+                    {
+                        clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+                        ease: "power2.inOut",
+                        scrollTrigger: {
+                            trigger: triggerSection,
+                            start: "top top",
+                            end: "bottom top",
+                            scrub: true, // Links animation progress directly to scroll
+                            pin: true    // Pins the trigger element during the animation
+                        }
+                    }
+                );
+
+                // Animation to fade in the content of the *next* section
+                gsap.to(targetContent, {
+                    opacity: 1,
+                    y: 0,
+                    ease: "power2.out",
+                    duration: 0.75,
+                    scrollTrigger: {
+                        trigger: triggerSection,
+                        start: "center center", // Start when the center of trigger hits center of viewport
+                        toggleActions: "play none none reverse" // Play on enter, reverse on scroll up
+                    }
+                });
+            }
+
+            // --- Apply the transitions to each section ---
+            createHorizonTransition(".horizon-1", ".horizon-2 .content", ".horizon-1");
+            createHorizonTransition(".horizon-2", ".horizon-3 .content", ".horizon-2");
+            createHorizonTransition(".horizon-3", ".horizon-4 .content", ".horizon-3");
+            createHorizonTransition(".horizon-4", ".horizon-5 .content", ".horizon-4");
+        });
+    </script>
+</body>
+</html>
