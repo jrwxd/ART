@@ -70,6 +70,16 @@
         	border: 1px solid #4b5563;
             border-radius: 8px;
         }
+        /* Mobile-specific UI adjustments */
+        @media (max-width: 640px) {
+            #ui-panel { display: none !important; }
+            #ui-panel.mobile-modal { display: block !important; position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc(100% - 32px); max-width: 520px; max-height: calc(100vh - 80px); overflow-y: auto; z-index: 10000; }
+            #ui-panel .space-y-4 { padding-bottom: 16px; }
+            .mobile-fab { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 10001; width: 64px; height: 64px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg,#111827,#1f2937); color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.06); }
+            .mobile-fab svg { width: 28px; height: 28px; }
+            /* Larger touch targets */
+            #ui-panel input, #ui-panel textarea, #ui-panel select, #ui-panel button { font-size: 18px; padding: 10px; }
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -213,6 +223,11 @@
         </div>
     </div>
 
+    <!-- Mobile floating action button -->
+    <button id="mobile-fab" class="mobile-fab hidden" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+
     <script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 
     <script type="module">
@@ -329,6 +344,43 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             document.getElementById('container').appendChild(renderer.domElement);
+            // Mobile FAB visibility
+            const mobileFab = document.getElementById('mobile-fab');
+            function updateFabVisibility() {
+                if (window.matchMedia && window.matchMedia('(max-width: 640px)').matches) {
+                    mobileFab.classList.remove('hidden');
+                } else {
+                    mobileFab.classList.add('hidden');
+                }
+            }
+            updateFabVisibility();
+            window.addEventListener('resize', updateFabVisibility);
+
+            // Long-press logic to open centered UI (no controls near touch)
+            let pressTimer = null;
+            const longPressDuration = 550; // ms
+            const canvas = renderer.domElement;
+            function openMobileUI() {
+                ui.uiPanel.classList.add('mobile-modal');
+                ui.uiPanel.classList.remove('hidden');
+            }
+            function closeMobileUI() {
+                ui.uiPanel.classList.remove('mobile-modal');
+                ui.uiPanel.classList.add('hidden');
+            }
+            mobileFab.addEventListener('click', () => {
+                if (ui.uiPanel.classList.contains('hidden')) openMobileUI(); else closeMobileUI();
+            });
+
+            function startPress() { if (pressTimer == null) pressTimer = setTimeout(() => { openMobileUI(); pressTimer = null; }, longPressDuration); }
+            function cancelPress() { if (pressTimer != null) { clearTimeout(pressTimer); pressTimer = null; } }
+            // touch events
+            canvas.addEventListener('touchstart', startPress, { passive: true });
+            canvas.addEventListener('touchend', cancelPress);
+            canvas.addEventListener('touchmove', cancelPress);
+            // mouse events for desktop long-press
+            canvas.addEventListener('mousedown', startPress);
+            window.addEventListener('mouseup', cancelPress);
             
             scene.add(new THREE.AmbientLight(0xcccccc, 0.7));
             const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
