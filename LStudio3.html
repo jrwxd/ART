@@ -375,22 +375,60 @@
 
         function generateLSystem(axiom, rules, iterations) {
             // --- Parametric L-System Implementation ---
+            function tokenize(str) {
+                const tokens = [];
+                let i = 0;
+                while (i < str.length) {
+                    const ch = str[i];
+                    if (/\s/.test(ch)) { i++; continue; }
+                    if (/[A-Za-z]/.test(ch)) {
+                        // read full symbol name
+                        let j = i + 1;
+                        while (j < str.length && /[A-Za-z]/.test(str[j])) j++;
+                        let sym = str.slice(i, j);
+                        // if immediately followed by '(', capture the full parenthesis expression
+                        if (str[j] === '(') {
+                            let k = j + 1, depth = 1;
+                            while (k < str.length && depth > 0) {
+                                if (str[k] === '(') depth++;
+                                else if (str[k] === ')') depth--;
+                                k++;
+                            }
+                            const inside = str.slice(j + 1, k - 1);
+                            tokens.push(sym + '(' + inside + ')');
+                            i = k;
+                        } else {
+                            tokens.push(sym);
+                            i = j;
+                        }
+                    } else {
+                        // single-character token (operators, brackets, digits, etc.)
+                        tokens.push(ch);
+                        i++;
+                    }
+                }
+                return tokens;
+            }
+
             function parseModules(str) {
-                // Parses a string like 'F(1,2)G(3)+[F]' into modules including single-char operators
+                // Convert tokens into module objects {sym, params}
                 const modules = [];
-                const regex = /([A-Za-z]+)(\(([^)]*)\))?|([^A-Za-z\s])/g;
-                let match;
-                while ((match = regex.exec(str)) !== null) {
-                    if (match[1]) {
-                        const sym = match[1];
-                        const params = match[3] ? match[3].split(',').map(s => {
-                            const n = Number(s.trim());
-                            return isNaN(n) ? s.trim() : n;
-                        }) : [];
+                const toks = tokenize(str || '');
+                for (const t of toks) {
+                    const m = t.match(/^([A-Za-z]+)\((.*)\)$/);
+                    if (m) {
+                        const sym = m[1];
+                        const params = m[2].length === 0 ? [] : m[2].split(',').map(s => {
+                            const v = s.trim();
+                            // convert plain numbers (including negative/decimal) to Number
+                            if (/^-?\d+(?:\.\d+)?$/.test(v)) return Number(v);
+                            return v;
+                        });
                         modules.push({ sym, params });
-                    } else if (match[4]) {
-                        // single-character operator like + - [ ] etc.
-                        modules.push({ sym: match[4], params: [] });
+                    } else {
+                        // single-letter operators or multi-letter symbols without params
+                        if (/^[A-Za-z]+$/.test(t)) modules.push({ sym: t, params: [] });
+                        else modules.push({ sym: t, params: [] });
                     }
                 }
                 return modules;
@@ -423,15 +461,16 @@
 
                     // Body: e.g. F(x*0.9)G(y+1) or FF
                     const bodyModules = [];
-                    const regex = /([A-Za-z]+)(\(([^)]*)\))?|([^A-Za-z\s])/g;
-                    let m;
-                    while ((m = regex.exec(body)) !== null) {
-                        if (m[1]) {
-                            const bSym = m[1];
-                            const bParams = m[3] ? m[3].split(',').map(s => s.trim()) : [];
+                    // Tokenize the body so operators like + - [ ] are preserved and param expressions kept intact
+                    const bodyTokens = tokenize(body || '');
+                    for (const bt of bodyTokens) {
+                        const bm = bt.match(/^([A-Za-z]+)\((.*)\)$/);
+                        if (bm) {
+                            const bSym = bm[1];
+                            const bParams = bm[2].length === 0 ? [] : bm[2].split(',').map(s => s.trim());
                             bodyModules.push({ sym: bSym, params: bParams });
-                        } else if (m[4]) {
-                            bodyModules.push({ sym: m[4], params: [] });
+                        } else {
+                            bodyModules.push({ sym: bt, params: [] });
                         }
                     }
                     rules.push({ sym, paramNames, body: bodyModules, condition: condition ? condition.trim() : 'true' });
