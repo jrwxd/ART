@@ -97,6 +97,10 @@
         </div>
 
         <div class="space-y-4">
+            <div id="palette-section">
+                <label class="block text-sm font-medium text-gray-300 mb-1">Color Palette</label>
+                <div id="palette-pickers" class="flex flex-wrap gap-2 mb-2"></div>
+            </div>
             <div>
                 <label for="presets" class="block text-sm font-medium text-gray-300">Presets</label>
                 <select id="presets" class="mt-1 block w-full bg-gray-700 border-gray-600 rounded-md shadow-sm p-2"></select>
@@ -271,6 +275,35 @@
         }
 
         function init() {
+            // Palette UI setup
+            const defaultPalette = ["#00FF00", "#ef4444", "#3b82f6", "#f97316", "#8b5cf6", "#14b8a6", "#ec4899", "#facc15", "#65a30d", "#22d3ee"];
+            let palette = [...defaultPalette];
+            const palettePickers = document.getElementById('palette-pickers');
+            function renderPalettePickers() {
+                palettePickers.innerHTML = '';
+                palette.forEach((color, idx) => {
+                    const input = document.createElement('input');
+                    input.type = 'color';
+                    input.value = color;
+                    input.className = 'rounded shadow border-2 border-gray-600';
+                    input.title = `Palette color ${idx+1}`;
+                    input.addEventListener('input', e => {
+                        palette[idx] = e.target.value;
+                        updateLSystem(false);
+                    });
+                    palettePickers.appendChild(input);
+                });
+            }
+            renderPalettePickers();
+
+            // Expose palette for programmatic use
+            window.setPalette = function(newPalette) {
+                if (Array.isArray(newPalette) && newPalette.length > 0) {
+                    palette = newPalette.map(c => c.startsWith('#') ? c : `#${c}`);
+                    renderPalettePickers();
+                    updateLSystem(false);
+                }
+            };
             const uiMap = {
                 axiom: 'axiom', rules: 'rules', iterations: 'iterations', iterationsValue: 'iterations-value',
                 animAxiom: 'animAxiom', animRules: 'animRules', animIterations: 'animIterations', animIterationsValue: 'animIterations-value',
@@ -443,7 +476,10 @@
             }
             lSystemGroup.position.set(0, 0, 0);
 
-            const colorPalette = [0x86efac, 0xef4444, 0x3b82f6, 0xf97316, 0x8b5cf6, 0x14b8a6, 0xec4899, 0xfacc15, 0x65a30d, 0x22d3ee].map(c => new THREE.MeshPhongMaterial({ color: c, side: THREE.DoubleSide }));
+            // Use palette from UI
+            // Use palette from UI, but only create one material and change its color
+            const paletteColors = palette.map(c => new THREE.Color(c));
+            const baseMaterial = new THREE.MeshPhongMaterial({ color: paletteColors[0], side: THREE.DoubleSide });
             const materials = { fruit: new THREE.MeshPhongMaterial({ color: 0xea580c }) };
 
             const turtle = {
@@ -452,7 +488,7 @@
                 yaw: THREE.MathUtils.degToRad(parseFloat(ui.yaw.value)),
                 pitch: THREE.MathUtils.degToRad(parseFloat(ui.pitch.value)),
                 roll: THREE.MathUtils.degToRad(parseFloat(ui.roll.value)),
-                colorIndex: 0, material: colorPalette[0]
+                colorIndex: 0, material: baseMaterial
             };
             const stateStack = [];
             const stateQueue = [];
@@ -472,7 +508,10 @@
                             let geom;
                             if (ui.segmentType.value === 'cylinder') geom = new THREE.CylinderGeometry(rad, rad, len, 8);
                             else geom = new THREE.BoxGeometry(rad * 2, len, rad * 2);
-                            const seg = new THREE.Mesh(geom, turtle.material);
+                            // Clone the material so each segment can have its own color
+                            const segMaterial = turtle.material.clone();
+                            segMaterial.color.copy(turtle.material.color);
+                            const seg = new THREE.Mesh(geom, segMaterial);
                             seg.position.copy(start).add(turtle.position).multiplyScalar(0.5);
                             seg.quaternion.copy(turtle.quaternion);
                             lSystemGroup.add(seg);
@@ -517,17 +556,27 @@
                     case '$': turtle.pitch /= angleScale; break;
                     case '@': turtle.roll *= angleScale; break;
                     case '=': turtle.roll /= angleScale; break;
-                    case 'C ': turtle.colorIndex = (turtle.colorIndex + 1) % colorPalette.length; turtle.material = colorPalette[turtle.colorIndex]; break;
-                    case 'D ': turtle.colorIndex = (turtle.colorIndex - 1 + colorPalette.length) % colorPalette.length; turtle.material = colorPalette[turtle.colorIndex]; break;
+                    case 'C':
+                    case 'C ': {
+                        turtle.colorIndex = (turtle.colorIndex + 1) % paletteColors.length;
+                        turtle.material.color.copy(paletteColors[turtle.colorIndex]);
+                        break;
+                    }
+                    case 'D':
+                    case 'D ': {
+                        turtle.colorIndex = (turtle.colorIndex - 1 + paletteColors.length) % paletteColors.length;
+                        turtle.material.color.copy(paletteColors[turtle.colorIndex]);
+                        break;
+                    }
                     default:
                         if (!isNaN(parseInt(module.sym))) {
-                            turtle.colorIndex = parseInt(module.sym) % colorPalette.length;
-                            turtle.material = colorPalette[turtle.colorIndex];
+                            turtle.colorIndex = parseInt(module.sym) % paletteColors.length;
+                            turtle.material.color.copy(paletteColors[turtle.colorIndex]);
                         }
                         break;
                 }
             }
-            colorPalette.forEach(mat => mat.dispose());
+            // Dispose only the fruit material (palette materials are not created in bulk anymore)
             Object.values(materials).forEach(mat => mat.dispose());
         }
         
