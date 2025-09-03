@@ -225,6 +225,8 @@
 
         let scene, camera, renderer, controls, lSystemGroup, composer;
         const ui = {};
+    // Palette is module-scoped so drawing code can access it
+    let palette = [];
         const presets = {
             "Growing Vine": { axiom: "F", rules: "F=F[+F-F]F", animAxiom: "A", animRules: "A=YlA", animIterations: 8, iterations: 4, length: 2, radius: 0.1, yaw: 25, pitch: 20, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 1, yawStep: 1, pitchStep: 0, rollStep: 0, lengthStep: -0.005, radiusStep: 0, angleScaleStep: 0, bloomToggle: true, fogToggle: true },
             "Twisting Anemone": { axiom: "A", rules: "A=F![+B]F[-B]A\nB=C(*B)", animAxiom: "", animRules: "", animIterations: 0, iterations: 7, length: 1.2, radius: 0.08, yaw: 45, pitch: 60, roll: 20, lengthScale: 0.9, radiusScale: 0.9, angleScale: 0.95, bloomToggle: true, fogToggle: true },
@@ -277,7 +279,7 @@
         function init() {
             // Palette UI setup
             const defaultPalette = ["#00FF00", "#ef4444", "#3b82f6", "#f97316", "#8b5cf6", "#14b8a6", "#ec4899", "#facc15", "#65a30d", "#22d3ee"];
-            let palette = [...defaultPalette];
+            if (!palette || palette.length === 0) palette = [...defaultPalette];
             const palettePickers = document.getElementById('palette-pickers');
             function renderPalettePickers() {
                 palettePickers.innerHTML = '';
@@ -477,6 +479,9 @@
             lSystemGroup.position.set(0, 0, 0);
 
             // Use palette from UI
+
+
+
             // Use palette from UI, but only create one material and change its color
             const paletteColors = palette.map(c => new THREE.Color(c));
             const baseMaterial = new THREE.MeshPhongMaterial({ color: paletteColors[0], side: THREE.DoubleSide });
