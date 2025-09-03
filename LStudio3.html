@@ -499,7 +499,16 @@
                         turtle.position.add(dir.clone().multiplyScalar(len));
                         if (ui.segmentType.value !== 'line' && rad > 0.001 && len > 0.001 && isFinite(rad) && isFinite(len)) {
                             let geom;
-                            if (ui.segmentType.value === 'cylinder') geom = new THREE.CylinderGeometry(rad, rad, len, 8);
+                            if (ui.segmentType.value === 'cylinder') geom = new TextGeometry( 'Hello three.js!', {
+                                                                            font: font,
+                                                                            size: 80,
+                                                                            depth: 5,
+                                                                            curveSegments: 12,
+                                                                            bevelEnabled: true,
+                                                                            bevelThickness: 10,
+                                                                            bevelSize: 8,
+                                                                            bevelOffset: 0,
+                                                                            bevelSegments: 5} );
                             else geom = new THREE.BoxGeometry(rad * 2, len, rad * 2);
                             // Clone the material so each segment can have its own color
                             const segMaterial = turtle.material.clone();
