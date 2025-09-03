@@ -392,19 +392,31 @@
             }
 
             function parseRules(rulesStr) {
-                // Parses rules like 'F(x)=F(x*0.9)G(x+1):x>0' into rule objects
+                // Parses rules like 'F(x)=F(x*0.9)G(x+1):x>0' or simple 'F=FF' into rule objects
                 // Supports multiple rules separated by newlines
                 const rules = [];
                 const lines = rulesStr.split('\n').map(l => l.trim()).filter(Boolean);
                 for (const line of lines) {
-                    // Format: F(x,y)=G(x*0.9,y+1):x>0
+                    // Format: head=body(:condition)
                     const [headBody, condition] = line.split(':');
                     const [head, body] = headBody.split('=');
-                    const headMatch = head.match(/([A-Za-z]+)\(([^)]*)\)/);
-                    if (!headMatch) continue;
-                    const sym = headMatch[1];
-                    const paramNames = headMatch[2].split(',').map(s => s.trim()).filter(Boolean);
-                    // Body: e.g. F(x*0.9)G(y+1)
+
+                    // Try parametric head first: F(x,y)
+                    let sym = null;
+                    let paramNames = [];
+                    const headParamMatch = head.match(/([A-Za-z]+)\(([^)]*)\)/);
+                    if (headParamMatch) {
+                        sym = headParamMatch[1];
+                        paramNames = headParamMatch[2].split(',').map(s => s.trim()).filter(Boolean);
+                    } else {
+                        // Fallback to simple single-letter head like 'F'
+                        const headSimpleMatch = head.match(/([A-Za-z]+)/);
+                        if (!headSimpleMatch) continue;
+                        sym = headSimpleMatch[1];
+                        paramNames = [];
+                    }
+
+                    // Body: e.g. F(x*0.9)G(y+1) or FF
                     const bodyModules = [];
                     const regex = /([A-Za-z]+)(\(([^)]*)\))?/g;
                     let m;
