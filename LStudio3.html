@@ -374,159 +374,35 @@
         }
 
         function generateLSystem(axiom, rules, iterations) {
-            // --- Parametric L-System Implementation ---
-            function tokenize(str) {
-                const tokens = [];
-                let i = 0;
-                while (i < str.length) {
-                    const ch = str[i];
-                    if (/\s/.test(ch)) { i++; continue; }
-                    if (/[A-Za-z]/.test(ch)) {
-                        // read full symbol name
-                        let j = i + 1;
-                        while (j < str.length && /[A-Za-z]/.test(str[j])) j++;
-                        let sym = str.slice(i, j);
-                        // if immediately followed by '(', capture the full parenthesis expression
-                        if (str[j] === '(') {
-                            let k = j + 1, depth = 1;
-                            while (k < str.length && depth > 0) {
-                                if (str[k] === '(') depth++;
-                                else if (str[k] === ')') depth--;
-                                k++;
-                            }
-                            const inside = str.slice(j + 1, k - 1);
-                            tokens.push(sym + '(' + inside + ')');
-                            i = k;
-                        } else {
-                            tokens.push(sym);
-                            i = j;
-                        }
-                    } else {
-                        // single-character token (operators, brackets, digits, etc.)
-                        tokens.push(ch);
-                        i++;
-                    }
-                }
-                return tokens;
+            // --- Simple character-based L-System (no parameters) ---
+            // Parse rules into a map: single-character head -> replacement string
+            const ruleLines = (rules || '').split('\n').map(l => l.trim()).filter(Boolean);
+            const ruleMap = new Map();
+            for (const line of ruleLines) {
+                const parts = line.split('=');
+                if (parts.length < 2) continue;
+                const head = parts[0].trim();
+                const body = parts.slice(1).join('=').trim();
+                if (head.length === 0) continue;
+                // use only first character of head for simple L-systems
+                ruleMap.set(head[0], body);
             }
 
-            function parseModules(str) {
-                // Convert tokens into module objects {sym, params}
-                const modules = [];
-                const toks = tokenize(str || '');
-                for (const t of toks) {
-                    const m = t.match(/^([A-Za-z]+)\((.*)\)$/);
-                    if (m) {
-                        const sym = m[1];
-                        const params = m[2].length === 0 ? [] : m[2].split(',').map(s => {
-                            const v = s.trim();
-                            // convert plain numbers (including negative/decimal) to Number
-                            if (/^-?\d+(?:\.\d+)?$/.test(v)) return Number(v);
-                            return v;
-                        });
-                        modules.push({ sym, params });
-                    } else {
-                        // single-letter operators or multi-letter symbols without params
-                        if (/^[A-Za-z]+$/.test(t)) modules.push({ sym: t, params: [] });
-                        else modules.push({ sym: t, params: [] });
-                    }
+            let current = (axiom || '').toString();
+            for (let iter = 0; iter < iterations; iter++) {
+                let next = '';
+                for (let i = 0; i < current.length; i++) {
+                    const ch = current[i];
+                    if (ruleMap.has(ch)) next += ruleMap.get(ch);
+                    else next += ch;
                 }
-                return modules;
+                current = next;
             }
 
-            function parseRules(rulesStr) {
-                // Parses rules like 'F(x)=F(x*0.9)G(x+1):x>0' or simple 'F=FF' into rule objects
-                // Supports multiple rules separated by newlines
-                const rules = [];
-                const lines = rulesStr.split('\n').map(l => l.trim()).filter(Boolean);
-                for (const line of lines) {
-                    // Format: head=body(:condition)
-                    const [headBody, condition] = line.split(':');
-                    const [head, body] = headBody.split('=');
-
-                    // Try parametric head first: F(x,y)
-                    let sym = null;
-                    let paramNames = [];
-                    const headParamMatch = head.match(/([A-Za-z]+)\(([^)]*)\)/);
-                    if (headParamMatch) {
-                        sym = headParamMatch[1];
-                        paramNames = headParamMatch[2].split(',').map(s => s.trim()).filter(Boolean);
-                    } else {
-                        // Fallback to simple single-letter head like 'F'
-                        const headSimpleMatch = head.match(/([A-Za-z]+)/);
-                        if (!headSimpleMatch) continue;
-                        sym = headSimpleMatch[1];
-                        paramNames = [];
-                    }
-
-                    // Body: e.g. F(x*0.9)G(y+1) or FF
-                    const bodyModules = [];
-                    // Tokenize the body so operators like + - [ ] are preserved and param expressions kept intact
-                    const bodyTokens = tokenize(body || '');
-                    for (const bt of bodyTokens) {
-                        const bm = bt.match(/^([A-Za-z]+)\((.*)\)$/);
-                        if (bm) {
-                            const bSym = bm[1];
-                            const bParams = bm[2].length === 0 ? [] : bm[2].split(',').map(s => s.trim());
-                            bodyModules.push({ sym: bSym, params: bParams });
-                        } else {
-                            bodyModules.push({ sym: bt, params: [] });
-                        }
-                    }
-                    rules.push({ sym, paramNames, body: bodyModules, condition: condition ? condition.trim() : 'true' });
-                }
-                return rules;
-            }
-
-            let currentGeneration = parseModules(axiom);
-            const rulesArr = parseRules(rules);
-
-            for (let i = 0; i < iterations; i++) {
-                let nextGeneration = [];
-                for (const module of currentGeneration) {
-                    let ruleFound = false;
-                    for (const rule of rulesArr) {
-                        if (rule.sym === module.sym && rule.paramNames.length === module.params.length) {
-                            // Create a context for evaluating the condition and body expressions
-                            const context = {};
-                            rule.paramNames.forEach((name, index) => {
-                                context[name] = module.params[index];
-                            });
-
-                            // Evaluate condition
-                            const isConditionMet = new Function(...Object.keys(context), `return ${rule.condition}`)(...Object.values(context));
-
-                            if (isConditionMet) {
-                                // If condition is met, produce the new modules from the rule body
-                                const newModules = rule.body.map(bodyModule => {
-                                    const newParams = bodyModule.params.map(p => {
-                                        try {
-                                            const evaluatedParam = new Function(...Object.keys(context), `return ${p}`)(...Object.values(context));
-                                            return evaluatedParam;
-                                        } catch (e) {
-                                            return p; // Return as is if it's not a valid expression
-                                        }
-                                    });
-                                    return { sym: bodyModule.sym, params: newParams };
-                                });
-
-                                nextGeneration.push(...newModules);
-                                ruleFound = true;
-                                break; // Move to the next module in the current generation
-                            }
-                        }
-                    }
-                    if (!ruleFound) {
-                        // If no rule matched, carry the module over (identity rule)
-                        nextGeneration.push(module);
-                    }
-                }
-                currentGeneration = nextGeneration;
-            }
-            // For logging, convert back to a string-like format
-            const finalString = currentGeneration.map(m => m.sym + (m.params.length > 0 ? `(${m.params.join(',')})` : '')).join('');
-            console.log("Let it be known, the Parametric L-System string is: " + finalString);
-            return currentGeneration;
+            // Convert final string into modules (sym, params=[])
+            const modules = current.split('').map(ch => ({ sym: ch, params: [] }));
+            console.log('L-System final string:', current);
+            return modules;
         }
 
         function drawLSystem(lindenmayerModules) {
