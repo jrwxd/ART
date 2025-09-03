@@ -417,13 +417,13 @@
             }
 
             let currentGeneration = parseModules(axiom);
-            const rules = parseRules(rules);
+            const rulesArr = parseRules(rules);
 
             for (let i = 0; i < iterations; i++) {
                 let nextGeneration = [];
                 for (const module of currentGeneration) {
                     let ruleFound = false;
-                    for (const rule of rules) {
+                    for (const rule of rulesArr) {
                         if (rule.sym === module.sym && rule.paramNames.length === module.params.length) {
                             // Create a context for evaluating the condition and body expressions
                             const context = {};
