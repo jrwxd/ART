@@ -376,17 +376,22 @@
         function generateLSystem(axiom, rules, iterations) {
             // --- Parametric L-System Implementation ---
             function parseModules(str) {
-                // Parses a string like 'F(1,2)G(3)' into [{sym: 'F', params: [1,2]}, {sym: 'G', params: [3]}]
+                // Parses a string like 'F(1,2)G(3)+[F]' into modules including single-char operators
                 const modules = [];
-                const regex = /([A-Za-z]+)(\(([^)]*)\))?/g;
+                const regex = /([A-Za-z]+)(\(([^)]*)\))?|([^A-Za-z\s])/g;
                 let match;
                 while ((match = regex.exec(str)) !== null) {
-                    const sym = match[1];
-                    const params = match[3] ? match[3].split(',').map(s => {
-                        const n = Number(s.trim());
-                        return isNaN(n) ? s.trim() : n;
-                    }) : [];
-                    modules.push({ sym, params });
+                    if (match[1]) {
+                        const sym = match[1];
+                        const params = match[3] ? match[3].split(',').map(s => {
+                            const n = Number(s.trim());
+                            return isNaN(n) ? s.trim() : n;
+                        }) : [];
+                        modules.push({ sym, params });
+                    } else if (match[4]) {
+                        // single-character operator like + - [ ] etc.
+                        modules.push({ sym: match[4], params: [] });
+                    }
                 }
                 return modules;
             }
@@ -418,12 +423,16 @@
 
                     // Body: e.g. F(x*0.9)G(y+1) or FF
                     const bodyModules = [];
-                    const regex = /([A-Za-z]+)(\(([^)]*)\))?/g;
+                    const regex = /([A-Za-z]+)(\(([^)]*)\))?|([^A-Za-z\s])/g;
                     let m;
                     while ((m = regex.exec(body)) !== null) {
-                        const bSym = m[1];
-                        const bParams = m[3] ? m[3].split(',').map(s => s.trim()) : [];
-                        bodyModules.push({ sym: bSym, params: bParams });
+                        if (m[1]) {
+                            const bSym = m[1];
+                            const bParams = m[3] ? m[3].split(',').map(s => s.trim()) : [];
+                            bodyModules.push({ sym: bSym, params: bParams });
+                        } else if (m[4]) {
+                            bodyModules.push({ sym: m[4], params: [] });
+                        }
                     }
                     rules.push({ sym, paramNames, body: bodyModules, condition: condition ? condition.trim() : 'true' });
                 }
