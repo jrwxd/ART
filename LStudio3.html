@@ -429,7 +429,7 @@
 
         function generateLSystem(axiom, rules, iterations) {
             // --- Simple character-based L-System (no parameters) ---
-            // Parse rules into a map: single-character head -> replacement string
+            // Parse rules into a map: single-charcter head -> replacement string
             const ruleLines = (rules || '').split('\n').map(l => l.trim()).filter(Boolean);
             const ruleMap = new Map();
             for (const line of ruleLines) {
@@ -470,8 +470,6 @@
 
             // Use palette from UI
 
-
-
             // Use palette from UI, but only create one material and change its color
             const paletteColors = palette.map(c => new THREE.Color(c));
             const baseMaterial = new THREE.MeshPhongMaterial({ color: paletteColors[0], side: THREE.DoubleSide });
@@ -501,16 +499,17 @@
                         turtle.position.add(dir.clone().multiplyScalar(len));
                         if (ui.segmentType.value !== 'line' && rad > 0.001 && len > 0.001 && isFinite(rad) && isFinite(len)) {
                             let geom;
-                            if (ui.segmentType.value === 'cylinder') geom = new TextGeometry( 'Hello three.js!', {
+                            if (ui.segmentType.value === 'text') geom = new TextGeometry( 'Greg', {
                                                                             font: font,
-                                                                            size: 80,
-                                                                            depth: 5,
+                                                                            size: int(len) *3,
+                                                                            depth: rad * 2,
                                                                             curveSegments: 12,
                                                                             bevelEnabled: true,
                                                                             bevelThickness: 10,
                                                                             bevelSize: 8,
                                                                             bevelOffset: 0,
                                                                             bevelSegments: 5} );
+                            else if (ui.segmentType.value === 'cylinder') geom = new THREE.CylinderGeometry(rad, rad, len, 8);
                             else geom = new THREE.BoxGeometry(rad * 2, len, rad * 2);
                             // Clone the material so each segment can have its own color
                             const segMaterial = turtle.material.clone();
@@ -559,7 +558,7 @@
                     case '#': turtle.pitch *= angleScale; break;
                     case '$': turtle.pitch /= angleScale; break;
                     case '@': turtle.roll *= angleScale; break;
-                    case '=': turtle.roll /= angleScale; break;
+                    case '~': turtle.roll /= angleScale; break;
                     case 'C':
                     case 'C ': {
                         turtle.colorIndex = (turtle.colorIndex + 1) % paletteColors.length;
