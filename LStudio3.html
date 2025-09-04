@@ -382,9 +382,11 @@
             canvas.addEventListener('mousedown', startPress);
             window.addEventListener('mouseup', cancelPress);
             
-            scene.add(new THREE.AmbientLight(0xcccccc, 0.7));
+            scene.add(new THREE.AmbientLight(0xcccccc, 0.1));
             const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-            directionalLight.position.set(1, 1, 0.5).normalize();
+            directionalLight.position.set(5, 10, 8);
+            directionalLight.intensity = 2.5;
+            directionalLight.castShadow = true;
             scene.add(directionalLight);
             
             controls = new OrbitControls(camera, renderer.domElement);
