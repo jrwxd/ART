@@ -146,7 +146,7 @@
                         <div><label for="pitch" class="block text-sm">Pitch (°)</label><input type="number" id="pitch" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
                         <div><label for="roll" class="block text-sm">Roll (°)</label><input type="number" id="roll" step="0.1" class="mt-1 w-full bg-gray-700 p-2 rounded-md"></div>
                     </div>
-                    <select id="segmentType" class="w-full bg-gray-700 p-2 rounded-md"><option value="cylinder">Cylinder</option><option value="box">Box</option><option value="line">Line</option></select>
+                    <select id="segmentType" class="w-full bg-gray-700 p-2 rounded-md"><option value="cylinder">Cylinder</option><option value="box">Box</option><option value="line">Line</option><option value="text">Text</option></select>
                 </div>
             </details>
 
@@ -499,7 +499,7 @@
                         turtle.position.add(dir.clone().multiplyScalar(len));
                         if (ui.segmentType.value !== 'line' && rad > 0.001 && len > 0.001 && isFinite(rad) && isFinite(len)) {
                             let geom;
-                            if (ui.segmentType.value === 'text') geom = new TextGeometry( 'Greg', {
+                            if (ui.segmentType.value === 'text') geom = new THREE.TextGeometry( 'Greg', {
                                                                             font: font,
                                                                             size: int(len) *3,
                                                                             depth: rad * 2,
