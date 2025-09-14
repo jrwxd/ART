@@ -192,6 +192,14 @@
             <button id="generate-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Generate</button>
             <button id="export-video-btn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Export Video</button>
         </div>
+        <div class="mt-4 flex flex-col gap-2">
+            <button id="prerender-btn" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Prerender</button>
+            <div id="prerender-controls" class="flex items-center justify-between gap-2 mt-2 hidden">
+                <button id="prerender-prev" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded">Prev</button>
+                <span id="prerender-status" class="text-sm"></span>
+                <button id="prerender-next" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded">Next</button>
+            </div>
+        </div>
     </div>
 
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-70 items-center justify-center p-4 hidden">
@@ -231,6 +239,11 @@
     <script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 
     <script type="module">
+    // Prerender state
+    let prerenderedImages = [];
+    let prerenderedParams = [];
+    let prerenderIndex = 0;
+
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -292,6 +305,15 @@
         }
 
         function init() {
+            // Prerender UI
+            ui.prerenderBtn = document.getElementById('prerender-btn');
+            ui.prerenderControls = document.getElementById('prerender-controls');
+            ui.prerenderPrev = document.getElementById('prerender-prev');
+            ui.prerenderNext = document.getElementById('prerender-next');
+            ui.prerenderStatus = document.getElementById('prerender-status');
+            ui.prerenderBtn.addEventListener('click', handlePrerenderClick);
+            ui.prerenderPrev.addEventListener('click', () => showPrerendered(prerenderIndex - 1));
+            ui.prerenderNext.addEventListener('click', () => showPrerendered(prerenderIndex + 1));
             // Palette UI setup
             const defaultPalette = ["#00FF00", "#ef4444", "#3b82f6", "#f97316", "#8b5cf6", "#14b8a6", "#ec4899", "#facc15", "#65a30d", "#22d3ee"];
             if (!palette || palette.length === 0) palette = [...defaultPalette];
@@ -710,12 +732,104 @@
 
         function animate() {
 
+            // If in prerender view mode, do not animate scene
+            if (ui.prerenderControls && !ui.prerenderControls.classList.contains('hidden')) return;
+
             controls.update();
             composer.render();
             requestAnimationFrame(animate);
         }
 
         window.addEventListener('DOMContentLoaded', init);
+
+        // Prerender logic
+        async function handlePrerenderClick() {
+            // Prompt for A and B (comma-separated values)
+            let aStr = prompt('Enter values for A (comma-separated):', '1,2,3');
+            let bStr = prompt('Enter values for B (comma-separated):', '10,20,30');
+            if (!aStr || !bStr) return;
+            let A = aStr.split(',').map(s => s.trim()).filter(Boolean);
+            let B = bStr.split(',').map(s => s.trim()).filter(Boolean);
+            if (A.length === 0 || B.length === 0) return;
+
+            prerenderedImages = [];
+            prerenderedParams = [];
+            prerenderIndex = 0;
+            ui.prerenderControls.classList.remove('hidden');
+            ui.prerenderStatus.textContent = 'Prerendering...';
+
+            // Choose which UI fields to assign (for demo: assign A to length, B to yaw)
+            // You can customize this mapping as needed
+            const paramA = 'length';
+            const paramB = 'yaw';
+
+            // For each (a, b) pair, set params, render, and store image
+            for (let i = 0; i < A.length; ++i) {
+                for (let j = 0; j < B.length; ++j) {
+                    ui[paramA].value = A[i];
+                    ui[paramB].value = B[j];
+                    updateLSystem(false);
+                    await new Promise(r => setTimeout(r, 30)); // let render update
+                    // Capture image from renderer
+                    const dataUrl = renderer.domElement.toDataURL('image/png');
+                    prerenderedImages.push(dataUrl);
+                    prerenderedParams.push({ [paramA]: A[i], [paramB]: B[j] });
+                }
+            }
+            prerenderIndex = 0;
+            showPrerendered(0);
+        }
+
+        function showPrerendered(idx) {
+            if (prerenderedImages.length === 0) return;
+            prerenderIndex = (idx + prerenderedImages.length) % prerenderedImages.length;
+            // Show image overlay
+            let overlay = document.getElementById('prerender-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'prerender-overlay';
+                overlay.style.position = 'fixed';
+                overlay.style.left = '0';
+                overlay.style.top = '0';
+                overlay.style.width = '100vw';
+                overlay.style.height = '100vh';
+                overlay.style.background = 'rgba(0,0,0,0.92)';
+                overlay.style.display = 'flex';
+                overlay.style.alignItems = 'center';
+                overlay.style.justifyContent = 'center';
+                overlay.style.zIndex = '10010';
+                overlay.addEventListener('click', () => {
+                    overlay.remove();
+                    ui.prerenderControls.classList.add('hidden');
+                });
+                document.body.appendChild(overlay);
+            }
+            overlay.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = prerenderedImages[prerenderIndex];
+            img.style.maxWidth = '90vw';
+            img.style.maxHeight = '90vh';
+            img.style.border = '6px solid #fff';
+            img.style.borderRadius = '18px';
+            img.style.boxShadow = '0 8px 32px #000a';
+            overlay.appendChild(img);
+            // Show params
+            const params = prerenderedParams[prerenderIndex];
+            const label = document.createElement('div');
+            label.textContent = `A: ${params.length}, B: ${params.yaw}`;
+            label.style.position = 'absolute';
+            label.style.bottom = '32px';
+            label.style.left = '50%';
+            label.style.transform = 'translateX(-50%)';
+            label.style.background = 'rgba(30,30,40,0.9)';
+            label.style.color = '#fff';
+            label.style.padding = '8px 18px';
+            label.style.borderRadius = '8px';
+            label.style.fontSize = '1.2em';
+            overlay.appendChild(label);
+            // Update status
+            ui.prerenderStatus.textContent = `Shape ${prerenderIndex + 1} / ${prerenderedImages.length}`;
+        }
     </script>
 </body>
 </html>
