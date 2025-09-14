@@ -762,7 +762,7 @@
                 for (let j = 0; j < B.length; ++j) {
                     ui[paramA].value = A[i];
                     ui[paramB].value = B[j];
-                    updateLSystem(false);
+                    updateLSystem(true);
                     await new Promise(r => setTimeout(r, 30)); // let render update
                     // Capture image from renderer
                     const dataUrl = renderer.domElement.toDataURL('image/png');
