@@ -194,10 +194,8 @@
         </div>
         <div class="mt-4 flex flex-col gap-2">
             <button id="prerender-btn" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Prerender</button>
-            <div id="prerender-controls" class="flex items-center justify-between gap-2 mt-2 hidden">
-                <button id="prerender-prev" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded">Prev</button>
+            <div id="prerender-controls" class="mt-2 hidden">
                 <span id="prerender-status" class="text-sm"></span>
-                <button id="prerender-next" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded">Next</button>
             </div>
         </div>
     </div>
@@ -308,12 +306,8 @@
             // Prerender UI
             ui.prerenderBtn = document.getElementById('prerender-btn');
             ui.prerenderControls = document.getElementById('prerender-controls');
-            ui.prerenderPrev = document.getElementById('prerender-prev');
-            ui.prerenderNext = document.getElementById('prerender-next');
             ui.prerenderStatus = document.getElementById('prerender-status');
             ui.prerenderBtn.addEventListener('click', handlePrerenderClick);
-            ui.prerenderPrev.addEventListener('click', () => showPrerendered(prerenderIndex - 1));
-            ui.prerenderNext.addEventListener('click', () => showPrerendered(prerenderIndex + 1));
             // Palette UI setup
             const defaultPalette = ["#00FF00", "#ef4444", "#3b82f6", "#f97316", "#8b5cf6", "#14b8a6", "#ec4899", "#facc15", "#65a30d", "#22d3ee"];
             if (!palette || palette.length === 0) palette = [...defaultPalette];
@@ -795,12 +789,16 @@
                 overlay.style.height = '100vh';
                 overlay.style.background = 'rgba(0,0,0,0.92)';
                 overlay.style.display = 'flex';
+                overlay.style.flexDirection = 'column';
                 overlay.style.alignItems = 'center';
                 overlay.style.justifyContent = 'center';
                 overlay.style.zIndex = '10010';
-                overlay.addEventListener('click', () => {
-                    overlay.remove();
-                    ui.prerenderControls.classList.add('hidden');
+                // Only close overlay if click background, not controls
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        overlay.remove();
+                        ui.prerenderControls.classList.add('hidden');
+                    }
                 });
                 document.body.appendChild(overlay);
             }
@@ -808,7 +806,7 @@
             const img = document.createElement('img');
             img.src = prerenderedImages[prerenderIndex];
             img.style.maxWidth = '90vw';
-            img.style.maxHeight = '90vh';
+            img.style.maxHeight = '70vh';
             img.style.border = '6px solid #fff';
             img.style.borderRadius = '18px';
             img.style.boxShadow = '0 8px 32px #000a';
@@ -817,17 +815,36 @@
             const params = prerenderedParams[prerenderIndex];
             const label = document.createElement('div');
             label.textContent = `A: ${params.length}, B: ${params.yaw}`;
-            label.style.position = 'absolute';
-            label.style.bottom = '32px';
-            label.style.left = '50%';
-            label.style.transform = 'translateX(-50%)';
+            label.style.marginTop = '18px';
             label.style.background = 'rgba(30,30,40,0.9)';
             label.style.color = '#fff';
             label.style.padding = '8px 18px';
             label.style.borderRadius = '8px';
             label.style.fontSize = '1.2em';
             overlay.appendChild(label);
-            // Update status
+            // Prev/Next controls
+            const nav = document.createElement('div');
+            nav.style.display = 'flex';
+            nav.style.gap = '18px';
+            nav.style.marginTop = '18px';
+            nav.style.alignItems = 'center';
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = 'Prev';
+            prevBtn.className = 'bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-lg';
+            prevBtn.onclick = (e) => { e.stopPropagation(); showPrerendered(prerenderIndex - 1); };
+            const status = document.createElement('span');
+            status.textContent = `Shape ${prerenderIndex + 1} / ${prerenderedImages.length}`;
+            status.style.color = '#fff';
+            status.style.fontSize = '1.1em';
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Next';
+            nextBtn.className = 'bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-lg';
+            nextBtn.onclick = (e) => { e.stopPropagation(); showPrerendered(prerenderIndex + 1); };
+            nav.appendChild(prevBtn);
+            nav.appendChild(status);
+            nav.appendChild(nextBtn);
+            overlay.appendChild(nav);
+            // Update status in hidden controls for accessibility
             ui.prerenderStatus.textContent = `Shape ${prerenderIndex + 1} / ${prerenderedImages.length}`;
         }
     </script>
