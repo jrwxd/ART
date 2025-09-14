@@ -11,7 +11,7 @@
             margin: 0;
             overflow: hidden;
             font-family: 'Inter', sans-serif;
-            background-color: #111827;
+            background-color: #111723;
         }
         #ui-panel {
             transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
@@ -469,7 +469,6 @@
             lSystemGroup.position.set(0, 0, 0);
 
             // Use palette from UI
-
             // Use palette from UI, but only create one material and change its color
             const paletteColors = palette.map(c => new THREE.Color(c));
             const baseMaterial = new THREE.MeshPhongMaterial({ color: paletteColors[0], side: THREE.DoubleSide });
