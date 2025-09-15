@@ -597,6 +597,7 @@
             // Dispose only the fruit material (palette materials are not created in bulk anymore)
             Object.values(materials).forEach(mat => mat.dispose());
         }
+
         
         function autoFrameCamera() {
             if (lSystemGroup.children.length === 0) return;
@@ -754,7 +755,7 @@
 
             // Choose which UI fields to assign (for demo: assign A to length, B to yaw)
             // You can customize this mapping as needed
-            const paramA = 'length';
+            const paramA = 'pitch';
             const paramB = 'yaw';
 
             // For each (a, b) pair, set params, render, and store image
