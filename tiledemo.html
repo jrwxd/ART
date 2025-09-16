@@ -372,16 +372,19 @@
                         const prototileShape = this.currentSystem.prototiles[tile.type].shape;
 
                         for (const rule of ruleSet) {
+                            // Correct transformation order:
+                            // 1. Scale rule.pos by parent scale / PHI
+                            // 2. Flip if parent or rule requests
+                            // 3. Rotate by parent rotation
+                            // 4. Translate to parent position
                             const newScale = tile.scale / PHI;
-                            const newRotation = (tile.rot + rule.rot) % 360;
-                            const flipX = tile.flip !== rule.flip; // XOR for flip propagation
-                            
-                            // Transform the rule position according to the parent tile's state
                             let childPos = { ...rule.pos };
-                            childPos = this.scalePoint(childPos, newScale);
-                            if(tile.flip) childPos.x = -childPos.x;
+                            childPos = this.scalePoint(childPos, tile.scale / PHI); // scale by parent scale
+                            let flipX = tile.flip !== rule.flip; // XOR for flip propagation
+                            if (flipX) childPos.x = -childPos.x;
                             childPos = this.rotatePoint(childPos, tile.rot);
-                            
+                            const newRotation = (tile.rot + (flipX ? -rule.rot : rule.rot)) % 360;
+
                             nextTiles.push({
                                 type: rule.type,
                                 pos: { x: tile.pos.x + childPos.x, y: tile.pos.y + childPos.y },
