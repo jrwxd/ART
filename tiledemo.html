@@ -187,6 +187,13 @@
                 </select>
             </div>
             <div class="control-group">
+                <h2>Edit Substitution Rules</h2>
+                <label for="rules-editor">Substitution Rules (JSON):</label>
+                <textarea id="rules-editor" style="width:100%;height:120px;font-size:0.9rem;background:var(--bg-color);color:var(--text-light-color);border-radius:6px;border:1px solid var(--border-color);margin-bottom:8px;"></textarea>
+                <button id="apply-rules-btn">Apply Rules</button>
+                <div id="rules-error" style="color:var(--highlight-color);font-size:0.9rem;display:none;"></div>
+            </div>
+            <div class="control-group">
                 <h2>Generation</h2>
                 <div class="button-group">
                     <button id="step-back-btn" disabled>&lt; Back</button>
@@ -324,17 +331,42 @@
                 });
                 document.getElementById('export-svg-btn').addEventListener('click', () => this.exportSVG());
                 document.getElementById('export-png-btn').addEventListener('click', () => this.exportPNG());
-                
+
                 // Pan and Zoom Listeners
                 this.svg.addEventListener('wheel', (e) => this.handleZoom(e));
                 this.svg.addEventListener('mousedown', (e) => this.handlePanStart(e));
                 this.svg.addEventListener('mousemove', (e) => this.handlePanMove(e));
                 this.svg.addEventListener('mouseup', () => this.handlePanEnd());
                 this.svg.addEventListener('mouseleave', () => this.handlePanEnd());
+
+                // Substitution Rules Editor
+                this.rulesEditor = document.getElementById('rules-editor');
+                this.rulesError = document.getElementById('rules-error');
+                document.getElementById('apply-rules-btn').addEventListener('click', () => this.applyRules());
+                this.updateRulesEditor();
+            }
+
+            updateRulesEditor() {
+                // Show current rules as JSON
+                this.rulesEditor.value = JSON.stringify(this.currentSystem.rules, null, 2);
+                this.rulesError.style.display = 'none';
+            }
+
+            applyRules() {
+                try {
+                    const newRules = JSON.parse(this.rulesEditor.value);
+                    this.currentSystem.rules = newRules;
+                    this.rulesError.style.display = 'none';
+                    this.reset();
+                } catch (e) {
+                    this.rulesError.textContent = 'Invalid JSON: ' + e.message;
+                    this.rulesError.style.display = 'block';
+                }
             }
 
             onSystemChange(systemName) {
                 this.currentSystem = TILING_SYSTEMS[systemName];
+                this.updateRulesEditor();
                 this.reset();
             }
 
