@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hex Net Game</title>
+    <style>
+        :root {
+            /* Solarized Dark inspired theme */
+            --bg-color: #002b36;
+            --tile-color: #073642;
+            --unconnected-color: #586e75;
+            --connected-color: #859900;
+            --source-color: #268bd2;
+            --line-width: 4;
+            --line-color: #93a1a1;
+            --text-color: #93a1a1;
+            --cursor-color: #cb4b16;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            text-align: center;
+            transition: background-color 0.5s ease;
+        }
+        h1 {
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+        .flavor-text {
+            margin: -0.5rem 0 1.5rem 0;
+            font-weight: 300;
+            font-style: italic;
+            color: var(--unconnected-color);
+        }
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 95vmin;
+        }
+        #game-controls {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        button, select {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: 1px solid var(--tile-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            background-color: transparent;
+            transition: background-color 0.2s, color 0.2s;
+            cursor: pointer;
+        }
+        button:hover:not(:disabled), select:hover {
+            background-color: var(--tile-color);
+            color: #ffffff;
+        }
+        #game-board {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .hex-group {
+            cursor: pointer;
+            transition: filter 0.2s ease-in-out;
+        }
+        .hex-tile {
+            stroke: var(--bg-color);
+            stroke-width: 2;
+            transition: fill 0.3s ease-in-out, stroke 0.5s ease;
+        }
+        .hex-lines {
+            stroke: var(--line-color);
+            stroke-width: var(--line-width);
+            stroke-linecap: round;
+            fill: none;
+            pointer-events: none;
+            transition: transform 0.2s ease-in-out, stroke 0.5s ease;
+        }
+        .hex-group.cursor .hex-tile {
+            stroke: var(--cursor-color);
+            stroke-width: 4px;
+        }
+        .hex-group[data-locked="true"] {
+            filter: brightness(0.7);
+        }
+        #win-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 43, 54, 0.9);
+            color: #ffffff;
+            padding: 40px 60px;
+            border-radius: 15px;
+            border: 1px solid var(--tile-color);
+            font-size: clamp(2rem, 8vw, 4rem);
+            font-weight: bold;
+            display: none;
+            text-align: center;
+            z-index: 100;
+            cursor: pointer;
+        }
+        #touch-controls {
+            display: none;
+            margin-top: 20px;
+            gap: 15px;
+        }
+        #touch-controls button {
+            font-size: 24px;
+            width: 60px;
+            height: 60px;
+            padding: 0;
+            line-height: 60px;
+        }
+        /* Show touch controls on touch devices or small screens */
+        @media (pointer: coarse), (max-width: 768px) {
+            #touch-controls {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Hex Net</h1>
+    <p class="flavor-text">Connect the network.</p>
+
+    <div id="game-container">
+        <div id="game-controls">
+            <label for="size-select">Grid Size:</label>
+            <select id="size-select">
+                <option value="5">5x5</option>
+                <option value="7">7x7</option>
+                <option value="9" selected>9x9</option>
+                <option value="11">11x11</option>
+            </select>
+            <button id="new-game-btn">New Game</button>
+        </div>
+        <svg id="game-board"></svg>
+        <div id="touch-controls">
+            <button id="rotate-left-btn">↺</button>
+            <button id="lock-tile-btn">🔒</button>
+            <button id="rotate-right-btn">↻</button>
+        </div>
+    </div>
+
+    <div id="win-message">
+        <span>Solved</span>
+    </div>
+
+    <script>
+        const svgNS = "http://www.w3.org/2000/svg";
+        const gameBoard = document.getElementById('game-board');
+        const newGameBtn = document.getElementById('new-game-btn');
+        const sizeSelect = document.getElementById('size-select');
+        const winMessage = document.getElementById('win-message');
+        const rotateLeftBtn = document.getElementById('rotate-left-btn');
+        const rotateRightBtn = document.getElementById('rotate-right-btn');
+        const lockTileBtn = document.getElementById('lock-tile-btn');
+
+        let HEX_SIZE = 30;
+        let GRID_WIDTH = 9;
+        let GRID_HEIGHT = 9;
+        const grid = new Map();
+        let cursorQ, cursorR;
+
+        const AXIAL_DIRECTIONS = [
+            { q: 1, r: 0 }, { q: 0, r: 1 }, { q: -1, r: 1 },
+            { q: -1, r: 0 }, { q: 0, r: -1 }, { q: 1, r: -1 }
+        ];
+
+        class HexTile {
+            constructor(q, r) {
+                this.q = q; this.r = r; this.key = `${q},${r}`;
+                this.isSource = false; this.isConnected = false; this.rotation = 0;
+                this.connections = 0;
+                this.isLocked = false;
+            }
+            hasConnection(direction) {
+                const rotatedDir = (direction - this.rotation + 6) % 6;
+                return (this.connections & (1 << rotatedDir)) !== 0;
+            }
+        }
+        
+        // --- Core Game Logic ---
+        function generatePuzzle() {
+            grid.clear();
+            for (let r = 0; r < GRID_HEIGHT; r++) {
+                const r_offset = Math.floor(r / 2);
+                for (let q = -r_offset; q < GRID_WIDTH - r_offset; q++) {
+                    grid.set(`${q},${r}`, new HexTile(q, r));
+                }
+            }
+
+            const sourceQ = Math.floor((GRID_WIDTH - Math.floor(GRID_HEIGHT / 2)) / 2);
+            const sourceR = Math.floor(GRID_HEIGHT / 2);
+            const source = grid.get(`${sourceQ},${sourceR}`) || grid.get(grid.keys().next().value);
+            source.isSource = true;
+            cursorQ = source.q; cursorR = source.r;
+            generateConnections(source);
+
+            grid.forEach(tile => { tile.rotation = Math.floor(Math.random() * 6); });
+        }
+
+        function generateConnections(startNode) {
+            const visited = new Set([startNode.key]);
+            const frontier = [];
+            for (let i = 0; i < 6; i++) {
+                const neighbor = getNeighbor(startNode, i);
+                if (neighbor) frontier.push({ from: startNode, to: neighbor, dir: i });
+            }
+            while (frontier.length > 0) {
+                const { from, to, dir } = frontier.splice(Math.floor(Math.random() * frontier.length), 1)[0];
+                if (visited.has(to.key)) continue;
+                from.connections |= (1 << dir);
+                to.connections |= (1 << ((dir + 3) % 6));
+                visited.add(to.key);
+                for (let i = 0; i < 6; i++) {
+                    const newNeighbor = getNeighbor(to, i);
+                    if (newNeighbor && !visited.has(newNeighbor.key)) {
+                        frontier.push({ from: to, to: newNeighbor, dir: i });
+                    }
+                }
+            }
+        }
+
+        function updateConnectivity() {
+            let totalTiles = 0, connectedCount = 0;
+            grid.forEach(tile => { tile.isConnected = false; totalTiles++; });
+            const source = Array.from(grid.values()).find(t => t.isSource);
+            if (!source) return false;
+            
+            const queue = [source];
+            const visited = new Set([source.key]);
+            source.isConnected = true;
+            
+            while (queue.length > 0) {
+                const current = queue.shift();
+                connectedCount++;
+                for (let i = 0; i < 6; i++) {
+                    if (current.hasConnection(i)) {
+                        const neighbor = getNeighbor(current, i);
+                        if (neighbor && !visited.has(neighbor.key) && neighbor.hasConnection((i + 3) % 6)) {
+                            visited.add(neighbor.key);
+                            neighbor.isConnected = true;
+                            queue.push(neighbor);
+                        }
+                    }
+                }
+            }
+            return connectedCount === totalTiles;
+        }
+
+        // --- Drawing Logic ---
+        function drawGrid() {
+            gameBoard.innerHTML = '';
+            const boardWidth = (GRID_WIDTH + GRID_HEIGHT / 2) * HEX_SIZE * Math.sqrt(3);
+            const boardHeight = GRID_HEIGHT * HEX_SIZE * 1.5;
+            gameBoard.setAttribute('viewBox', `${-HEX_SIZE * 2} ${-HEX_SIZE * 2} ${boardWidth + HEX_SIZE * 2} ${boardHeight + HEX_SIZE * 2}`);
+
+            grid.forEach(tile => {
+                const { x, y } = axialToPixel(tile.q, tile.r);
+                const g = document.createElementNS(svgNS, 'g');
+                g.setAttribute('class', 'hex-group');
+                if (tile.q === cursorQ && tile.r === cursorR) g.classList.add('cursor');
+                g.dataset.locked = tile.isLocked;
+                g.setAttribute('transform', `translate(${x}, ${y})`);
+                g.dataset.q = tile.q; g.dataset.r = tile.r;
+                
+                const hexagon = document.createElementNS(svgNS, 'polygon');
+                hexagon.setAttribute('class', 'hex-tile');
+                hexagon.setAttribute('points', getHexCorners());
+                hexagon.setAttribute('fill', tile.isSource ? 'var(--source-color)' : (tile.isConnected ? 'var(--connected-color)' : 'var(--unconnected-color)'));
+                
+                const lines = document.createElementNS(svgNS, 'path');
+                lines.setAttribute('class', 'hex-lines');
+                lines.setAttribute('d', getLinePathData(tile.connections));
+                lines.setAttribute('transform', `rotate(${tile.rotation * 60})`);
+
+                g.append(hexagon, lines);
+                gameBoard.appendChild(g);
+            });
+        }
+
+        function getLinePathData(connections) {
+            let d = '';
+            for (let i = 0; i < 6; i++) {
+                if ((connections & (1 << i))) {
+                    const angle = Math.PI / 180 * (60 * i);
+                    const x = HEX_SIZE * Math.cos(angle) * 0.7;
+                    const y = HEX_SIZE * Math.sin(angle) * 0.7;
+                    d += ` M 0,0 L ${x.toFixed(3)},${y.toFixed(3)}`;
+                }
+            }
+            return d;
+        }
+
+        function getHexCorners() {
+            let points = [];
+            for (let i = 0; i < 6; i++) {
+                const angle = Math.PI / 180 * (60 * i + 30);
+                points.push(`${(HEX_SIZE * Math.cos(angle)).toFixed(3)},${(HEX_SIZE * Math.sin(angle)).toFixed(3)}`);
+            }
+            return points.join(' ');
+        }
+
+        // --- Event Handlers ---
+        function handleTileClick(event) {
+            const group = event.target.closest('.hex-group');
+            if (!group || winMessage.style.display === 'block') return;
+            moveCursorTo(parseInt(group.dataset.q), parseInt(group.dataset.r));
+        }
+        
+        function handleRotation(direction) {
+            if (winMessage.style.display === 'block') return;
+            const tile = grid.get(`${cursorQ},${cursorR}`);
+            if (tile && !tile.isLocked) {
+                // +6 to handle negative result from direction being -1
+                tile.rotation = (tile.rotation + direction + 6) % 6;
+                const isWin = updateConnectivity();
+                redrawEntireGridForConnectivity();
+                if (isWin) setTimeout(() => { winMessage.style.display = 'block'; }, 300);
+            }
+        }
+
+        function handleLock() {
+             if (winMessage.style.display === 'block') return;
+            const tile = grid.get(`${cursorQ},${cursorR}`);
+            if (tile) {
+                tile.isLocked = !tile.isLocked;
+                const group = gameBoard.querySelector(`[data-q='${cursorQ}'][data-r='${cursorR}']`);
+                if (group) group.dataset.locked = tile.isLocked;
+                lockTileBtn.textContent = tile.isLocked ? '🔓' : '🔒';
+            }
+        }
+
+        function handleKeyDown(e) {
+            if (winMessage.style.display === 'block') return;
+            
+            const keyMap = { 'ArrowRight': 0, 'ArrowDown': 1, 'ArrowLeft': 3, 'ArrowUp': 4 };
+            if (keyMap[e.key] !== undefined) {
+                e.preventDefault();
+                moveCursorInDirection(keyMap[e.key]);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                handleRotation(1); // Rotate right
+            } else if (e.key === ' ') { // Spacebar
+                e.preventDefault();
+                handleLock();
+            }
+        }
+
+        function moveCursorTo(q, r) {
+            const oldCursorGroup = gameBoard.querySelector('.cursor');
+            if (oldCursorGroup) oldCursorGroup.classList.remove('cursor');
+            cursorQ = q;
+            cursorR = r;
+            const newCursorGroup = gameBoard.querySelector(`[data-q='${q}'][data-r='${r}']`);
+            if (newCursorGroup) newCursorGroup.classList.add('cursor');
+            
+            // Update lock button state when cursor moves
+            const tile = grid.get(`${q},${r}`);
+            if(tile) lockTileBtn.textContent = tile.isLocked ? '🔓' : '🔒';
+        }
+
+        function moveCursorInDirection(dirIndex) {
+            const dir = AXIAL_DIRECTIONS[dirIndex];
+            const newQ = cursorQ + dir.q;
+            const newR = cursorR + dir.r;
+            if (grid.has(`${newQ},${newR}`)) {
+                moveCursorTo(newQ, newR);
+            }
+        }
+
+        function redrawEntireGridForConnectivity() {
+             grid.forEach(tile => {
+                const group = gameBoard.querySelector(`[data-q='${tile.q}'][data-r='${tile.r}']`);
+                if (!group) return;
+                group.querySelector('.hex-tile').setAttribute('fill', tile.isSource ? 'var(--source-color)' : (tile.isConnected ? 'var(--connected-color)' : 'var(--unconnected-color)'));
+                group.querySelector('.hex-lines').setAttribute('transform', `rotate(${tile.rotation * 60})`);
+            });
+        }
+
+        function startNewGame() {
+            const size = parseInt(sizeSelect.value);
+            GRID_WIDTH = size; GRID_HEIGHT = size;
+            HEX_SIZE = 30; // Reset
+            const availableWidth = document.getElementById('game-container').clientWidth || window.innerWidth;
+            const estimatedBoardWidth = (GRID_WIDTH + GRID_HEIGHT / 2) * HEX_SIZE * Math.sqrt(3);
+            HEX_SIZE *= (availableWidth / estimatedBoardWidth) * 0.9;
+            HEX_SIZE = Math.max(10, HEX_SIZE);
+
+            winMessage.style.display = 'none';
+            generatePuzzle();
+            updateConnectivity();
+            drawGrid();
+            
+            const firstTile = grid.get(`${cursorQ},${cursorR}`);
+            if(firstTile) lockTileBtn.textContent = firstTile.isLocked ? '🔓' : '🔒';
+        }
+
+        // --- Utility Functions ---
+        function axialToPixel(q, r) {
+            const x = HEX_SIZE * (Math.sqrt(3) * q + Math.sqrt(3) / 2 * r);
+            const y = HEX_SIZE * (1.5 * r);
+            return { x, y };
+        }
+        function getNeighbor(tile, direction) {
+            const dir = AXIAL_DIRECTIONS[direction];
+            return grid.get(`${tile.q + dir.q},${tile.r + dir.r}`);
+        }
+
+        // --- Initialization ---
+        newGameBtn.addEventListener('click', startNewGame);
+        sizeSelect.addEventListener('change', startNewGame);
+        gameBoard.addEventListener('click', handleTileClick);
+        winMessage.addEventListener('click', startNewGame);
+        document.addEventListener('keydown', handleKeyDown);
+
+        rotateLeftBtn.addEventListener('click', () => handleRotation(-1));
+        rotateRightBtn.addEventListener('click', () => handleRotation(1));
+        lockTileBtn.addEventListener('click', handleLock);
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(startNewGame, 250);
+        });
+
+        startNewGame();
+    </script>
+</body>
+</html>
+
