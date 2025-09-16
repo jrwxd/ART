@@ -307,55 +307,66 @@
 
                 // Pan & Zoom state
                 this.viewBox = { x: 0, y: 0, w: 1000, h: 1000 };
-                this.zoomFactor = 1.1;
+        if (this.generation === 1) {
+            polygon.style.cursor = 'grab';
+            let dragActive = false;
+            let rotateActive = false;
+            let dragStart = null;
+            let rotateStart = null;
+            // Use pointer events for better control
+            polygon.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                if (e.button === 0) { // left mouse for drag
+                    dragActive = true;
+                    this.isPanning = false; // Disable panning
+                    dragStart = this.getSVGPoint(e.clientX, e.clientY);
+                    window.addEventListener('pointermove', onDrag);
+                    window.addEventListener('pointerup', onDrop);
+                } else if (e.button === 2) { // right mouse for rotate
+                    rotateActive = true;
+                    this.isPanning = false; // Disable panning
+                    rotateStart = this.getSVGPoint(e.clientX, e.clientY);
+                    window.addEventListener('pointermove', onRotate);
+                    window.addEventListener('pointerup', onRotateEnd);
+                }
+            });
+            polygon.addEventListener('contextmenu', (e) => e.preventDefault());
+            const onDrag = (e) => {
+                if (!dragActive || !dragStart) return;
+                const pt = this.getSVGPoint(e.clientX, e.clientY);
+                const dx = pt.x - dragStart.x;
+                const dy = pt.y - dragStart.y;
+                dragStart = pt;
+                tileData.pos.x += dx;
+                tileData.pos.y += dy;
+                this.render();
+                this.setSubstitutionRuleFromGen1();
+            };
+            const onDrop = () => {
+                dragActive = false;
+                dragStart = null;
                 this.isPanning = false;
-                this.startPoint = { x: 0, y: 0 };
-                
-                this.initControls();
-                this.reset();
-            }
-            
-            initControls() {
-                document.getElementById('rule-select').addEventListener('change', (e) => this.onSystemChange(e.target.value));
-                document.getElementById('step-forward-btn').addEventListener('click', () => this.stepForward());
-                document.getElementById('step-back-btn').addEventListener('click', () => this.stepBack());
-                document.getElementById('reset-btn').addEventListener('click', () => this.reset());
-                document.getElementById('bg-color-picker').addEventListener('input', (e) => {
-                    document.getElementById('canvas-container').style.backgroundColor = e.target.value;
-                });
-                document.getElementById('export-svg-btn').addEventListener('click', () => this.exportSVG());
-                document.getElementById('export-png-btn').addEventListener('click', () => this.exportPNG());
-
-                // Pan and Zoom Listeners
-                this.svg.addEventListener('wheel', (e) => this.handleZoom(e));
-                this.svg.addEventListener('mousedown', (e) => this.handlePanStart(e));
-                this.svg.addEventListener('mousemove', (e) => this.handlePanMove(e));
-                this.svg.addEventListener('mouseup', () => this.handlePanEnd());
-                this.svg.addEventListener('mouseleave', () => this.handlePanEnd());
-
-                // Substitution Rules Editor removed for security
-            }
-
-            // updateRulesEditor and applyRules removed for security
-
-            onSystemChange(systemName) {
-                this.currentSystem = TILING_SYSTEMS[systemName];
-                this.reset();
-            }
-
-            reset() {
-                this.generation = 0;
-                this.history = [];
-
-                const initial = this.currentSystem.initialTile;
-                const canvasSize = this.svg.getBoundingClientRect();
-                initial.pos = {
-                    x: canvasSize.width / 2,
-                    y: canvasSize.height / 2
-                };
-                
-                this.history.push([initial]);
-                this.viewBox = { x: 0, y: 0, w: canvasSize.width, h: canvasSize.height };
+                window.removeEventListener('pointermove', onDrag);
+                window.removeEventListener('pointerup', onDrop);
+            };
+            const onRotate = (e) => {
+                if (!rotateActive || !rotateStart) return;
+                const pt = this.getSVGPoint(e.clientX, e.clientY);
+                const dx = pt.x - tileData.pos.x;
+                const dy = pt.y - tileData.pos.y;
+                // Calculate angle from center
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                tileData.rot = angle;
+                this.render();
+                this.setSubstitutionRuleFromGen1();
+            };
+            const onRotateEnd = () => {
+                rotateActive = false;
+                rotateStart = null;
+                this.isPanning = false;
+                window.removeEventListener('pointermove', onRotate);
+                window.removeEventListener('pointerup', onRotateEnd);
+            };
                 this.updateViewBox();
                 this.render();
             }
