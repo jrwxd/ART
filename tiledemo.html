@@ -375,6 +375,33 @@
                     for (const tile of currentTiles) {
                         const ruleSet = this.currentSystem.rules[tile.type];
                         const prototileShape = this.currentSystem.prototiles[tile.type].shape;
+                            // Enable drag for generation 0
+                            if (this.generation === 0) {
+                                polygon.style.cursor = 'move';
+                                let dragStart = null;
+                                polygon.addEventListener('mousedown', (e) => {
+                                    e.stopPropagation();
+                                    dragStart = this.getSVGPoint(e.clientX, e.clientY);
+                                    document.addEventListener('mousemove', onDrag);
+                                    document.addEventListener('mouseup', onDrop);
+                                });
+                                const onDrag = (e) => {
+                                    if (!dragStart) return;
+                                    const pt = this.getSVGPoint(e.clientX, e.clientY);
+                                    const dx = pt.x - dragStart.x;
+                                    const dy = pt.y - dragStart.y;
+                                    dragStart = pt;
+                                    tileData.pos.x += dx;
+                                    tileData.pos.y += dy;
+                                    this.render();
+                                };
+                                const onDrop = () => {
+                                    dragStart = null;
+                                    document.removeEventListener('mousemove', onDrag);
+                                    document.removeEventListener('mouseup', onDrop);
+                                    // Optionally: update substitution rule here
+                                };
+                            }
 
                         for (const rule of ruleSet) {
                             // Correct transformation order:
@@ -448,6 +475,24 @@
             }
 
             // --- Transformation Helpers ---
+                // Set substitution rule from generation 1 tiles
+                setSubstitutionRuleFromGen1() {
+                    if (this.generation !== 1) return;
+                    const gen1Tiles = this.history[1];
+                    // Build new rule set from current positions/rotations
+                    const newRules = {};
+                    gen1Tiles.forEach(tile => {
+                        if (!newRules[tile.type]) newRules[tile.type] = [];
+                        newRules[tile.type].push({
+                            type: tile.type,
+                            pos: { x: tile.pos.x, y: tile.pos.y },
+                            rot: tile.rot,
+                            flip: tile.flip || false
+                        });
+                    });
+                    // Overwrite current system rules
+                    this.currentSystem.rules = newRules;
+                }
             rotatePoint(p, angle) {
                 const rad = angle * Math.PI / 180;
                 const cos = Math.cos(rad);
