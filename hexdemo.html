@@ -285,16 +285,21 @@
                 g.dataset.locked = tile.isLocked;
                 g.setAttribute('transform', `translate(${x}, ${y})`);
                 g.dataset.q = tile.q; g.dataset.r = tile.r;
-                
+
                 const hexagon = document.createElementNS(svgNS, 'polygon');
                 hexagon.setAttribute('class', 'hex-tile');
                 hexagon.setAttribute('points', getHexCorners());
                 hexagon.setAttribute('fill', tile.isSource ? 'var(--source-color)' : (tile.isConnected ? 'var(--connected-color)' : 'var(--unconnected-color)'));
-                
+
                 const lines = document.createElementNS(svgNS, 'path');
                 lines.setAttribute('class', 'hex-lines');
                 lines.setAttribute('d', getLinePathData(tile.connections));
+                // Store initial rotation for animation
+                lines.dataset.rotation = tile.rotation * 60;
                 lines.setAttribute('transform', `rotate(${tile.rotation * 60})`);
+
+                // Add transition for smooth rotation
+                lines.style.transition = 'transform 0.35s cubic-bezier(.5,1.5,.5,1)';
 
                 g.append(hexagon, lines);
                 gameBoard.appendChild(g);
@@ -392,11 +397,28 @@
         }
 
         function redrawEntireGridForConnectivity() {
-             grid.forEach(tile => {
+            grid.forEach(tile => {
                 const group = gameBoard.querySelector(`[data-q='${tile.q}'][data-r='${tile.r}']`);
                 if (!group) return;
                 group.querySelector('.hex-tile').setAttribute('fill', tile.isSource ? 'var(--source-color)' : (tile.isConnected ? 'var(--connected-color)' : 'var(--unconnected-color)'));
-                group.querySelector('.hex-lines').setAttribute('transform', `rotate(${tile.rotation * 60})`);
+                const lines = group.querySelector('.hex-lines');
+                // Animate rotation smoothly using shortest path
+                let prevAngle = parseFloat(lines.dataset.rotation) || 0;
+                let newAngle = tile.rotation * 60;
+                // Find shortest direction
+                let delta = ((newAngle - prevAngle + 540) % 360) - 180;
+                let targetAngle = prevAngle + delta;
+                // Animate
+                lines.style.transition = 'transform 0.35s cubic-bezier(.5,1.5,.5,1)';
+                lines.setAttribute('transform', `rotate(${targetAngle})`);
+                // Store new angle for next time
+                lines.dataset.rotation = newAngle;
+                // After animation, snap to correct angle
+                setTimeout(() => {
+                    lines.style.transition = '';
+                    lines.setAttribute('transform', `rotate(${newAngle})`);
+                    lines.dataset.rotation = newAngle;
+                }, 350);
             });
         }
 
