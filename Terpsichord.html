@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Terpsichord</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: #f7f8fa;
+            color: #222;
+        }
+        header {
+            background: #222;
+            color: #fff;
+            padding: 2rem 0 1.5rem 0;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+        }
+        nav {
+            margin-top: 1rem;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 1.2rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        nav a:hover {
+            color: #ff6f61;
+        }
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3rem 1rem 2rem 1rem;
+            background: linear-gradient(90deg, #ff6f61 0%, #6a82fb 100%);
+            color: #fff;
+        }
+        .hero h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin-bottom: 2rem;
+        }
+        .cta-btn {
+            background: #fff;
+            color: #ff6f61;
+            border: none;
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: background 0.2s, color 0.2s;
+        }
+        .cta-btn:hover {
+            background: #ff6f61;
+            color: #fff;
+        }
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            padding: 3rem 1rem;
+            background: #fff;
+        }
+        .feature {
+            background: #f7f8fa;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 2rem;
+            max-width: 300px;
+            text-align: center;
+        }
+        .feature h3 {
+            margin-top: 0;
+            color: #ff6f61;
+            font-size: 1.3rem;
+        }
+        .feature p {
+            font-size: 1rem;
+            color: #444;
+        }
+        footer {
+            background: #222;
+            color: #fff;
+            text-align: center;
+            padding: 1.5rem 0;
+            font-size: 0.95rem;
+            margin-top: 2rem;
+        }
+        @media (max-width: 700px) {
+            .features {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Terpsichord</h1>
+        <nav>
+            <a href="#features">Features</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </header>
+    <section class="hero">
+        <h2>Discover Terpsichord</h2>
+        <p>
+            Terpsichord is a modern solution designed to elevate your experience. Whether you're seeking innovation, simplicity, or performance, Terpsichord adapts to your needs. Explore the possibilities and see how Terpsichord can make a difference for you.
+        </p>
+        <button class="cta-btn">Get Started</button>
+    </section>
+    <section class="features" id="features">
+        <div class="feature">
+            <h3>Modern Design</h3>
+            <p>Experience a sleek, intuitive interface crafted for ease of use and visual appeal.</p>
+        </div>
+        <div class="feature">
+            <h3>Flexible Functionality</h3>
+            <p>Terpsichord adapts to a variety of use cases, making it suitable for diverse needs.</p>
+        </div>
+        <div class="feature">
+            <h3>Reliable Performance</h3>
+            <p>Built with stability and speed in mind, Terpsichord delivers consistent results.</p>
+        </div>
+    </section>
+    <section id="about" style="padding:2rem 1rem; background:#f7f8fa; text-align:center;">
+        <h2>About Terpsichord</h2>
+        <p style="max-width:600px; margin:1rem auto; color:#444;">
+            Terpsichord is crafted by a team passionate about creating products that blend technology and design. Our mission is to provide solutions that are both powerful and accessible, helping you achieve more with less effort.
+        </p>
+    </section>
+    <section id="contact" style="padding:2rem 1rem; background:#fff; text-align:center;">
+        <h2>Contact Us</h2>
+        <p style="max-width:600px; margin:1rem auto; color:#444;">
+            Have questions or want to learn more? Reach out to our team at <a href="" style="color:#ff6f61;">m</a>.
+        </p>
+    </section>
+    <footer>
+        &copy; 2025 Terpsichord. All rights reserved.
+    </footer>
+</body>
+</html></p>
