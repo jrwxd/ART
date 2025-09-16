@@ -342,7 +342,7 @@
             const tile = grid.get(`${cursorQ},${cursorR}`);
             if (tile && !tile.isLocked) {
                 const prevRotation = tile.rotation;
-                tile.rotation = (tile.rotation + direction + 6) % 6;
+                tile.rotation = tile.rotation + direction;;
                 const isWin = updateConnectivity();
                 // Animate only the rotated tile by exactly 60 degrees
                 const group = gameBoard.querySelector(`[data-q='${tile.q}'][data-r='${tile.r}']`);
