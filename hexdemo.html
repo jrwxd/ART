@@ -260,7 +260,7 @@
                 for (let i = 0; i < 6; i++) {
                     if (current.hasConnection(i)) {
                         const neighbor = getNeighbor(current, i);
-                        if (neighbor && !visited.has(neighbor.key) && neighbor.hasConnection((i + 3) % 6)) {
+                        if (neighbor && !visited.has(neighbor.key) && neighbor.hasConnection((i + 9) % 6)) {
                             visited.add(neighbor.key);
                             neighbor.isConnected = true;
                             queue.push(neighbor);

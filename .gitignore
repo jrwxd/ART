@@ -6,6 +6,8 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+*lyrics*
+
 
 # IDE and editor folders
 .idea/
@@ -17,6 +19,10 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+bin/*
+*bin*
+*lib*
+*.cfg
 
 # Logs and databases
 *.log
