@@ -299,7 +299,9 @@
                 lines.dataset.rotation = tile.rotation * 60;
                 lines.setAttribute('transform', `rotate(${tile.rotation * 60})`);
                 lines.style.transition = 'transform 0.35s cubic-bezier(.5,1.5,.5,1)';
-                lines.setAttribute('stroke', tile.isConnected ? 'var(--connected-line-color)' : 'var(--line-color)');
+                const strokeColor = tile.isConnected ? 'var(--connected-line-color)' : 'var(--line-color)';
+                lines.setAttribute('stroke', strokeColor);
+                lines.style.stroke = strokeColor;
 
                 g.append(hexagon, lines);
                 gameBoard.appendChild(g);
@@ -342,13 +344,16 @@
                 const prevRotation = tile.rotation;
                 tile.rotation = (tile.rotation + direction + 6) % 6;
                 const isWin = updateConnectivity();
-                // Animate only the rotated tile
+                // Animate only the rotated tile by exactly 60 degrees
                 const group = gameBoard.querySelector(`[data-q='${tile.q}'][data-r='${tile.r}']`);
                 if (group) {
                     const lines = group.querySelector('.hex-lines');
                     let prevAngle = prevRotation * 60;
                     let newAngle = tile.rotation * 60;
                     lines.style.transition = 'transform 0.35s cubic-bezier(.5,1.5,.5,1)';
+                    lines.setAttribute('transform', `rotate(${prevAngle})`);
+                    // Force reflow for transition
+                    void lines.offsetWidth;
                     lines.setAttribute('transform', `rotate(${newAngle})`);
                     lines.dataset.rotation = newAngle;
                     setTimeout(() => {
@@ -427,7 +432,9 @@
                 lines.style.transition = '';
                 lines.setAttribute('transform', `rotate(${newAngle})`);
                 lines.dataset.rotation = newAngle;
-                lines.setAttribute('stroke', tile.isConnected ? 'var(--connected-line-color)' : 'var(--line-color)');
+                const strokeColor = tile.isConnected ? 'var(--connected-line-color)' : 'var(--line-color)';
+                lines.setAttribute('stroke', strokeColor);
+                lines.style.stroke = strokeColor;
             });
         }
 
