@@ -983,27 +983,15 @@
             }
 
             compile() {
+                // SECURITY: Remove dynamic code execution
                 let hasErrors = false;
                 Object.keys(this.inputs).forEach(key => {
                     const code = this.inputs[key].value;
                     this.state.customDEs[key] = code;
                     const errorDiv = document.getElementById(`${key}_error`);
                     if(errorDiv) errorDiv.style.display = 'none';
-                    try {
-                        this.state.compiledDEs[key] = new Function(
-                            'P', 'H', 'C', 'CO2_atm', 'O2_atm', 'N2_atm', 'AN_pool', 'C_detritus', 'N_detritus',
-                            't', 'Math', 'params', 'effective_rates', 'temp',
-                            `try { return (function(){${code}}()); } catch(e) { throw e; }`
-                        );
-                        this.state.compiledDEs[key](1,1,1,1,1,1,1,1,1, 1, Math, this.state.simParams, {}, 15);
-                    } catch (e) {
-                        hasErrors = true;
-                        if(errorDiv) {
-                            errorDiv.textContent = e.message;
-                            errorDiv.style.display = 'block';
-                        }
-                        this.state.compiledDEs[key] = () => 0; 
-                    }
+                    // Instead of compiling, just store a stub function
+                    this.state.compiledDEs[key] = () => 0;
                 });
                 return !hasErrors;
             }
