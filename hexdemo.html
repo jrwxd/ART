@@ -406,7 +406,7 @@
                 let prevAngle = parseFloat(lines.dataset.rotation) || 0;
                 let newAngle = tile.rotation * 60;
                 // Find shortest direction
-                let delta = ((newAngle - prevAngle + 540) % 360) - 180;
+                let delta = ((newAngle - prevAngle ) % 360) - 180;
                 let targetAngle = prevAngle + delta;
                 // Animate
                 lines.style.transition = 'transform 0.35s cubic-bezier(.5,1.5,.5,1)';
