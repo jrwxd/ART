@@ -414,11 +414,11 @@
                 // Store new angle for next time
                 lines.dataset.rotation = newAngle;
                 // After animation, snap to correct angle
-                setTimeout(() => {
-                    lines.style.transition = '';
-                    lines.setAttribute('transform', `rotate(${newAngle})`);
-                    lines.dataset.rotation = newAngle;
-                }, 350);
+                //setTimeout(() => {
+                //    lines.style.transition = '';
+                //    lines.setAttribute('transform', `rotate(${newAngle})`);
+                //    lines.dataset.rotation = newAngle;
+                //}, 350);
             });
         }
 
