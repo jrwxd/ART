@@ -374,35 +374,7 @@
 
                     for (const tile of currentTiles) {
                         const ruleSet = this.currentSystem.rules[tile.type];
-                        const prototileShape = this.currentSystem.prototiles[tile.type].shape;
-                            // Enable drag for generation 0
-                            if (this.generation === 0) {
-                                polygon.style.cursor = 'move';
-                                let dragStart = null;
-                                polygon.addEventListener('mousedown', (e) => {
-                                    e.stopPropagation();
-                                    dragStart = this.getSVGPoint(e.clientX, e.clientY);
-                                    document.addEventListener('mousemove', onDrag);
-                                    document.addEventListener('mouseup', onDrop);
-                                });
-                                const onDrag = (e) => {
-                                    if (!dragStart) return;
-                                    const pt = this.getSVGPoint(e.clientX, e.clientY);
-                                    const dx = pt.x - dragStart.x;
-                                    const dy = pt.y - dragStart.y;
-                                    dragStart = pt;
-                                    tileData.pos.x += dx;
-                                    tileData.pos.y += dy;
-                                    this.render();
-                                };
-                                const onDrop = () => {
-                                    dragStart = null;
-                                    document.removeEventListener('mousemove', onDrag);
-                                    document.removeEventListener('mouseup', onDrop);
-                                    // Optionally: update substitution rule here
-                                };
-                            }
-
+                        if (!ruleSet) continue;
                         for (const rule of ruleSet) {
                             // Correct transformation order:
                             // 1. Scale rule.pos by parent scale / PHI
