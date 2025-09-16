@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data, Order, Poetry: A Substitution Tiling Studio</title>
+    <style>
+        :root {
+            --bg-color: #002b36;
+            --panel-bg-color: #073642;
+            --text-color: #93a1a1;
+            --text-light-color: #eee8d5;
+            --border-color: #586e75;
+            --accent-color: #268bd2;
+            --highlight-color: #cb4b16;
+
+            --penrose-color-1: #b58900;
+            --penrose-color-2: #2aa198;
+            --chair-color-1: #dc322f;
+        }
+
+        /* --- Base Layout & Typography --- */
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        header {
+            padding: 10px 25px;
+            border-bottom: 1px solid var(--panel-bg-color);
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--text-light-color);
+            font-weight: 300;
+            letter-spacing: 3px;
+            font-size: 1.5rem;
+        }
+        
+        h1 span {
+            font-style: italic;
+            color: var(--text-color);
+            font-weight: 200;
+            letter-spacing: 1px;
+            font-size: 1rem;
+        }
+
+        .main-container {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        /* --- Panels --- */
+        .panel {
+            background-color: var(--panel-bg-color);
+            padding: 20px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        #controls-panel {
+            width: 280px;
+            flex-shrink: 0;
+            border-right: 1px solid var(--bg-color);
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+        .control-group:last-child {
+            border-bottom: none;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 400;
+            color: var(--text-light-color);
+            font-size: 1.1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        /* --- UI Elements (Buttons, Selects) --- */
+        button, select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-light-color);
+            background-color: var(--bg-color);
+            transition: background-color 0.2s, color 0.2s;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        #generation-info {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        /* --- Canvas --- */
+        #canvas-container {
+            flex-grow: 1;
+            background-color: var(--bg-color);
+            cursor: grab;
+            position: relative;
+        }
+        #canvas-container:active {
+            cursor: grabbing;
+        }
+
+        #tiling-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .tile {
+            stroke: var(--bg-color);
+            stroke-width: 1;
+            vector-effect: non-scaling-stroke; /* Crucial for clean zooming */
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 43, 54, 0.7);
+            color: var(--text-light-color);
+            display: none; /* Changed to none */
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            z-index: 1000;
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Data, Order, Poetry <span>A Substitution Tiling Studio</span></h1>
+    </header>
+
+    <div class="main-container">
+        <div id="controls-panel" class="panel">
+            <div class="control-group">
+                <h2>System</h2>
+                <label for="rule-select">Choose a Tiling System:</label>
+                <select id="rule-select">
+                    <option value="penrose">Penrose Tiling (Rhombi)</option>
+                    <option value="chair">Chair Tiling</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <h2>Generation</h2>
+                <div class="button-group">
+                    <button id="step-back-btn" disabled>&lt; Back</button>
+                    <button id="step-forward-btn">Forward &gt;</button>
+                </div>
+                <div id="generation-info">Generation: 0 | Tiles: 1</div>
+                <br>
+                 <button id="reset-btn">Reset</button>
+            </div>
+            
+            <div class="control-group">
+                <h2>Appearance</h2>
+                <label for="bg-color-picker">Background Color:</label>
+                <input type="color" id="bg-color-picker" value="#002b36" style="width: 100%; height: 40px; border-radius: 6px;">
+            </div>
+
+            <div class="control-group">
+                <h2>Export</h2>
+                <div class="button-group">
+                    <button id="export-svg-btn">Export SVG</button>
+                    <button id="export-png-btn">Export PNG</button>
+                </div>
+            </div>
+        </div>
+        <div id="canvas-container">
+            <svg id="tiling-canvas"></svg>
+            <div id="loading-overlay" class="loading-overlay">Generating...</div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const SVG_NS = "http://www.w3.org/2000/svg";
+        const PHI = (1 + Math.sqrt(5)) / 2; // The Golden Ratio
+
+        // --- TILING DEFINITIONS ---
+        // Each definition contains prototiles (base shapes) and substitution rules.
+        const TILING_SYSTEMS = {
+            penrose: {
+                name: "Penrose Tiling (Rhombi)",
+                prototiles: {
+                    "thick": {
+                        color: "var(--penrose-color-1)",
+                        shape: (() => {
+                            const angle = Math.PI / 5; // 36 degrees
+                            return [
+                                { x: 0, y: 0 },
+                                { x: Math.cos(0), y: Math.sin(0) },
+                                { x: 1 + Math.cos(angle), y: Math.sin(angle) },
+                                { x: Math.cos(angle), y: Math.sin(angle) },
+                            ];
+                        })()
+                    },
+                    "thin": {
+                        color: "var(--penrose-color-2)",
+                        shape: (() => {
+                            const angle = Math.PI * 2 / 5; // 72 degrees
+                            return [
+                                { x: 0, y: 0 },
+                                { x: 1, y: 0 },
+                                { x: 1 + Math.cos(angle), y: Math.sin(angle) },
+                                { x: Math.cos(angle), y: Math.sin(angle) }
+                            ];
+                        })()
+                    }
+                },
+                rules: {
+                    // Rules define how each prototile is replaced by smaller versions.
+                    // Position, rotation, and type are specified for each child.
+                    "thick": [
+                        { type: "thick", pos: { x: (1 + Math.cos(Math.PI / 5)) / PHI, y: Math.sin(Math.PI / 5) / PHI }, rot: 144, flip: true },
+                        { type: "thin", pos: { x: Math.cos(Math.PI / 5) / PHI, y: Math.sin(Math.PI / 5) / PHI }, rot: -72, flip: false },
+                        { type: "thick", pos: { x: 1 / PHI, y: 0 }, rot: 72, flip: false },
+                    ],
+                    "thin": [
+                        { type: "thin", pos: { x: Math.cos(2 * Math.PI / 5) / PHI, y: Math.sin(2 * Math.PI / 5) / PHI }, rot: 180, flip: false },
+                        { type: "thick", pos: { x: 1 / PHI, y: 0 }, rot: 36, flip: false },
+                    ]
+                },
+                initialTile: { type: "thick", pos: {x: 0, y: 0}, rot: 0, scale: 300, flip: false }
+            },
+            chair: {
+                name: "Chair Tiling",
+                prototiles: {
+                    "chair": {
+                        color: "var(--chair-color-1)",
+                        shape: [
+                            { x: 0, y: 0 }, { x: 2, y: 0 }, { x: 2, y: 1 },
+                            { x: 1, y: 1 }, { x: 1, y: 2 }, { x: 0, y: 2 }
+                        ]
+                    }
+                },
+                rules: {
+                    "chair": [
+                        { type: "chair", pos: { x: 0, y: 0 }, rot: 0, flip: false },
+                        { type: "chair", pos: { x: 2, y: 2 }, rot: 180, flip: false },
+                        { type: "chair", pos: { x: 2, y: 0 }, rot: 90, flip: false },
+                        { type: "chair", pos: { x: 0, y: 2 }, rot: -90, flip: false },
+                    ]
+                },
+                initialTile: { type: "chair", pos: {x: 0, y: 0}, rot: 0, scale: 100, flip: false }
+            }
+        };
+
+
+        // --- MAIN APPLICATION CLASS ---
+        class TilingStudio {
+            constructor() {
+                this.svg = document.getElementById('tiling-canvas');
+                this.g = document.createElementNS(SVG_NS, 'g');
+                this.svg.appendChild(this.g);
+                this.loadingOverlay = document.getElementById('loading-overlay');
+
+                this.currentSystem = TILING_SYSTEMS.penrose;
+                this.history = []; // Stores the tile list for each generation
+                this.generation = 0;
+
+                // Pan & Zoom state
+                this.viewBox = { x: 0, y: 0, w: 1000, h: 1000 };
+                this.zoomFactor = 1.1;
+                this.isPanning = false;
+                this.startPoint = { x: 0, y: 0 };
+                
+                this.initControls();
+                this.reset();
+            }
+            
+            initControls() {
+                document.getElementById('rule-select').addEventListener('change', (e) => this.onSystemChange(e.target.value));
+                document.getElementById('step-forward-btn').addEventListener('click', () => this.stepForward());
+                document.getElementById('step-back-btn').addEventListener('click', () => this.stepBack());
+                document.getElementById('reset-btn').addEventListener('click', () => this.reset());
+                document.getElementById('bg-color-picker').addEventListener('input', (e) => {
+                    document.getElementById('canvas-container').style.backgroundColor = e.target.value;
+                });
+                document.getElementById('export-svg-btn').addEventListener('click', () => this.exportSVG());
+                document.getElementById('export-png-btn').addEventListener('click', () => this.exportPNG());
+                
+                // Pan and Zoom Listeners
+                this.svg.addEventListener('wheel', (e) => this.handleZoom(e));
+                this.svg.addEventListener('mousedown', (e) => this.handlePanStart(e));
+                this.svg.addEventListener('mousemove', (e) => this.handlePanMove(e));
+                this.svg.addEventListener('mouseup', () => this.handlePanEnd());
+                this.svg.addEventListener('mouseleave', () => this.handlePanEnd());
+            }
+
+            onSystemChange(systemName) {
+                this.currentSystem = TILING_SYSTEMS[systemName];
+                this.reset();
+            }
+
+            reset() {
+                this.generation = 0;
+                this.history = [];
+
+                const initial = this.currentSystem.initialTile;
+                const canvasSize = this.svg.getBoundingClientRect();
+                initial.pos = {
+                    x: canvasSize.width / 2,
+                    y: canvasSize.height / 2
+                };
+                
+                this.history.push([initial]);
+                this.viewBox = { x: 0, y: 0, w: canvasSize.width, h: canvasSize.height };
+                this.updateViewBox();
+                this.render();
+            }
+
+            stepForward() {
+                if (this.history[this.generation].length > 5000) {
+                    alert("Further generation may slow down the browser. Current tile count: " + this.history[this.generation].length);
+                }
+
+                this.loadingOverlay.style.display = 'flex';
+
+                // Use timeout to allow UI to update before heavy computation
+                setTimeout(() => {
+                    const currentTiles = this.history[this.generation];
+                    const nextTiles = [];
+
+                    for (const tile of currentTiles) {
+                        const ruleSet = this.currentSystem.rules[tile.type];
+                        const prototileShape = this.currentSystem.prototiles[tile.type].shape;
+
+                        for (const rule of ruleSet) {
+                            const newScale = tile.scale / PHI;
+                            const newRotation = (tile.rot + rule.rot) % 360;
+                            const flipX = tile.flip !== rule.flip; // XOR for flip propagation
+                            
+                            // Transform the rule position according to the parent tile's state
+                            let childPos = { ...rule.pos };
+                            childPos = this.scalePoint(childPos, newScale);
+                            if(tile.flip) childPos.x = -childPos.x;
+                            childPos = this.rotatePoint(childPos, tile.rot);
+                            
+                            nextTiles.push({
+                                type: rule.type,
+                                pos: { x: tile.pos.x + childPos.x, y: tile.pos.y + childPos.y },
+                                rot: newRotation,
+                                scale: newScale,
+                                flip: flipX
+                            });
+                        }
+                    }
+
+                    this.generation++;
+                    this.history.push(nextTiles);
+                    this.render();
+                    this.loadingOverlay.style.display = 'none';
+                }, 10);
+            }
+
+            stepBack() {
+                if (this.generation > 0) {
+                    this.generation--;
+                    this.history.pop();
+                    this.render();
+                }
+            }
+
+            render() {
+                this.g.innerHTML = '';
+                const currentTiles = this.history[this.generation];
+
+                currentTiles.forEach(tileData => {
+                    const prototile = this.currentSystem.prototiles[tileData.type];
+                    if (!prototile) return;
+
+                    const polygon = document.createElementNS(SVG_NS, 'polygon');
+                    polygon.setAttribute('class', 'tile');
+                    
+                    const points = prototile.shape.map(p => {
+                        let transformed = { ...p };
+                        transformed = this.scalePoint(transformed, tileData.scale);
+                        if (tileData.flip) transformed.x = -transformed.x;
+                        transformed = this.rotatePoint(transformed, tileData.rot);
+                        return `${transformed.x + tileData.pos.x},${transformed.y + tileData.pos.y}`;
+                    }).join(' ');
+
+                    polygon.setAttribute('points', points);
+                    polygon.setAttribute('fill', prototile.color);
+                    this.g.appendChild(polygon);
+                });
+                this.updateInfo();
+            }
+
+            updateInfo() {
+                const infoDiv = document.getElementById('generation-info');
+                infoDiv.textContent = `Generation: ${this.generation} | Tiles: ${this.history[this.generation].length}`;
+                document.getElementById('step-back-btn').disabled = (this.generation === 0);
+            }
+
+            // --- Transformation Helpers ---
+            rotatePoint(p, angle) {
+                const rad = angle * Math.PI / 180;
+                const cos = Math.cos(rad);
+                const sin = Math.sin(rad);
+                return {
+                    x: p.x * cos - p.y * sin,
+                    y: p.x * sin + p.y * cos
+                };
+            }
+
+            scalePoint(p, scale) {
+                return { x: p.x * scale, y: p.y * scale };
+            }
+
+            // --- Pan & Zoom Handlers ---
+            updateViewBox() {
+                const { x, y, w, h } = this.viewBox;
+                this.svg.setAttribute('viewBox', `${x} ${y} ${w} ${h}`);
+            }
+
+            handleZoom(e) {
+                e.preventDefault();
+                const { clientX, clientY } = e;
+                const point = this.getSVGPoint(clientX, clientY);
+                
+                const scale = e.deltaY > 0 ? this.zoomFactor : 1 / this.zoomFactor;
+                const newW = this.viewBox.w * scale;
+                const newH = this.viewBox.h * scale;
+
+                this.viewBox.x = point.x - (point.x - this.viewBox.x) * scale;
+                this.viewBox.y = point.y - (point.y - this.viewBox.y) * scale;
+                this.viewBox.w = newW;
+                this.viewBox.h = newH;
+                
+                this.updateViewBox();
+            }
+
+            handlePanStart(e) {
+                e.preventDefault();
+                this.isPanning = true;
+                this.startPoint = this.getSVGPoint(e.clientX, e.clientY);
+            }
+
+            handlePanMove(e) {
+                if (!this.isPanning) return;
+                e.preventDefault();
+                const endPoint = this.getSVGPoint(e.clientX, e.clientY);
+                const dx = this.startPoint.x - endPoint.x;
+                const dy = this.startPoint.y - endPoint.y;
+                
+                this.viewBox.x += dx;
+                this.viewBox.y += dy;
+                this.updateViewBox();
+            }
+
+            handlePanEnd() {
+                this.isPanning = false;
+            }
+
+            getSVGPoint(clientX, clientY) {
+                const pt = this.svg.createSVGPoint();
+                pt.x = clientX;
+                pt.y = clientY;
+                return pt.matrixTransform(this.svg.getScreenCTM().inverse());
+            }
+            
+            // --- Export ---
+            download(filename, data) {
+                const blob = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.click();
+                URL.revokeObjectURL(url);
+            }
+            
+            exportSVG() {
+                const svgClone = this.svg.cloneNode(true);
+                svgClone.removeAttribute('viewBox'); // Use explicit dimensions for export
+                const rect = this.svg.getBoundingClientRect();
+                svgClone.setAttribute('width', rect.width);
+                svgClone.setAttribute('height', rect.height);
+
+                // Add background
+                const background = document.createElementNS(SVG_NS, 'rect');
+                background.setAttribute('width', '100%');
+                background.setAttribute('height', '100%');
+                background.setAttribute('fill', document.getElementById('canvas-container').style.backgroundColor || 'var(--bg-color)');
+                svgClone.insertBefore(background, svgClone.firstChild);
+
+                // Create a style element with the used variables
+                const styles = document.createElementNS(SVG_NS, 'style');
+                const css = `
+                    :root {
+                        --bg-color: #002b36;
+                        --penrose-color-1: #b58900;
+                        --penrose-color-2: #2aa198;
+                        --chair-color-1: #dc322f;
+                    }
+                    .tile { stroke: var(--bg-color); stroke-width: 1; }
+                `;
+                styles.textContent = css;
+                svgClone.insertBefore(styles, svgClone.firstChild);
+                
+                const svgData = new XMLSerializer().serializeToString(svgClone);
+                this.download(`tiling-gen${this.generation}.svg`, svgData);
+            }
+
+            exportPNG() {
+                const canvas = document.createElement('canvas');
+                const rect = this.svg.getBoundingClientRect();
+                const scale = 2; // Increase resolution
+                canvas.width = rect.width * scale;
+                canvas.height = rect.height * scale;
+                const ctx = canvas.getContext('2d');
+                
+                const svgData = new XMLSerializer().serializeToString(this.svg);
+                const svgUrl = 'data:image/svg+xml; charset=utf8, ' + encodeURIComponent(svgData);
+
+                const img = new Image();
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const link = document.createElement('a');
+                    link.download = `tiling-gen${this.generation}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                };
+                img.src = svgUrl;
+            }
+        }
+        
+        new TilingStudio();
+    });
+    </script>
+</body>
+</html>
