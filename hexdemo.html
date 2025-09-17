@@ -197,7 +197,7 @@
                 this.isLocked = false;
             }
             hasConnection(direction) {
-                const rotatedDir = (direction - this.rotation + 6) % 6;
+                const rotatedDir = (direction - this.rotation ) % 6;
                 return (this.connections & (1 << rotatedDir)) !== 0;
             }
         }
@@ -233,7 +233,7 @@
                 const { from, to, dir } = frontier.splice(Math.floor(Math.random() * frontier.length), 1)[0];
                 if (visited.has(to.key)) continue;
                 from.connections |= (1 << dir);
-                to.connections |= (1 << ((dir + 3) % 6));
+                to.connections |= (1 << ((dir) % 6));
                 visited.add(to.key);
                 for (let i = 0; i < 6; i++) {
                     const newNeighbor = getNeighbor(to, i);
@@ -260,7 +260,7 @@
                 for (let i = 0; i < 6; i++) {
                     if (current.hasConnection(i)) {
                         const neighbor = getNeighbor(current, i);
-                        if (neighbor && !visited.has(neighbor.key) && neighbor.hasConnection((i + 9) % 6)) {
+                        if (neighbor && !visited.has(neighbor.key) && neighbor.hasConnection((i) % 6)) {
                             visited.add(neighbor.key);
                             neighbor.isConnected = true;
                             queue.push(neighbor);
