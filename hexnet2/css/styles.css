@@ -1,33 +1,33 @@
 :root {
-    /* --- PALETTE DOMAIN: ELECTRIC HONEY (Enhanced Contrast) --- */
+    /* --- PALETTE DOMAIN: ELECTRIC HONEY (Accessible/Lightened) --- */
     /* Strategy: Cold Inactive vs Warm Active */
 
     /* BACKGROUND: The Void */
-    --color-void-main: #0d0015;
-    /* Deepest Black-Purple */
+    --color-void-main: #1f1529;
+    /* Lighter Purple-Grey Background */
 
     /* SUBSTRATE: The Hex Tiles */
-    --color-glass-cold: #161626;
-    /* Inactive (Dark Blue-Grey) */
-    --color-glass-warm: #2a152e;
-    /* Connected (Deep Plum) */
-    --color-glass-source: #5e2a00;
-    /* Source Base (Burnt Orange) */
+    --color-glass-cold: #2c2c45;
+    /* Inactive (Lighter Slate Blue) */
+    --color-glass-warm: #452c4f;
+    /* Connected (Lighter Plum) */
+    --color-glass-source: #8f4f00;
+    /* Source Base (Bright Amber) */
 
     /* TRACES: The Conduits/Markings */
-    /* NEW: distinct hue for inactive lines for better contrast */
-    --color-metal-cold: #4a5061;
-    /* Inactive (Slate Blue/Steel) */
-    --color-metal-gold: #ffcc00;
-    /* Active (Neon Gold) */
+    /* Increased contrast against the lighter tiles */
+    --color-metal-cold: #8a9bb8;
+    /* Inactive (Bright Steel Blue) */
+    --color-metal-gold: #ffdd44;
+    /* Active (Bright Lemon Gold) */
 
     /* INTERFACE: UI Elements */
-    --color-ui-text: #b8c1ec;
-    /* Cold Lavender Text */
-    --color-ui-cursor: #00fff2;
-    /* Cyan Laser */
-    --color-ui-highlight: #ff00ea;
-    /* Magenta */
+    --color-ui-text: #ffffff;
+    /* Pure White Text for Max Contrast */
+    --color-ui-cursor: #00ffff;
+    /* Max Cyan Laser */
+    --color-ui-highlight: #ff55f0;
+    /* Bright Magenta */
 
     /* --- SEMANTIC MAPPING --- */
     --bg-color: var(--color-void-main);
@@ -38,9 +38,7 @@
     --source-color: var(--color-glass-source);
 
     --line-color: var(--color-metal-cold);
-    /* Cold Steel when inactive */
     --connected-line-color: var(--color-metal-gold);
-    /* Hot Gold when active */
 
     --text-color: var(--color-ui-text);
     --cursor-color: var(--color-ui-cursor);
