@@ -1,0 +1,260 @@
+:root {
+    /* --- PALETTE DOMAIN: ELECTRIC HONEY (Enhanced Contrast) --- */
+    /* Strategy: Cold Inactive vs Warm Active */
+
+    /* BACKGROUND: The Void */
+    --color-void-main: #0d0015;
+    /* Deepest Black-Purple */
+
+    /* SUBSTRATE: The Hex Tiles */
+    --color-glass-cold: #161626;
+    /* Inactive (Dark Blue-Grey) */
+    --color-glass-warm: #2a152e;
+    /* Connected (Deep Plum) */
+    --color-glass-source: #5e2a00;
+    /* Source Base (Burnt Orange) */
+
+    /* TRACES: The Conduits/Markings */
+    /* NEW: distinct hue for inactive lines for better contrast */
+    --color-metal-cold: #4a5061;
+    /* Inactive (Slate Blue/Steel) */
+    --color-metal-gold: #ffcc00;
+    /* Active (Neon Gold) */
+
+    /* INTERFACE: UI Elements */
+    --color-ui-text: #b8c1ec;
+    /* Cold Lavender Text */
+    --color-ui-cursor: #00fff2;
+    /* Cyan Laser */
+    --color-ui-highlight: #ff00ea;
+    /* Magenta */
+
+    /* --- SEMANTIC MAPPING --- */
+    --bg-color: var(--color-void-main);
+
+    --tile-color: var(--color-glass-cold);
+    --unconnected-color: var(--color-glass-cold);
+    --connected-color: var(--color-glass-warm);
+    --source-color: var(--color-glass-source);
+
+    --line-color: var(--color-metal-cold);
+    /* Cold Steel when inactive */
+    --connected-line-color: var(--color-metal-gold);
+    /* Hot Gold when active */
+
+    --text-color: var(--color-ui-text);
+    --cursor-color: var(--color-ui-cursor);
+
+    --line-width: 4;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    text-align: center;
+    transition: background-color 0.5s ease;
+}
+
+h1 {
+    margin-bottom: 0.5rem;
+    color: #ffb700;
+    /* Honey Gold */
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(255, 183, 0, 0.3);
+}
+
+.flavor-text {
+    margin: -0.5rem 0 1.5rem 0;
+    font-weight: 300;
+    font-style: italic;
+    color: #aa99aa;
+}
+
+#game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 95vmin;
+}
+
+#game-controls {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+button,
+select {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: 1px solid var(--tile-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    background-color: transparent;
+    transition: background-color 0.2s, color 0.2s;
+    cursor: pointer;
+}
+
+button:hover:not(:disabled),
+select:hover {
+    background-color: var(--tile-color);
+    color: #ffffff;
+}
+
+#game-board {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.hex-group {
+    cursor: pointer;
+    transition: filter 0.2s ease-in-out;
+}
+
+.hex-tile {
+    stroke: var(--bg-color);
+    stroke-width: 3;
+    /* Slightly bigger gap between tiles */
+    transition: fill 0.3s ease-in-out, stroke 0.5s ease;
+    fill: var(--tile-color);
+    /* Default fill */
+}
+
+.hex-lines {
+    stroke: var(--line-color);
+    stroke-width: var(--line-width);
+    stroke-linecap: round;
+    fill: none;
+    pointer-events: none;
+    transition: transform 0.2s ease-in-out, stroke 0.5s ease;
+    /* Removed static glow so sparks pop */
+    /* filter: drop-shadow(0 0 2px rgba(255, 183, 0, 0.4)); */
+    opacity: 0.6;
+    /* Slight transparency for "etched" look */
+}
+
+.hex-group.cursor .hex-tile {
+    stroke: var(--cursor-color);
+    stroke-width: 4px;
+    filter: drop-shadow(0 0 8px var(--cursor-color));
+}
+
+.hex-group[data-locked="true"] {
+    filter: brightness(0.7);
+}
+
+#win-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 43, 54, 0.9);
+    color: #ffffff;
+    padding: 40px 60px;
+    border-radius: 15px;
+    border: 1px solid var(--tile-color);
+    font-size: clamp(2rem, 8vw, 4rem);
+    font-weight: bold;
+    display: none;
+    text-align: center;
+    z-index: 100;
+    cursor: pointer;
+}
+
+#touch-controls {
+    display: none;
+    margin-top: 20px;
+    gap: 15px;
+}
+
+#touch-controls button {
+    font-size: 24px;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    line-height: 60px;
+}
+
+/* Show touch controls on touch devices or small screens */
+@media (pointer: coarse),
+(max-width: 768px) {
+    #touch-controls {
+        display: flex;
+    }
+}
+
+.spark {
+    fill: #ffffff;
+    /* Core is white hot */
+    filter: drop-shadow(0 0 5px var(--color-metal-gold));
+    /* Glow is Gold */
+    animation: spark-flash 0.5s ease-out forwards;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+}
+
+@keyframes spark-flash {
+    0% {
+        r: 3px;
+        opacity: 1;
+        fill: #ffffff;
+    }
+
+    40% {
+        r: 7px;
+        opacity: 1;
+        fill: var(--color-metal-gold);
+    }
+
+    100% {
+        r: 1px;
+        opacity: 0;
+    }
+}
+
+.surge {
+    fill: none;
+    stroke: var(--color-metal-gold);
+    stroke-width: 4;
+    stroke-linecap: round;
+    pointer-events: none;
+    z-index: 9;
+    /* Dasharray needs to be slightly longer than line length (~21px for size 30) */
+    stroke-dasharray: 40;
+    stroke-dashoffset: 40;
+    animation: surge-flow 0.5s ease-out forwards;
+    filter: drop-shadow(0 0 3px var(--color-metal-gold));
+}
+
+@keyframes surge-flow {
+    0% {
+        stroke-dashoffset: 40;
+        opacity: 1;
+    }
+
+    50% {
+        stroke-dashoffset: 0;
+        opacity: 1;
+    }
+
+    100% {
+        stroke-dashoffset: 0;
+        opacity: 0;
+    }
+}
