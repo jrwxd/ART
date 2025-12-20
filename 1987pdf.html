@@ -257,7 +257,10 @@
                 previewElement.dataset.id = imgData.id;
                 previewElement.classList.add('image-preview-item');
                 
-                previewElement.innerHTML = `<img src="${imgData.url}" alt="${imgData.name}">`;
+                const img = document.createElement('img');
+                img.src = imgData.url;
+                img.alt = imgData.name; // Safe from XSS when set as property
+                previewElement.appendChild(img);
 
                 const deleteBtn = document.createElement('div');
                 deleteBtn.textContent = 'X';
