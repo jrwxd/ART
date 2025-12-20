@@ -4,7 +4,7 @@ import { InputManager } from './input/InputManager.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Initial Config
-    const initialSize = 5;
+    const initialSize = 3;
 
     // 2. Initialize Core
     const session = new Session(initialSize);
